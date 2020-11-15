@@ -3912,7 +3912,7 @@ input, select, textarea {
 			letter-spacing: 0.225em;
 			list-style: none;
 			padding: 0;
-			text-transform: uppercase;
+			text-transform: capitalize;
 		}
 
 			#footer .copyright li {
