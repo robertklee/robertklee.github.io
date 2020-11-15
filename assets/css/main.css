@@ -2089,6 +2089,10 @@ input, select, textarea {
 			color: #76ddff;
 		}
 
+		.icon.style4 {
+			color: #ffffff;
+		}
+
 /* Image */
 
 	.image {
@@ -3630,7 +3634,7 @@ input, select, textarea {
 
 		#banner p {
 			letter-spacing: 0.225em;
-			text-transform: uppercase;
+			text-transform: none;
 		}
 
 			#banner p a {
