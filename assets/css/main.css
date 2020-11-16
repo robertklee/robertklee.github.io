@@ -72,6 +72,20 @@ input, select, textarea {
 	appearance: none;
 }
 
+/* Scrollbar */
+html {
+    overflow: scroll;
+    overflow-x: hidden;
+}
+::-webkit-scrollbar {
+    width: 0px;  /* Remove scrollbar space */
+    background: transparent;  /* Optional: just make scrollbar invisible */
+}
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+    background: #FF0000;
+}
+
 /* Basic */
 
 	@-ms-viewport {
@@ -2060,10 +2074,10 @@ input, select, textarea {
 			/* border: solid 2px #fff; */
 			display: inline-block;
 			font-size: 2em;
-			height: calc(3em + 2px);
-			line-height: 3em;
+			height: calc(2em);
+			line-height: 2em;
 			text-align: center;
-			width: calc(0.25em + 2px);
+			/* width: calc(0.25em); */
 		}
 
 			/* .icon.major:before {
