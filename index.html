@@ -1,279 +1,418 @@
-<!DOCTYPE HTML>
-<html>
-	<head>
-		<!-- Primary Meta Tags -->
-		<title>Robert Lee</title>
-		<link rel=icon href=/favicon.png>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="/assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="/assets/css/noscript.css" /></noscript>
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Robert Lee</title>
+		<link rel=icon href=/assets/favicon.png>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="granim.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://unpkg.com/typewriter-effect@latest/dist/core.js"></script>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <canvas id="canvas-image-blending"></canvas>
 
-		<!-- Open Graph / Facebook -->
-		<meta property="og:type" content="website">
-		<meta property="og:url" content="https://www.robertkl.com/">
-		<meta property="og:title" content="Robert Lee">
-		<meta property="og:description" content="Hi, I'm Robert! I love software development and machine learning (especially computer vision). I study electrical and computer engineering and will be joining Microsoft as a Software Engineer this summer.">
-		<meta property="og:image" content="http://www.robertkl.com/images/social.png">
-		<meta property="og:image:secure_url" content="https://www.robertkl.com/images/social.png">
+    <div class="main-content" style="text-align: center; width: 100%; position: absolute">
+      <center>
 
-		<!-- Twitter -->
-		<meta property="twitter:card" content="summary_large_image">
-		<meta property="twitter:url" content="https://www.robertkl.com/">
-		<meta property="twitter:title" content="Robert Lee">
-		<meta property="twitter:description" content="Hi, I'm Robert! I love software development and machine learning (especially computer vision). I study electrical and computer engineering and will be joining Microsoft as a Software Engineer this summer.">
-		<meta property="twitter:image" content="https://www.robertkl.com/images/social.png">
-	</head>
-	<body class="landing is-preload">
+        <div class="" style="height: 750px;">
+          <h1 style="padding-top: 230px; color: white;">Hi, my name is Robert!</h1>
+          <p style="padding-top: 25px; color: white;" id="app"></p>
+        </div>
 
-		<!-- Page Wrapper -->
-			<div id="page-wrapper">
+        <h1 style="padding-bottom: 10px; padding-top: 10px;">Introduction</h1>
 
-				<!-- Header -->
-					<header id="header" class="alt">
-						<h1><a href="/index.html">Robert Lee</a></h1>
-						<nav id="nav">
-							<ul>
-								<li class="special">
-									<a href="#menu" class="menuToggle"><span>Menu</span></a>
-									<div id="menu">
-										<ul>
-											<li><a href="/index.html">Home</a></li>
-											<li><a href="/hidden/docs/Robert_Lee_Website.pdf">Resumé</a></li>
-											<li><a href="/photography/index.html">Photography</a></li>
-										</ul>
-									</div>
-								</li>
-							</ul>
-						</nav>
-					</header>
+        <!-- Introduction -->
+        <div class="flex-container-reverse" style="padding-bottom: 50px; padding-top: 20px;">
+          <div class="big-container-left" style="">
+            <p class="time-text">I'm currently a <strong>Senior Software Engineer @ Microsoft</strong> on Azure AI Search, working on vector search, agentic retrieval, search relevance, and RAG.</p>
+            <p style="padding-bottom: 5px;">Hi, my name is Robert! I love <strong>software development</strong>, <strong>machine learning</strong>, and <strong>information retrieval</strong>. I graduated with a B.Eng in electrical and computer engineering and currently work at <b>Microsoft</b> as a <b>Senior Software Engineer</b> on the Azure AI Search team on vector search and information retrieval. Complementing my technical skills are my <strong>exceptional academics</strong> and <strong>proven leadership skills</strong>.</p>
+            <p style="padding-bottom: 5px;">I've spearheaded numerous initiatives, ranging from driving a <strong>200+ person conference</strong> from a vision to reality, founding and growing the <strong>Senior's Program</strong> to over 180+ volunteers and 650+ workshop participants, and delivering technical talks to <strong>250+ engineering students</strong>. I recently led a student group to develop and train a deep neural network for human pose estimation from scratch. Check it out <a href=https://share.streamlit.io/robertklee/coco-human-pose/main/human_pose_app.py>on Streamlit.</a></p>
+            <p style="padding-bottom: 5px;">Please reach out if you'd like to connect!</a></p>
+            <button style="padding-bottom: 5px;" type="button" class="btn btn-outline-success" id="resume">Resumé</button>
+          </div>
+          <div class="small-container-right">
+            <img src="assets/me.jpg" class="title-image">
+          </div>
+        </div>
 
-				<!-- Banner -->
-					<section id="banner">
-						<div class="inner">
-							<h2>Welcome!</h2>
-							<p>Hey there! I'm <strong>Robert</strong>.<br />
-							Scroll down to learn<br />
-							more about me!</p>
-						</div>
+        <h1 style="padding-bottom: 20px">Work Experience</h1>
 
-						<!-- <li><span class="icon fa-gem major style1"><span class="label">Lorem</span></span></li>
-						<li><span class="icon fa-heart major style2"><span class="label">Ipsum</span></span></li>
-						<li><span class="icon solid fa-code major style3"><span class="label">Dolor</span></span></li> -->
-						<a href="#one" class="more scrolly">Learn More</a>
-					</section>
+        <!-- Work Experience #1 -->
+        <div class="flex-container-reverse" style="padding-bottom: 50px; padding-top: 40px;">
+          <div class="big-container-left">
+            <h3>Senior Software Engineer, Microsoft Azure AI Search</h3>
+            <p class="time-text">Mar. 2025 - Present | Mar. 2025 - Present</p> 
+            <p class="tech-text">C++, C#, Java, Python | Vector Search, Agentic Retrieval, Information Retrieval, RAG, Distributed Systems</p> 
+            <p>Working on vector search, agentic retrieval, multi-vector/multi-modal, and search relevance within Azure AI Search's team for vector storage and retrieval of vector embeddings. Common applications include Generative AI LLMs, Retrieval Augmented Generation and multi-modal/multi-lingual/semantic search applications. </p>
+            <!-- <button style="padding-bottom: 5px;" type="button" class="btn btn-outline-success" id="btn1">See more</button> -->
+          </div>
+          <div class="small-container-right">
+            <img src="assets/microsoft.png" class="title-image">
+          </div>
+        </div>
 
-				<!-- One -->
-					<section id="one" class="wrapper style1 special">
-						<div class="inner">
-							<header class="major">
-								<h2>About me</h2>
-								<p>
-									Hi, I'm Robert! I love <strong>software development</strong>, <strong>machine learning</strong>, and <strong>information retrieval</strong>.<br />
-									I graduated with a B.Eng in electrical and computer engineering and currently work at <b>Microsoft</b> as a <b>Senior Software Engineer</b> on the Azure AI Search team on vector search and information retrieval.<br />
-									Complementing my technical skills are my <strong>exceptional academics</strong> and <strong>proven leadership skills</strong>.<br />
-								</p>
-								<p>
-									I've spearheaded numerous initiatives, ranging from driving a <strong>200+ person conference</strong> from <br />
-									a vision to reality, founding and growing the <strong>Senior's Program</strong> to over 180+ volunteers and<br />
-									650+ workshop participants, and delivering technical talks to <strong>250+ engineering students</strong>. <br />
-									I recently led a student group to develop and train a deep neural network for human pose <br />
-									estimation from scratch. Check it out <a href=https://share.streamlit.io/robertklee/coco-human-pose/main/human_pose_app.py>on Streamlit.</a>
-								</p>
-								<p>
-									In my spare time, I enjoy the outdoors and photography. (All of the images on this site are taken by me!)
-								</p>
-								<p>
-									Feel free to reach out if you'd like to connect!
-								</p>
-								<ul class="icons major">
-									<li><a href="https://www.linkedin.com/in/robert-k-lee/" class="icon brands fa-linkedin major style4"><span class="label">LinkedIn</span></a></li>
-									<li><a href="https://github.com/robertklee" class="icon brands fa-github major style4"><span class="label">GitHub</span></a></li>
-									<li><a href="mailto: hello@robertkl.com" class="icon fa-envelope major style4"><span class="label">Email</span></a></li>
-								</ul>
-								<a href="/hidden/docs/Robert_Lee_Website.pdf" class="button fit">Resumé</a>
-							</header>
-						</div>
-					</section>
+        <!-- Work Experience #2 -->
+        <div class="flex-container-reverse" style="padding-bottom: 50px; padding-top: 40px;">
+          <div class="big-container-left">
+            <h3>Software Engineer II, Microsoft Azure AI Search</h3>
+            <p class="time-text">Jun. 2022 - Feb. 2025 | Redmond, WA</p> 
+            <p class="tech-text">C++, C#, Java, Python | Vector Search, Vector Quantization, Information Retrieval, RAG, Distributed Systems</p> 
+            <p>
+              Working on vector search, vector quantization, and search relevance within Azure AI Search's team for vector storage and retrieval of vector embeddings. Projects on vector quantization and aggregations. <br>
+              <br>
+              - Delivered 8-32x cost savings and up to 20x latency reduction for customers by implementing vector quantization techniques such as binary vectors, scalar and binary quantization, with SIMD acceleration. <br>
+              - Improved relevance stack by defining and designing hybrid search subscores and score thresholding. <br>
+              - Implemented new quota enforcement mechanism for HNSW indexes underlying physical resource utilization, leveraging data-driven decisions and cross-team design discussions, reducing limit overshoot by 100x. <br>
+              - Successfully managed the end-to-end development of improved facet aggregations features from a spec doc; implemented a novel and highly extensible lexer-parser-evaluator which leveraged advanced mathematical concepts such as BNF grammar, shunting yard, and Reverse Polish Notation to parse, simplify, and validate the grammar string; added extensive AB test coverage. <br>
+              - Proactively identified test coverage weaknesses and expanded vector search engine tests with a new test suite, which discovered one critical bug in a new quantization algorithm before release. <br>
+              - Provided careful and thorough code reviews, offering detailed and constructive feedback by leveraging my technical expertise in distributed systems and vector algorithms to improve system reliability and performance. Key contributor on major features critical to the vector search product. <br>
+              - As a subject matter expert, coordinated cross-collaborative investigations and root-caused several deeply technical production incidents effectively, ensuring customer services are quickly restored to health and the underlying defects are understood and repair items triaged.
+            </p>
+            <!-- <button style="padding-bottom: 5px;" type="button" class="btn btn-outline-success" id="btn2">See more</button> -->
+          </div>
+          <div class="small-container-right">
+            <img src="assets/microsoft.png" class="title-image">
+          </div>
+        </div>
 
-				<!-- Two -->
-					<section id="two" class="wrapper alt style5"> <!--Used to be style2-->
-						<section class="spotlight">
-							<div class="image"><img src="/images/pic01.jpg" alt="" /></div><div class="content">
-								<h2>Senior Software Engineer</h2>
-								<h4>Microsoft | Redmond, WA (Remote)</h4>
-								<h5>C#, Java, Azure, REST APIs | Mar. 2025 - present</h5>
-								<ul>
-									<li>Working on vector search and search relevance within Azure AI Search's team for vector storage and retrieval of vector embeddings. <br />
-										Currently working on vector quantization in the Retrieval team of our AI team. Common applications include Generative AI LLMs, <br />
-										Retrieval Augmented Generation and multi-modal/multi-lingual/semantic search applications.</li>
-								</ul>
-							</div>
-						</section>
-						<section class="spotlight">
-							<div class="image"><img src="/images/pic02.jpg" alt="" /></div><div class="content">
-								<h2>Software Engineer II</h2>
-								<h4>Microsoft | Redmond, WA (Remote)</h4>
-								<h5>C#, Java, Azure, REST APIs | Jun. 2022 - Feb. 2025</h5>
-								<ul>
-									<li>Delivered 8-32x cost savings and up to 20x latency reduction for customers by implementing vector quantization techniques such as binary vectors, scalar and binary quantization, with SIMD acceleration.</li>
-									<li>Improved relevance stack by defining and designing hybrid search subscores and score thresholding.</li>
-									<li>Implemented new quota enforcement mechanism for HNSW indexes underlying physical resource utilization, leveraging data-driven decisions and cross-team design discussions, reducing limit overshoot by 100x.</li>
-									<li>Successfully managed the end-to-end development of improved facet aggregations features from a spec doc; implemented a novel and highly extensible lexer-parser-evaluator which leveraged advanced mathematical concepts such as BNF grammar, shunting yard, and Reverse Polish Notation to parse, simplify, and validate the grammar string; added extensive AB test coverage.</li>
-									<li>Proactively identified test coverage weaknesses and expanded vector search engine tests with a new test suite.</li>
-									<li>Provided careful and thorough code reviews, offering detailed and constructive feedback by leveraging my technical expertise in distributed systems and vector algorithms to improve system reliability and performance. Key contributor on major features critical to the vector search product.</li>
-									<li>As a subject matter expert, coordinated cross-collaborative investigations and root-caused several deeply technical production incidents effectively, ensuring customer services are quickly restored to health and the underlying defects are understood and repair items triaged.</li>
-								</ul>
-							</div>
-						</section>
-						<section class="spotlight">
-							<div class="image"><img src="/images/pic03.jpg" alt="" /></div><div class="content">
-								<h2>Software Engineer</h2>
-								<h4>Microsoft | Redmond, WA (Remote)</h4>
-								<h5>C#, Java, Azure, REST APIs | Jul. 2021 - May 2022</h5>
-								<ul>
-									<li>Working on the backend stack on Azure Cognitive Search team in <strong>C#</strong>, <strong>Java.</strong></li>
-								</ul>
-							</div>
-						</section>
-						<section class="spotlight">
-							<div class="image"><img src="/images/pic01.jpg" alt="" /></div><div class="content">
-								<h2>Software Engineer Intern</h2>
-								<h4>Microsoft | Redmond, WA (Remote)</h4>
-								<h5>C#, Java, Azure, REST APIs | Sept. 2020 - Dec. 2020</h5>
-								<ul>
-									<li>Design & implement a highly requested <strong>API & backend feature</strong> on Azure Cognitive Search team in <strong>C#</strong>, <strong>Java.</strong></li>
-								</ul>
-							</div>
-						</section>
-						<section class="spotlight">
-							<div class="image"><img src="/images/pic02.jpg" alt="" /></div><div class="content">
-								<h2>Software Engineer Intern</h2>
-								<h4>Microsoft | Bellevue, WA</h4>
-								<h5>TypeScript, JavaScript, Azure | June 2019 - Aug. 2019</h5>
-								<ul>
-									<li>Developed a <a href=https://docs.microsoft.com/en-us/azure/search/search-create-app-portal>dynamic search website generator</a> with suggestions and filtering options in <strong>TypeScript</strong>.</li>
-									<li>Connected designers, engineers, and program managers to identify scope of work and feature set.</li>
-									<li><strong>Improved user experience</strong> on Azure Search portal by adding new JSON editor & search website customization.</li>
-								</ul>
-							</div>
-						</section>
-						<section class="spotlight">
-							<div class="image"><img src="/images/pic03.jpg" alt="" /></div><div class="content">
-								<h2>Software Developer Intern</h2>
-								<h4>Microsoft | Vancouver, BC</h4>
-								<h5>C#, Xamarin, iOS, Android | Jan. 2018 - Apr. 2018</h5>
-								<ul>
-									<li>Built <a href=https://github.com/Microsoft/Mobile-Chest-X-Ray-Analysis>cross-platform mobile app</a> leveraging <strong>offline machine learning</strong> for chest x-ray classification in <strong>C#</strong>.</li>
-									<li>Built <strong>image processing</strong> pipeline, DevOps Continuous Integration, <strong>iOS share extension</strong>, and integration of TensorFlow Android binding library. <strong>Team expert on Git</strong> version control.</li>
-								</ul>
-							</div>
-						</section>
-					</section>
-				<!-- Three -->
-					<section id="three" class="wrapper style5 special">
-						<div class="inner">
-							<header class="major">
-							<h2>Leadership Experience</h2>
-							</header>
-						</div>
-						<div class="inner">
-							<h3>Founder & Program Leader</h3>
-							<h4><a href=https://www.uvic.ca/engineering/home/news/current/2019oct-free-computer-workshops-for-seniors.php>Senior’s Program</a> | Victoria, BC</h4>
-							<h5>July 2015 - Oct. 2021</h5>
+        <!-- Work Experience #3 -->
+        <div class="flex-container-reverse" style="padding-bottom: 50px; padding-top: 40px;">
+          <div class="big-container-left">
+            <h3>Software Engineer, Microsoft Azure AI Search</h3>
+            <p class="time-text">Jul. 2021 - May 2022 | Redmond, WA</p> 
+            <p>
+              - Implemented the new alias feature to Public Preview. <br>
+              - Modernized a key table in our telemetry database to be more performant and resilient while maintaining data integrity and zero downtime throughout the phased upgrade, resulting in a 50-100x speedup in runtime performance for queries using the table.
+            </p>
+            <!-- <button style="padding-bottom: 5px;" type="button" class="btn btn-outline-success" id="btn3">Visit</button> -->
+          </div>
+          <div class="small-container-right">
+            <img src="assets/microsoft.png" class="title-image">
+          </div>
+        </div>
 
-							• Founded a series of workshops on technology and computers for seniors in the community. <br>
-							• Supervised a team of <strong>180 volunteers</strong> to reach <strong>650+ attendees</strong> over 30 workshops; raised $700.
+        <!-- projects -->
+        <h1 style="padding-bottom: 20px">Projects</h1>
 
-							<h3>Chair & Vice-Chair</h3>
-							<h4><a href=https://ieeesb.uvic.ca>IEEE Student Branch</a> | Victoria, BC</h4>
-							<h5>Sept. 2019 - Jan. 2021</h5>
+        <!-- Project #1 -->
+        <div class="flex-container" style="padding-bottom: 100px; padding-top: 50px;">
+          <div class="small-container-left" style="">
+            <img src="assets/skateboarder-pred.jpg" alt="" class="title-image">
+          </div>
+          <div class="big-container-right" style="">
+            <h3>Human Pose Estimation using Deep Neural Networks</h3>
+            <p class="time-text">Jan. 2021 - May 2021</p>
+            <p style="padding-bottom: 10px;">
+              Project and Team Lead for a student team to develop a deep neural network for human pose estimation (HPE) on the COCO-2017 dataset. <br><br>
 
-							• Co-delivered skill development workshops focusing on Git, machine learning, integrated circuits, breadboarding, soldering, and Eagle circuit design, reaching <strong>250+ engineering students</strong>; successfully secured $1000 in funding.
+              I architected our cloud training pipeline, model architecture, and data augmentation method. I led work in model visualization and deployment. <br><br>
+
+              Our model achieves very good performance on almost all images, provided the person is relatively centered and about 60-95% of the vertical image height (these are limitations we chose due to the tight time constraints of the project). It struggles in some extremely difficult images, typically with highly overlapped people or heavily occluded joints. <br><br>
+
+              The model performs single-person single-image 2D HPE with a kinematic model and a heatmap-based approach for joint prediction rather than a regression on joint locations. The model was trained from scratch with random weight initializations, and our team developed much of the plumbing from scratch as well. 
+            </p>
+            <button type="button" class="btn btn-outline-success" id="btn-proj1">See more</button>
+          </div>
+        </div>
+
+        <!-- Project #2 -->
+        <div class="flex-container" style="padding-bottom: 100px; padding-top: 50px;">
+          <div class="small-container-left" style="">
+            <img src="assets/road-seg.jpg" alt="" class="title-image">
+          </div>
+          <div class="big-container-right" style="">
+            <h3>Semantic Road Segmentation using Convolutional Neural Networks</h3>
+            <p class="time-text">Jul. 2020 - Sep. 2020</p>
+            <p style="padding-bottom: 10px;">
+              - Successfully trained a U-Net CNN on the KITTI Road dataset using Keras, achieving up to 99.1% F1 score and 91% in the worst case. <br>
+              - Designed and implemented the full training pipeline, including data generator, training/testing scripts, custom loss functions, and cloud training setup using Google Colab. <br>
+              - Tuned hyperparameters and used data augmentation to improve model generalization under varied conditions. <br>
+              - Researched and designed the network architecture by analyzing state-of-the-art computer vision literature. <br>
+              - Resolved architectural and training bugs in the decoder and segmentation logic to ensure stable performance. <br>
+              - Evaluated model using pixel-based metrics and addressed edge cases like shadows, occlusions, and road artifacts.
+            </p>
+            <button type="button" class="btn btn-outline-success" id="btn-proj2">See more</button>
+          </div>
+        </div>
+
+        <!-- Project #3 -->
+        <div class="flex-container" style="padding-bottom: 100px; padding-top: 50px;">
+          <div class="small-container-left" style="">
+            <img src="assets/monocular-depth.jpg" alt="" class="title-image">
+          </div>
+          <div class="big-container-right" style="">
+            <h3>Computer Vision Project on Monocular Depth Estimation</h3>
+            <p class="time-text">Jan. 2020 - May 2020</p>
+            <p style="padding-bottom: 10px;">
+              - Implemented a limited version of Monodepth2, a self-supervised monocular depth estimation algorithm, in TensorFlow 1.13.1, replacing the original PyTorch implementation to improve project feasibility.<br>
+              - Adapted the model to the DrivingStereo dataset, a large-scale dataset (~136k training image pairs), to enhance depth prediction generalization compared to the smaller KITTI dataset.<br>
+              - Designed and trained a fully convolutional U-Net with a ResNet-18 encoder, optimized for stereo image inputs at 640×192 resolution.<br>
+              - Integrated self-supervised learning using stereo photometric reconstruction and edge-aware smoothness loss without requiring ground truth depth data.<br>
+              - Implemented multi-scale training loss, auto-masking for static pixels, and per-pixel minimum reprojection to improve depth estimation near occlusions and motion boundaries.
+            </p>
+            <button type="button" class="btn btn-outline-success" id="btn-proj3">See more</button>
+          </div>
+        </div>
+
+        <!-- Project #4 -->
+        <div class="flex-container" style="padding-bottom: 100px; padding-top: 50px;">
+          <div class="small-container-left" style="">
+            <img src="assets/battlesnake.png" alt="" class="title-image">
+          </div>
+          <div class="big-container-right" style="">
+            <h3>Battlesnake Reinforcement Learning AI Design</h3>
+            <p class="time-text">Jan. 2019 - May 2019</p>
+            <p style="padding-bottom: 10px;">
+              - Challenge: Classic snake game mechanics, but with up to 7 opponent snakes. Collisions with longer snakes or starvation result in death. Design algorithm to control snake in real-time game. Goal: Survive the longest.<br>
+              - Trained keras-rl reinforcement learning model with a combination of self-play and publicly available snakes.
+            </p>
+            <!-- <button type="button" class="btn btn-outline-success" id="btn-proj4">See more</button> -->
+          </div>
+        </div>
+
+      <div id="hobbies" style="display: none;"> 
+        <!-- Hobbies -->
+        <h2 style="padding-bottom: 20px">My other hobbies</h2>
+
+        <div class="row">
+          <!-- FIRST HOBBY CARD -->
+          <div class="col-sm-4" style="padding-bottom: 20px">
+            <div class="card">
+              <img src="assets/hobby1.jpeg" class="card-img-top" alt="...">
+              <div class="card-body">
+                <p class="card-text">Tennis</p>
+                <button type="button" class="btn btn-outline-success" id="hobbyBtn1">See more</button>
+              </div>
+            </div>
+          </div>
+          <!-- 2nd HOBBY CARD -->
+          <div class="col-sm-4" style="padding-bottom: 20px">
+            <div class="card">
+              <div class="card">
+                <img src="assets/hobby2.jpeg" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <p class="card-text">Basketball</p>
+                  <button type="button" class="btn btn-outline-success" id="hobbyBtn2">See more</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 3rd HOBBY CARD -->
+          <div class="col-sm-4" style="padding-bottom: 20px">
+            <div class="card">
+              <div class="card">
+                <img src="assets/hobby3.jpeg" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <p class="card-text">Soccer</p>
+                  <button type="button" class="btn btn-outline-success" id="hobbyBtn3">See more</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 4th HOBBY CARD -->
+          <div class="col-sm-4" style="padding-bottom: 20px">
+            <div class="card">
+              <div class="card">
+                <img src="assets/hobby4.jpeg" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <p class="card-text">Piano</p>
+                  <button type="button" class="btn btn-outline-success" id="hobbyBtn4">See more</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 5th HOBBY CARD -->
+          <div class="col-sm-4" style="padding-bottom: 20px">
+            <div class="card">
+              <div class="card">
+                <img src="assets/hobby5.jpeg" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <p class="card-text">Painting</p>
+                  <button type="button" class="btn btn-outline-success" id="hobbyBtn5">See more</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 6th HOBBY CARD -->
+          <div class="col-sm-4" style="padding-bottom: 20px">
+            <div class="card">
+              <div class="card">
+                <img src="assets/hobby6.jpeg" class="card-img-top" alt="...">
+                <div class="card-body">
+                  <p class="card-text">Skiing</p>
+                  <button type="button" class="btn btn-outline-success" id="hobbyBtn6">See more</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- Contact me / ending section -->
+        <h2 style="padding-bottom: 20px; padding-top: 80px;">Contact Me</h2>
+
+        <img src="assets/airplane.jpg"  class="rounded-corners" style="">
+
+        <br> <br>
+
+        <p style="padding-bottom: 20px;">I'd love to connect, so please feel free to reach me on any of these platforms. </p>
+
+        <a href="mailto:hello@robertkl.com" class="fa fa-paper-plane" style="margin-right: 10px"></a>
+        <a href="https://www.linkedin.com/in/robert-k-lee/" target="_blank" rel="noopener noreferrer" class="fa fa-linkedin" style="margin-right: 10px"></a>
+        <a href="https://github.com/robertklee" target="_blank" rel="noopener noreferrer" class="fa fa-github"></a>
+
+        <br> <br> <br> <br>
+
+        <p><small>&copy; Robert Lee <script>document.write(new Date().getFullYear());</script> | Made with ❤ with HTML, CSS, Javascript, & Bootstrap. Template from <a href="https://rosacodes.gumroad.com/l/personal-website-template">Rosacodes</a></small></p>
+
+      <div id="modals" style="display: none;"> 
+
+        <!--MODALS-->
+
+        <!-- Modal for Button #1 - change inside information such as images and text to make it your own-->
+        <div id="modal1" class="modal">
+          <div class="modal-content">
+            <span class="closeModal1">&times;</span>
+            <h2>Porttitor massa</h2>
+            <br>
+            <div id="carouselIndicators1" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carouselIndicators1" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#carouselIndicators1" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#carouselIndicators1" data-bs-slide-to="2" aria-label="Slide 3"></button>
+              </div>
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                  <img src="assets/desksetup2.webp" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="assets/desksetup3.jpeg" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="assets/desksetup4.webp" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+              </div>
+              <br>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselIndicators1" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselIndicators1" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+          </div>
+            <p>Lorem ipsum</p>
+            <p>Skills used:</p>
+            <ul>
+              <li>HTML, CSS, JavaScript</li>
+              <li>Google Firebase</li>
+            </ul>
+            <p>Skills learned:</p>
+            <ul>
+              <li>Marketing</li>
+            </ul>
+            <p>Lorem ipsum.</p>
+          </div>
+        </div>
+
+        <!-- Modal for Button #2 - change inside information such as images and text to make it your own-->
+        <div id="modal2" class="modal">
+          <div class="modal-content">
+            <span class="closeModal2">&times;</span>
+            <h2>Auctor augue</h2>
+            <br>
+            <div id="carouselIndicators2" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carouselIndicators2" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#carouselIndicators2" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#carouselIndicators2" data-bs-slide-to="2" aria-label="Slide 3"></button>
+              </div>
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                  <img src="assets/app1.webp" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="assets/app2.webp" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="assets/app3.webp" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+              </div>
+              <br>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselIndicators2" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselIndicators2" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+          </div>
+            <p>Lorem ipsum</p>
+            <p>Skills used:</p>
+            <ul>
+              <li>Swift</li>
+              <li>SwiftUI</li>
+            </ul>
+            <p>Skills learned:</p>
+            <ul>
+              <li>Github</li>
+            </ul>
+            <p>Lorem ipsum</p>
+          </div>
+        </div>
 
 
-							<h3>Conference Organizer Lead</h3>
-							<h4><a href=https://extrweb.uvic.ca/2019-Aug.24-engineering-30-year-reunion-event-registration>Swipe to Unlock Conference</a> | Victoria, BC</h4>
-							<h5>Aug. 2019 - Nov. 2019</h5>
+        <!-- MODALS FOR HOBBIES -->
 
-							• <strong>Assembled</strong> and orchestrated organizing committee; established conference vision. <br>
-							• Spearheaded logistics planning for <strong>200+ attendee conference</strong> on “fusion of technology and business strategy”.
+        <!-- Modal for Hobby Button #1 - change inside information such as images and text to make it your own-->
+        <div id="modalHobby1" class="modal">
+          <div class="modal-content">
+            <span class="closeModalHobby1">&times;</span>
+            <h2>Tennis</h2>
+            <br>
+            <div id="carouselIndicatorsHobby1" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carouselIndicatorsHobby1" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#carouselIndicatorsHobby1" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#carouselIndicatorsHobby1" data-bs-slide-to="2" aria-label="Slide 3"></button>
+              </div>
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                  <img src="https://images.pexels.com/photos/5730299/pexels-photo-5730299.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="https://images.pexels.com/photos/5739122/pexels-photo-5739122.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                  <img src="https://images.pexels.com/photos/5836917/pexels-photo-5836917.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" style="height: 400px; object-fit: contain; width: 100%;" class="d-block w-100" alt="...">
+                </div>
+              </div>
+              <br>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselIndicatorsHobby1" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselIndicatorsHobby1" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+          </div>
+            <p>Egestas congue quisque egestas diam in arcu cursus euismod. Accumsan lacus vel facilisis volutpat est velit egestas dui. Nulla porttitor massa id neque aliquam vestibulum morbi blandit. Enim ut tellus elementum sagittis vitae et leo duis. Neque gravida in fermentum et sollicitudin ac. Pharetra et ultrices neque ornare aenean euismod. Tincidunt id aliquet risus feugiat in ante metus dictum.</p>
+          </div>
+        </div>
+      </div>
 
-						</div>
-					</section>
-				<!-- Four -->
-					<section id="four" class="wrapper style3 special">
-						<div class="inner">
-							<header class="major">
-								<h2>Personal Projects</h2>
-								<p>My projects include computer vision, machine learning, embedded systems, and circuit design.</p>
-							</header>
-							<ul class="features">
-								<li class="icon solid fa-car">
-									<h3><a href=https://github.com/robertklee/KITTI-RoadSeg>Semantic Road Segmentation</a></h3>
-									<p>	Successfully trained U-Net CNN on KITTI Road dataset with worst case of 91% F1 score using Keras & Python.
-										</p>
-								</li>
-								<li class="icon solid fa-laptop">
-									<h3><a href=https://github.com/robertklee/C-Optimization-DCT>C Optimization Project on Discrete Cosine Transform</a></h3>
-									<p>Achieved a 10x speedup compared to naïve implementation by using C and assembly-level optimizations.</p>
-								</li>
-								<li class="icon solid fa-car">
-									<h3><a href=https://github.com/DeclanMcIntosh/monodepthV2tf>Monocular Depth Estimation</a></h3>
-									<p>Trained U-Net CNN for depth estimation on DrivingStereo dataset using Keras & Python.</p>
-								</li>
-								<li class="icon solid fa-code">
-									<h3><a href=https://github.com/robertklee/RoyalGameOfUr>Networked Web Game Application</a></h3>
-									<p>Implemented multi-user two-player online game using Python, Bottle, React, and SQLite & server-side logic.</p>
-								</li>
-								<li class="icon solid fa-code">
-									<h3><a href=https://github.com/DeclanMcIntosh/starter-snake-python>Battlesnake Reinforcement Learning-based AI Controller</a></h3>
-									<p>Trained keras-rl reinforcement learning model with a combination of self-play and publicly available snakes.</p>
-								</li>
-								<li class="icon solid fa-code">
-									<h3><a href=https://github.com/robertklee/PWM-Interfacing-Project>Pulse-Width-Modulated Signal Generation & Monitoring Embedded Systems</a></h3>
-									<p>Using the STM32F0 microcontroller, change the frequency of a PWM signal generated by a 555 timer, measure the frequency using interrupts, and interface with an LCD to display the results.</p>
-								</li>
-							</ul>
-						</div>
-					</section>
+      </center>
+    </div>
 
-				<!-- CTA -->
-					<!-- <section id="cta" class="wrapper style4">
-						<div class="inner">
-							<header>
-								<h2>Arcue ut vel commodo</h2>
-								<p>Aliquam ut ex ut augue consectetur interdum endrerit imperdiet amet eleifend fringilla.</p>
-							</header>
-							<ul class="actions stacked">
-								<li><a href="#" class="button fit primary">Activate</a></li>
-								<li><a href="#" class="button fit">Learn More</a></li>
-							</ul>
-						</div>
-					</section> -->
-
-				<!-- Footer -->
-					<footer id="footer">
-						<ul class="icons">
-							<li><a href="https://www.linkedin.com/in/robert-k-lee/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
-							<li><a href="https://github.com/robertklee" class="icon brands fa-github"><span class="label">GitHub</span></a></li>
-							<li><a href="mailto: hello@robertkl.com" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
-						</ul>
-						<ul class="copyright">
-							<li>&copy; Robert Lee <script>document.write(new Date().getFullYear());</script></li><li>Design: HTML5 UP</a></li>
-						</ul>
-					</footer>
-
-			</div>
-
-		<!-- Scripts -->
-			<script src="/assets/js/jquery.min.js"></script>
-			<script src="/assets/js/jquery.scrollex.min.js"></script>
-			<script src="/assets/js/jquery.scrolly.min.js"></script>
-			<script src="/assets/js/browser.min.js"></script>
-			<script src="/assets/js/breakpoints.min.js"></script>
-			<script src="/assets/js/util.js"></script>
-			<script src="/assets/js/main.js"></script>
-
-	</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="index.js" charset="utf-8"></script>
+  </body>
 </html>
