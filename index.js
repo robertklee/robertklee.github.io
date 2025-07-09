@@ -1,16 +1,15 @@
 var app = document.getElementById('app');
 
 var typewriter = new Typewriter(app, {
-  loop: true,
-  delay: 75,
+  loop: false,
+  delay: 40,
 });
 
 typewriter
   .pauseFor(500)
   .typeString('Welcome!')
-  .pauseFor(1000)
+  .pauseFor(500)
   .typeString(' I\'m a Senior Software Engineer at Microsoft, where I work on everything from search relevance to LLM-driven agents.') 
-  .pauseFor(3000)
   .start()
 
 

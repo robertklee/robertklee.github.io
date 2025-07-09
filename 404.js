@@ -7,19 +7,19 @@ var typewriter = new Typewriter(app, {
 
 
 typewriter
-    .pauseFor(500)
+    .pauseFor(300)
     .typeString('> Launching agent...<br>')
-    .pauseFor(700)
+    .pauseFor(400)
     .typeString('> Embedding query into vector space...<br>')
-    .pauseFor(700)
+    .pauseFor(400)
     .typeString('> Running multi-hop retrieval across distributed nodes...<br>')
-    .pauseFor(800)
+    .pauseFor(400)
     .typeString('> Nearest neighbor not found.<br><br>')
-    .pauseFor(1000)
+    .pauseFor(200)
     .typeString('> Recommendations:<br>')
     .typeString('   - Check the URL<br>')
     .typeString('   - Return to the homepage<br>')
-    .pauseFor(600)
+    .pauseFor(300)
     .typeString('<br>> Agent standing by for new instructions...')
     .start();
 
