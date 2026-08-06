@@ -58,3 +58,66 @@ btn_proj_3.onclick = function() {
   window.open("https://github.com/DeclanMcIntosh/monodepthV2tf", "_blank") 
 }
 
+// THEME / DARK MODE
+(function () {
+  var root = document.documentElement;
+  var toggle = document.getElementById('theme-toggle');
+  var meta = document.querySelector('meta[name="theme-color"]');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function currentTheme() {
+    return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    try { localStorage.setItem('theme', theme); } catch (e) {}
+    if (toggle) toggle.setAttribute('aria-pressed', theme === 'dark');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0d1117' : '#ffffff');
+  }
+
+  function switchTheme(event) {
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+
+    // Fallback for browsers without the View Transitions API, or when the
+    // user prefers reduced motion: switch instantly (CSS handles the fade).
+    if (!document.startViewTransition || reduceMotion) {
+      applyTheme(next);
+      return;
+    }
+
+    // Animate a circular reveal that expands from the toggle button.
+    var x = event && event.clientX ? event.clientX : window.innerWidth - 33;
+    var y = event && event.clientY ? event.clientY : 33;
+    var endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    var transition = document.startViewTransition(function () {
+      applyTheme(next);
+    });
+
+    transition.ready.then(function () {
+      root.animate(
+        {
+          clipPath: [
+            'circle(0px at ' + x + 'px ' + y + 'px)',
+            'circle(' + endRadius + 'px at ' + x + 'px ' + y + 'px)'
+          ]
+        },
+        {
+          duration: 500,
+          easing: 'ease-in-out',
+          pseudoElement: '::view-transition-new(root)'
+        }
+      );
+    });
+  }
+
+  if (toggle) {
+    applyTheme(currentTheme());
+    toggle.addEventListener('click', switchTheme);
+  }
+})();
+

@@ -1,3 +1,105 @@
+:root {
+  --bg: #ffffff;
+  --text: #1c1c1c;
+  --heading: #111111;
+  --muted: #3d3d3d;
+  --link: #0b5cad;
+  --toggle-bg: rgba(0, 0, 0, 0.35);
+  --toggle-border: rgba(255, 255, 255, 0.35);
+  --toggle-color: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0d1117;
+  --text: #c9d1d9;
+  --heading: #f0f6fc;
+  --muted: #9aa4af;
+  --link: #58a6ff;
+  --toggle-bg: rgba(255, 255, 255, 0.12);
+  --toggle-border: rgba(255, 255, 255, 0.25);
+  --toggle-color: #ffd666;
+}
+
+html {
+  background-color: var(--bg);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+a {
+  color: var(--link);
+}
+
+h1, h2, h3, p, a, .time-text, .tech-text {
+  transition: color 0.4s ease;
+}
+
+/* Dark-mode toggle button */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--toggle-border);
+  background: var(--toggle-bg);
+  color: var(--toggle-color);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.08);
+}
+
+.theme-toggle:active {
+  transform: scale(0.96);
+}
+
+.theme-toggle svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.theme-toggle .icon-sun {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-toggle .icon-sun {
+  display: block;
+}
+
+:root[data-theme="dark"] .theme-toggle .icon-moon {
+  display: none;
+}
+
+/* View Transition: circular reveal on theme switch. Disable the default
+   cross-fade so only the clip-path animation (driven by JS) is visible. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  h1, h2, h3, p, a, .time-text, .tech-text {
+    transition: none;
+  }
+}
+
 #canvas-image-blending {
   position: absolute;
   width: 100%;
@@ -24,21 +126,21 @@ h1 {
   font-family: 'Rubik', sans-serif;
   font-size: 3.0rem;
   font-weight: 700;
-  color: black;
+  color: var(--heading);
 }
 
 h2 {
   font-family: 'Rubik', sans-serif;
   font-size: 2.0rem;
   font-weight: 500;
-  color: black;
+  color: var(--heading);
 }
 
 h3 {
   font-family: 'Rubik', sans-serif;
   font-size: 1.8rem;
   font-weight: 500;
-  color: black;
+  color: var(--heading);
   padding-bottom: 10px;
 }
 
@@ -46,21 +148,21 @@ p {
   font-family: 'Rubik', sans-serif;
   font-size: 1.2rem;
   font-weight: 400;
-  color: black;
+  color: var(--text);
 }
 
 .time-text {
   font-family: 'Rubik', sans-serif;
   font-size: 1.2rem;
   font-weight: 200;
-  color: black;
+  color: var(--muted);
 }
 
 .tech-text {
   font-family: 'Rubik', sans-serif;
   font-size: 1rem;
   font-weight: 200;
-  color: black;
+  color: var(--muted);
 }
 
 .header-text {
