@@ -36,30 +36,30 @@ var granimInstance = new Granim({
 
 //RESUME
 var resume = document.getElementById("resume");
-resume.onclick = function() { 
-  window.open("/r/docs/Robert_Lee_Website.pdf", "_blank") //TODO add your link
-}
+resume.onclick = function() {
+  window.open("/r/docs/Robert_Lee_Website.pdf", "_blank"); //TODO add your link
+};
 
 // Project 1
 var btn_proj_1 = document.getElementById("btn-proj1");
-btn_proj_1.onclick = function() { 
-  window.open("https://github.com/robertklee/COCO-Human-Pose", "_blank") 
-}
+btn_proj_1.onclick = function() {
+  window.open("https://github.com/robertklee/COCO-Human-Pose", "_blank");
+};
 
 // Project 2
 var btn_proj_2 = document.getElementById("btn-proj2");
-btn_proj_2.onclick = function() { 
-  window.open("https://github.com/robertklee/KITTI-RoadSeg", "_blank") 
-}
+btn_proj_2.onclick = function() {
+  window.open("https://github.com/robertklee/KITTI-RoadSeg", "_blank");
+};
 
 // Project 3
 var btn_proj_3 = document.getElementById("btn-proj3");
-btn_proj_3.onclick = function() { 
-  window.open("https://github.com/DeclanMcIntosh/monodepthV2tf", "_blank") 
-}
+btn_proj_3.onclick = function() {
+  window.open("https://github.com/DeclanMcIntosh/monodepthV2tf", "_blank");
+};
 
 // THEME / DARK MODE
-(function () {
+;(function () {
   var root = document.documentElement;
   var toggle = document.getElementById('theme-toggle');
   var meta = document.querySelector('meta[name="theme-color"]');
