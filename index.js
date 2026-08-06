@@ -13,10 +13,14 @@ typewriter
   .start()
 
 
+var initialTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+
 var granimInstance = new Granim({
     element: '#canvas-image-blending',
     direction: 'top-bottom',
     isPausedWhenNotInView: true,
+    stateTransitionSpeed: 1500,
+    defaultStateName: initialTheme === 'dark' ? 'sunset' : 'day',
     image : {
         source: 'assets/snow.jpg', //change image for intro section if desired
         position: ['center', 'center'],
@@ -24,7 +28,8 @@ var granimInstance = new Granim({
         blendingMode: 'multiply',
     },
     states : {
-        "default-state": {
+        // Light mode: the original bright, cool daytime palette.
+        "day": {
             gradients: [
                 ['#29323c', '#485563'],
                 ['#FF6B6B', '#556270'],
@@ -32,6 +37,16 @@ var granimInstance = new Granim({
                 ['#f0ab51', '#eceba3']
             ],
             transitionSpeed: 8000
+        },
+        // Dark mode: a warm sunset drifting into dusk (alpenglow on the snow).
+        "sunset": {
+            gradients: [
+                ['#20143f', '#8e2de2'],
+                ['#8e2de2', '#e0532f'],
+                ['#e0532f', '#ffb56b'],
+                ['#3a1c71', '#d76d77']
+            ],
+            transitionSpeed: 6000
         }
     }
 });
@@ -80,6 +95,12 @@ btn_proj_3.onclick = function() {
 
   function switchTheme(event) {
     var next = currentTheme() === 'dark' ? 'light' : 'dark';
+
+    // Animate the mountain hero's gradient toward a sunset (dark) or the
+    // cool daytime palette (light); Granim cross-fades over stateTransitionSpeed.
+    if (typeof granimInstance !== 'undefined' && granimInstance && granimInstance.changeState) {
+      granimInstance.changeState(next === 'dark' ? 'sunset' : 'day');
+    }
 
     // Fallback for browsers without the View Transitions API, or when the
     // user prefers reduced motion: switch instantly (CSS handles the fade).
