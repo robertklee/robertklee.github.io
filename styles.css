@@ -213,6 +213,13 @@ picture {
   height: auto;
 }
 
+/* Logos that are transparent PNGs (e.g. the Microsoft logo) need an
+   opaque light backing in dark mode so their dark artwork stays legible. */
+:root[data-theme="dark"] .logo-light-bg {
+  background-color: #ffffff;
+  padding: 18px;
+}
+
 .modal {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
