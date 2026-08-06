@@ -38,12 +38,12 @@ var granimInstance = new Granim({
             ],
             transitionSpeed: 8000
         },
-        // Dark mode: a warm sunset drifting into dusk (alpenglow on the snow).
+        // Dark mode: blue hour easing into a warm rose dusk (alpenglow on snow).
         "sunset": {
             gradients: [
-                ['#20143f', '#8e2de2'],
-                ['#8e2de2', '#e0532f'],
-                ['#e0532f', '#ffb56b'],
+                ['#0d1b2a', '#2c5364'],
+                ['#1b263b', '#41668c'],
+                ['#2b3a5e', '#a86a80'],
                 ['#3a1c71', '#d76d77']
             ],
             transitionSpeed: 6000
