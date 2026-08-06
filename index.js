@@ -19,6 +19,8 @@ var granimInstance = new Granim({
     isPausedWhenNotInView: true,
     image : {
         source: 'assets/snow.jpg', //change image for intro section if desired
+        position: ['center', 'center'],
+        stretchMode: ['stretch-if-smaller', 'stretch-if-smaller'],
         blendingMode: 'multiply',
     },
     states : {
