@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /r/
+
+Sitemap: https://www.robertkl.com/sitemap.xml
