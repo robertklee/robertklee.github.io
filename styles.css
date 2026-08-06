@@ -81,9 +81,14 @@ p {
   height: 300px;
 }
 
+picture {
+  display: block;
+}
+
 .title-image {
   border-radius: 20px;
   width: 80%;
+  height: auto;
 }
 
 .modal {
