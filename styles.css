@@ -165,34 +165,72 @@ ul {
   text-align: left;
 }
 
-/* Contact me section */
+/* Buttons (replaces Bootstrap .btn / .btn-outline-success) */
 
-.fa {
-  padding: 20px;
-  font-size: 20px;
-  width: 60px;
+.btn {
+  display: inline-block;
+  font-family: 'Rubik', sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
   text-align: center;
   text-decoration: none;
-  border-radius: 50%;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out;
 }
 
-.fa:hover {
+.btn-outline-success {
+  color: #198754;
+  border-color: #198754;
+  background-color: transparent;
+}
+
+.btn-outline-success:hover,
+.btn-outline-success:focus {
+  color: #fff;
+  background-color: #198754;
+  border-color: #198754;
+}
+
+/* Contact me section */
+
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: opacity .15s ease-in-out;
+}
+
+.social-icon:hover,
+.social-icon:focus {
   opacity: 0.7;
 }
 
-.fa-paper-plane {
+.social-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: #fff;
+}
+
+.social-icon.email {
   background: #3D348B;
-  color: white;
 }
 
-.fa-linkedin {
+.social-icon.linkedin {
   background: #0072B1;
-  color: white;
 }
 
-.fa-github {
+.social-icon.github {
   background: #171515;
-  color: white;
 }
 
 /* Styling for the progress bars */
