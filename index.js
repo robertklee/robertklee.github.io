@@ -6,7 +6,23 @@ var app = document.getElementById('app');
 (function heroChat() {
   if (!app) return;
 
-  var PROMPT = 'Hi! Tell me about Robert Lee.';
+  // The visitor's "question" varies per page load too. All ten are intro-style
+  // paraphrases, so any thought/answer variant is a coherent response. The
+  // chosen prompt is fixed for the load (a retry regenerates the answer to the
+  // same question, like a real "regenerate").
+  var PROMPTS = [
+    'Hi! Tell me about Robert Lee.',
+    'Who is Robert Lee?',
+    'Can you introduce me to Robert Lee?',
+    'What should I know about Robert Lee?',
+    'Give me the quick rundown on Robert Lee.',
+    'What does Robert Lee work on?',
+    'Tell me a bit about Robert.',
+    'So, who exactly is Robert Lee?',
+    "What's Robert Lee all about?",
+    'Hey \u2014 introduce me to Robert Lee.'
+  ];
+  var PROMPT = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
 
   // Real language models are non-deterministic: the same prompt yields a
   // different chain-of-thought and answer each time. To echo that, we keep a
