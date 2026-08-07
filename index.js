@@ -78,6 +78,8 @@ var app = document.getElementById('app');
         } else {
           target.txt.insertBefore(document.createTextNode(chunk), cursor);
         }
+        // Keep the newest text in view when the trace is height-capped.
+        target.txt.scrollTop = target.txt.scrollHeight;
         var delay = base + Math.random() * jitter;
         if (/[.,;!?\u2014]$/.test(chunk)) delay += punct;
         setTimeout(step, delay);
@@ -88,6 +90,24 @@ var app = document.getElementById('app');
   function now() {
     return (window.performance && window.performance.now)
       ? window.performance.now() : Date.now();
+  }
+
+  // The hero is a fixed-height block; an expanded chain-of-thought must not
+  // grow past it (on narrow screens the overflow would overlap the next
+  // section). Cap the open trace to the space actually available, anchored to
+  // the (stable) trace top and a reserve for the answer below it, and let
+  // anything longer scroll inside the trace.
+  var answerReserve = 170; // updated to the real answer height once it streams
+
+  function cotCap(expanded) {
+    var box = app.parentElement;
+    if (!box || !box.getBoundingClientRect) return 100000;
+    var boxBottom = box.getBoundingClientRect().bottom;
+    var txtTop = think.txt.getBoundingClientRect().top;
+    // While thinking the answer isn't laid out yet, so only keep the trace
+    // from spilling past the hero; once expanded, reserve room for the answer.
+    var reserve = expanded ? answerReserve : 56;
+    return Math.max(120, Math.floor(boxBottom - txtTop - reserve));
   }
 
   var reduceMotion = window.matchMedia &&
@@ -124,20 +144,26 @@ var app = document.getElementById('app');
     thinkHead.setAttribute('aria-expanded', folded ? 'false' : 'true');
     if (reduceMotion) {
       think.line.classList.toggle('folded', folded);
-      el.style.maxHeight = folded ? '0px' : 'none';
+      el.style.maxHeight = folded ? '0px' : cotCap(true) + 'px';
       return;
     }
     if (folded) {
-      el.style.maxHeight = el.scrollHeight + 'px';
+      el.style.maxHeight = el.clientHeight + 'px'; // current rendered height
       void el.offsetHeight; // commit the start height before transitioning
       think.line.classList.add('folded');
       el.style.maxHeight = '0px';
     } else {
       think.line.classList.remove('folded');
-      el.style.maxHeight = el.scrollHeight + 'px';
+      // Re-measure the answer just before opening so the reserve reflects its
+      // real wrapped height (which can vary with web-font load timing).
+      if (answer.txt.textContent) {
+        answerReserve = Math.round(answer.line.getBoundingClientRect().height) + 40;
+      }
+      var cap = cotCap(true);
+      el.style.maxHeight = Math.min(el.scrollHeight, cap) + 'px';
       var done = function (e) {
         if (e.propertyName && e.propertyName !== 'max-height') return;
-        el.style.maxHeight = 'none'; // let it reflow naturally once open
+        el.style.maxHeight = cap + 'px'; // stay capped so a long trace scrolls
         el.removeEventListener('transitionend', done);
       };
       el.addEventListener('transitionend', done);
@@ -172,6 +198,7 @@ var app = document.getElementById('app');
     think.line.classList.remove('chat-pending');
     think.line.classList.add('line-enter');
     think.line.classList.add('is-thinking');
+    think.txt.style.maxHeight = cotCap(false) + 'px'; // keep the live trace inside the hero
     var t0 = now();
     await stream(think, THOUGHT, { base: 20, jitter: 22, punct: 60, subword: false });
     var secs = Math.max(1, Math.round((now() - t0) / 1000));
@@ -186,7 +213,35 @@ var app = document.getElementById('app');
     await wait(320);
 
     await stream(answer, ANSWER, { base: 45, jitter: 45 });
+    // Cache the answer's true height so an expanded trace always reserves
+    // enough room to keep the answer within the hero. If the user expanded the
+    // trace while the answer was still streaming, re-clamp it now.
+    answerReserve = Math.round(answer.line.getBoundingClientRect().height) + 40;
+    if (think.line.classList.contains('done') &&
+        !think.line.classList.contains('folded')) {
+      think.txt.style.maxHeight =
+        Math.min(think.txt.scrollHeight, cotCap(true)) + 'px';
+    }
   })();
+
+  // Keep the expanded trace clamped to the hero when the viewport changes
+  // (e.g. rotating a phone), so it never grows into the next section.
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (reduceMotion) return;
+      if (answer.txt.textContent) {
+        answerReserve = Math.round(answer.line.getBoundingClientRect().height) + 24;
+      }
+      var open = think.line.classList.contains('done') &&
+        !think.line.classList.contains('folded');
+      if (open) {
+        think.txt.style.maxHeight =
+          Math.min(think.txt.scrollHeight, cotCap(true)) + 'px';
+      }
+    }, 150);
+  });
 })();
 
 

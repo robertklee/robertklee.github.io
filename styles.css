@@ -235,9 +235,22 @@ h1, h2, h3, p, a, .time-text, .tech-text {
 
 .chat-think .txt {
   display: block;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
   font-style: italic;
   transition: max-height 0.45s ease, opacity 0.3s ease;
+}
+
+.chat-think .txt::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-think .txt::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 3px;
 }
 
 .chat-think.folded .txt {
