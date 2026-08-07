@@ -284,9 +284,13 @@ var granimInstance = new Granim({
 });
 
 //RESUME
+// The resume path is base64-encoded rather than embedded as a literal URL so
+// crawlers that scrape links from JS can't discover it. Combined with the
+// unguessable filename and robots.txt Disallow, this keeps it out of search
+// results. (GitHub Pages can't send an X-Robots-Tag: noindex header.)
 var resume = document.getElementById("resume");
 resume.onclick = function() {
-  window.open("/r/docs/Robert_Lee_Website.pdf", "_blank"); //TODO add your link
+  window.open(atob("L3IvZG9jcy9kb2MtNTYzNGZjMmY0NmUzNTU0NjJmM2YwMGVhNDIyYWIxMzMucGRm"), "_blank");
 };
 
 // Project 1
