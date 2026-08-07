@@ -60,9 +60,9 @@ var app = document.getElementById('app');
   // efficient) and sorted alphabetically within each tier; the menu draws a
   // faint separator between tiers instead of explicit group labels.
   var MODEL_GROUPS = [
-    ['Claude Fable 5', 'Claude Opus 4.8', 'Gemini 3.1 Pro', 'GPT-5.6 Sol'], // frontier
-    ['Claude Sonnet 5', 'GPT-5.5'],                                         // balanced
-    ['GPT-5.4 mini']                                                        // efficient
+    ['Claude Fable 5', 'Claude Opus 5', 'Gemini 3.1 Pro', 'GPT-5.6 Sol'], // frontier
+    ['Claude Sonnet 5', 'GPT-5.6 Terra'],                                         // balanced
+    ['Claude Haiku 4.5', 'GPT-5.6 Luna']                                                        // efficient
   ];
   var MODELS = [];
   var MODEL_GROUP_OF = []; // tier index per flat model index (for separators)
