@@ -8,7 +8,7 @@ var app = document.getElementById('app');
 
   var PROMPT = 'Hi! Tell me about Robert Lee.';
   var THOUGHT = "The visitor wants a quick intro, so let me pull together what matters. Robert's a senior engineer at Microsoft Azure AI Search, working across information retrieval, search relevance, and ranking \u2014 from classic keyword search to vector search, hybrid retrieval, and agentic retrieval, plus the RAG infrastructure behind enterprise AI. He's shipped work like vector quantization for major cost and latency wins, and cares about surfacing the right results fast at scale. I'll keep the reply to one sharp, welcoming line.";
-  var ANSWER = "Welcome! I'm Robert \u2014 I build the vector, hybrid, and agentic retrieval that grounds enterprise AI in the right knowledge at billion-vector scale.";
+  var ANSWER = "Welcome! I'm Robert \u2014 I build the vector, hybrid, and agentic retrieval that grounds enterprise AI with the right knowledge at billion-vector scale.";
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
@@ -59,15 +59,25 @@ var app = document.getElementById('app');
     var base = opts.base == null ? 45 : opts.base;
     var jitter = opts.jitter == null ? 45 : opts.jitter;
     var punct = opts.punct == null ? 180 : opts.punct;
+    var fade = opts.fade !== false && !reduceMotion;
     var tokens = tokenize(text, opts.subword !== false);
-    target.line.appendChild(cursor);
+    // Keep the shared cursor as the last child of the active text node so
+    // newly streamed tokens are inserted just before it.
+    target.txt.appendChild(cursor);
     return new Promise(function (resolve) {
       var i = 0;
       (function step() {
         if (i >= tokens.length) return resolve();
-        target.txt.textContent += tokens[i];
-        target.line.appendChild(cursor);
         var chunk = tokens[i++];
+        if (fade) {
+          // Each token fades in for that ChatGPT "tokens landing" feel.
+          var span = document.createElement('span');
+          span.className = 'tok';
+          span.textContent = chunk;
+          target.txt.insertBefore(span, cursor);
+        } else {
+          target.txt.insertBefore(document.createTextNode(chunk), cursor);
+        }
         var delay = base + Math.random() * jitter;
         if (/[.,;!?\u2014]$/.test(chunk)) delay += punct;
         setTimeout(step, delay);
@@ -106,10 +116,37 @@ var app = document.getElementById('app');
   think.line.classList.add('chat-pending');
   answer.line.classList.add('chat-pending');
 
+  // Smoothly fold / unfold the chain-of-thought trace. We measure the real
+  // height and animate max-height (plus opacity) so the collapse glides
+  // instead of snapping.
+  function setFolded(folded) {
+    var el = think.txt;
+    thinkHead.setAttribute('aria-expanded', folded ? 'false' : 'true');
+    if (reduceMotion) {
+      think.line.classList.toggle('folded', folded);
+      el.style.maxHeight = folded ? '0px' : 'none';
+      return;
+    }
+    if (folded) {
+      el.style.maxHeight = el.scrollHeight + 'px';
+      void el.offsetHeight; // commit the start height before transitioning
+      think.line.classList.add('folded');
+      el.style.maxHeight = '0px';
+    } else {
+      think.line.classList.remove('folded');
+      el.style.maxHeight = el.scrollHeight + 'px';
+      var done = function (e) {
+        if (e.propertyName && e.propertyName !== 'max-height') return;
+        el.style.maxHeight = 'none'; // let it reflow naturally once open
+        el.removeEventListener('transitionend', done);
+      };
+      el.addEventListener('transitionend', done);
+    }
+  }
+
   function enableThoughtToggle() {
     thinkHead.addEventListener('click', function () {
-      var folded = think.line.classList.toggle('folded');
-      thinkHead.setAttribute('aria-expanded', folded ? 'false' : 'true');
+      setFolded(!think.line.classList.contains('folded'));
     });
   }
 
@@ -118,12 +155,12 @@ var app = document.getElementById('app');
     think.line.classList.remove('chat-pending');
     answer.line.classList.remove('chat-pending');
     think.txt.textContent = THOUGHT;
-    think.line.classList.add('done', 'folded');
+    think.line.classList.add('done');
+    setFolded(true);
     thinkLabel.textContent = 'Thought for 2s';
-    thinkHead.setAttribute('aria-expanded', 'false');
     enableThoughtToggle();
     answer.txt.textContent = ANSWER;
-    answer.line.appendChild(cursor);
+    answer.txt.appendChild(cursor);
     return;
   }
 
@@ -133,6 +170,7 @@ var app = document.getElementById('app');
     await wait(320);
 
     think.line.classList.remove('chat-pending');
+    think.line.classList.add('line-enter');
     think.line.classList.add('is-thinking');
     var t0 = now();
     await stream(think, THOUGHT, { base: 20, jitter: 22, punct: 60, subword: false });
@@ -142,10 +180,9 @@ var app = document.getElementById('app');
     thinkLabel.textContent = 'Thought for ' + secs + 's';
     enableThoughtToggle();
     await wait(750);
-    think.line.classList.add('folded');
-    thinkHead.setAttribute('aria-expanded', 'false');
+    setFolded(true);
     answer.line.classList.remove('chat-pending');
-    answer.line.appendChild(cursor);
+    answer.line.classList.add('line-enter');
     await wait(320);
 
     await stream(answer, ANSWER, { base: 45, jitter: 45 });

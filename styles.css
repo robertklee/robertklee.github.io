@@ -119,6 +119,13 @@ h1, h2, h3, p, a, .time-text, .tech-text {
     animation: none;
     opacity: 1;
   }
+  .tok,
+  .line-enter {
+    animation: none;
+  }
+  .chat-think .txt {
+    transition: none;
+  }
 }
 
 /* Blinking block cursor for the hero token-streaming animation. */
@@ -132,6 +139,26 @@ h1, h2, h3, p, a, .time-text, .tech-text {
 @keyframes cursor-blink {
   0%, 50% { opacity: 1; }
   50.01%, 100% { opacity: 0; }
+}
+
+/* Each streamed token softly fades in (ChatGPT-style). */
+.tok {
+  animation: tok-fade 0.42s ease both;
+}
+
+@keyframes tok-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Each new chat line eases in as its phase begins. */
+.line-enter {
+  animation: line-enter 0.5s ease both;
+}
+
+@keyframes line-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Hero "reasoning model" chat: prompt -> chain-of-thought -> answer. */
@@ -207,11 +234,14 @@ h1, h2, h3, p, a, .time-text, .tech-text {
 }
 
 .chat-think .txt {
+  display: block;
+  overflow: hidden;
   font-style: italic;
+  transition: max-height 0.45s ease, opacity 0.3s ease;
 }
 
 .chat-think.folded .txt {
-  display: none;
+  opacity: 0;
 }
 
 .chat-think.is-thinking .think-label::after {
