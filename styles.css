@@ -115,6 +115,28 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   h1, h2, h3, p, a, .time-text, .tech-text {
     transition: none;
   }
+  .stream-cursor {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Blinking block cursor for the hero token-streaming animation. */
+.stream-cursor {
+  display: inline-block;
+  margin-left: 1px;
+  color: currentColor;
+  animation: cursor-blink 1.05s steps(1) infinite;
+}
+
+.stream-cursor.is-streaming {
+  animation: none;
+  opacity: 1;
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
 }
 
 #canvas-image-blending {

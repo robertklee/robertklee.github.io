@@ -1,26 +1,57 @@
 var app = document.getElementById('app');
 
-var typewriter = new Typewriter(app, {
-  loop: false,
-  delay: 40,
-});
+// Stream the hero line like an LLM emitting tokens: word/subword chunks with
+// a variable cadence, small pauses at punctuation, and a blinking block cursor.
+(function streamHero() {
+  if (!app) return;
 
-typewriter
-  .pauseFor(500)
-  .typeString('Welcome!')
-  .pauseFor(600)
-  .typeString(" I'm Robert \u2014 I build ")
-  .typeString('vector search')
-  .pauseFor(700)
-  .deleteChars(13)
-  .typeString('agentic retrieval')
-  .pauseFor(700)
-  .deleteChars(17)
-  .typeString('RAG infrastructure')
-  .pauseFor(700)
-  .deleteChars(18)
-  .typeString('the retrieval engine behind enterprise AI.')
-  .start()
+  var message = "Welcome! I'm Robert \u2014 I build the vector search, agentic retrieval, and RAG infrastructure behind enterprise AI.";
+
+  var textSpan = document.createElement('span');
+  var cursor = document.createElement('span');
+  cursor.className = 'stream-cursor is-streaming';
+  cursor.setAttribute('aria-hidden', 'true');
+  cursor.textContent = '\u258B';
+  app.appendChild(textSpan);
+  app.appendChild(cursor);
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    textSpan.textContent = message;
+    cursor.classList.remove('is-streaming');
+    return;
+  }
+
+  // Split into whitespace-led words, then halve longer words into two
+  // subword chunks so the reveal reads like real token streaming.
+  var tokens = [];
+  (message.match(/\s*\S+/g) || []).forEach(function (word) {
+    var lead = word.match(/^\s*/)[0];
+    var core = word.slice(lead.length);
+    if (core.length > 7) {
+      var cut = Math.ceil(core.length / 2);
+      tokens.push(lead + core.slice(0, cut));
+      tokens.push(core.slice(cut));
+    } else {
+      tokens.push(word);
+    }
+  });
+
+  var i = 0;
+  function emit() {
+    if (i >= tokens.length) {
+      cursor.classList.remove('is-streaming');
+      return;
+    }
+    var chunk = tokens[i++];
+    textSpan.textContent += chunk;
+    var delay = 45 + Math.random() * 45;
+    if (/[.,;!?\u2014]$/.test(chunk)) delay += 180;
+    setTimeout(emit, delay);
+  }
+  setTimeout(emit, 400);
+})();
 
 
 var initialTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
