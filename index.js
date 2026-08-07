@@ -60,7 +60,7 @@ var app = document.getElementById('app');
   // with a subtle tier label above each group, and sorted alphabetically
   // within each tier.
   var MODEL_GROUPS = [
-    ['Claude Fable 5', 'Claude Opus 5', 'Gemini 3.1 Pro', 'GPT-5.6 Sol'], // frontier
+    ['Claude Fable 5', 'Claude Mythos 5 - Research Preview', 'Claude Opus 5', 'Gemini 3.1 Pro', 'GPT-5.6 Sol'], // frontier
     ['Claude Sonnet 5', 'GPT-5.6 Terra'],                                         // balanced
     ['Claude Haiku 4.5', 'GPT-5.6 Luna']                                                        // efficient
   ];
