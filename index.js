@@ -8,8 +8,18 @@ var typewriter = new Typewriter(app, {
 typewriter
   .pauseFor(500)
   .typeString('Welcome!')
-  .pauseFor(500)
-  .typeString(' I\'m a Senior Software Engineer at Microsoft, where I work on everything from search relevance to LLM-driven agents.') 
+  .pauseFor(600)
+  .typeString(" I'm Robert \u2014 I build ")
+  .typeString('vector search')
+  .pauseFor(700)
+  .deleteChars(13)
+  .typeString('agentic retrieval')
+  .pauseFor(700)
+  .deleteChars(17)
+  .typeString('RAG infrastructure')
+  .pauseFor(700)
+  .deleteChars(18)
+  .typeString('the retrieval engine behind enterprise AI.')
   .start()
 
 
