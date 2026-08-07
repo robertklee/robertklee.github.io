@@ -1,56 +1,142 @@
 var app = document.getElementById('app');
 
-// Stream the hero line like an LLM emitting tokens: word/subword chunks with
-// a variable cadence, small pauses at punctuation, and a blinking block cursor.
-(function streamHero() {
+// Turn the hero into a mini "reasoning model" moment: a user prompt, a brief
+// chain-of-thought that collapses into a "Thought for Ns" pill, then the
+// streamed answer - all trailed by a flashing block cursor.
+(function heroChat() {
   if (!app) return;
 
-  var message = "Welcome! I'm Robert \u2014 I build the vector search, agentic retrieval, and RAG infrastructure behind enterprise AI.";
+  var PROMPT = 'Hi! Who are you?';
+  var THOUGHT = "The visitor wants a quick intro. Robert's a senior engineer at Microsoft Azure AI Search \u2014 vector search, agentic retrieval, RAG infrastructure. Keep it to one sharp line.";
+  var ANSWER = "Welcome! I'm Robert \u2014 I build the vector search, agentic retrieval, and RAG infrastructure behind enterprise AI.";
 
-  var textSpan = document.createElement('span');
+  var chat = document.createElement('div');
+  chat.className = 'hero-chat';
+  app.appendChild(chat);
+
   var cursor = document.createElement('span');
-  cursor.className = 'stream-cursor is-streaming';
+  cursor.className = 'stream-cursor';
   cursor.setAttribute('aria-hidden', 'true');
   cursor.textContent = '\u258B';
-  app.appendChild(textSpan);
-  app.appendChild(cursor);
+
+  function makeLine(cls, prefix) {
+    var line = document.createElement('div');
+    line.className = 'chat-line ' + cls;
+    if (prefix) {
+      var pre = document.createElement('span');
+      pre.className = 'chat-prefix';
+      pre.textContent = prefix;
+      line.appendChild(pre);
+    }
+    var txt = document.createElement('span');
+    txt.className = 'txt';
+    line.appendChild(txt);
+    chat.appendChild(line);
+    return { line: line, txt: txt };
+  }
+
+  function tokenize(text, subword) {
+    var out = [];
+    (text.match(/\s*\S+/g) || []).forEach(function (word) {
+      if (!subword) { out.push(word); return; }
+      var lead = word.match(/^\s*/)[0];
+      var core = word.slice(lead.length);
+      if (core.length > 7) {
+        var cut = Math.ceil(core.length / 2);
+        out.push(lead + core.slice(0, cut));
+        out.push(core.slice(cut));
+      } else { out.push(word); }
+    });
+    return out;
+  }
+
+  function wait(ms) {
+    return new Promise(function (r) { setTimeout(r, ms); });
+  }
+
+  function stream(target, text, opts) {
+    opts = opts || {};
+    var base = opts.base == null ? 45 : opts.base;
+    var jitter = opts.jitter == null ? 45 : opts.jitter;
+    var punct = opts.punct == null ? 180 : opts.punct;
+    var tokens = tokenize(text, opts.subword !== false);
+    target.line.appendChild(cursor);
+    return new Promise(function (resolve) {
+      var i = 0;
+      (function step() {
+        if (i >= tokens.length) return resolve();
+        target.txt.textContent += tokens[i];
+        target.line.appendChild(cursor);
+        var chunk = tokens[i++];
+        var delay = base + Math.random() * jitter;
+        if (/[.,;!?\u2014]$/.test(chunk)) delay += punct;
+        setTimeout(step, delay);
+      })();
+    });
+  }
+
+  function now() {
+    return (window.performance && window.performance.now)
+      ? window.performance.now() : Date.now();
+  }
 
   var reduceMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var prompt = makeLine('chat-prompt', '\u276F');
+  var think = makeLine('chat-think');
+  var thinkHead = document.createElement('button');
+  thinkHead.type = 'button';
+  thinkHead.className = 'think-head';
+  thinkHead.setAttribute('aria-expanded', 'true');
+  var thinkChevron = document.createElement('span');
+  thinkChevron.className = 'think-chevron';
+  thinkChevron.setAttribute('aria-hidden', 'true');
+  thinkChevron.textContent = '\u25BE';
+  var thinkLabel = document.createElement('span');
+  thinkLabel.className = 'think-label';
+  thinkLabel.textContent = 'Thinking';
+  thinkHead.appendChild(thinkChevron);
+  thinkHead.appendChild(thinkLabel);
+  think.line.insertBefore(thinkHead, think.txt);
+  var answer = makeLine('chat-answer');
+
+  function enableThoughtToggle() {
+    thinkHead.addEventListener('click', function () {
+      var folded = think.line.classList.toggle('folded');
+      thinkHead.setAttribute('aria-expanded', folded ? 'false' : 'true');
+    });
+  }
+
   if (reduceMotion) {
-    textSpan.textContent = message;
-    cursor.classList.remove('is-streaming');
+    prompt.txt.textContent = PROMPT;
+    think.txt.textContent = THOUGHT;
+    think.line.classList.add('done');
+    thinkLabel.textContent = 'Thought for 2s';
+    enableThoughtToggle();
+    answer.txt.textContent = ANSWER;
+    answer.line.appendChild(cursor);
     return;
   }
 
-  // Split into whitespace-led words, then halve longer words into two
-  // subword chunks so the reveal reads like real token streaming.
-  var tokens = [];
-  (message.match(/\s*\S+/g) || []).forEach(function (word) {
-    var lead = word.match(/^\s*/)[0];
-    var core = word.slice(lead.length);
-    if (core.length > 7) {
-      var cut = Math.ceil(core.length / 2);
-      tokens.push(lead + core.slice(0, cut));
-      tokens.push(core.slice(cut));
-    } else {
-      tokens.push(word);
-    }
-  });
+  (async function run() {
+    await wait(350);
+    await stream(prompt, PROMPT, { base: 34, jitter: 30, subword: false });
+    await wait(320);
 
-  var i = 0;
-  function emit() {
-    if (i >= tokens.length) {
-      cursor.classList.remove('is-streaming');
-      return;
-    }
-    var chunk = tokens[i++];
-    textSpan.textContent += chunk;
-    var delay = 45 + Math.random() * 45;
-    if (/[.,;!?\u2014]$/.test(chunk)) delay += 180;
-    setTimeout(emit, delay);
-  }
-  setTimeout(emit, 400);
+    think.line.classList.add('is-thinking');
+    var t0 = now();
+    await stream(think, THOUGHT, { base: 20, jitter: 22, punct: 60, subword: false });
+    var secs = Math.max(1, Math.round((now() - t0) / 1000));
+    think.line.classList.remove('is-thinking');
+    think.line.classList.add('done');
+    thinkLabel.textContent = 'Thought for ' + secs + 's';
+    enableThoughtToggle();
+    answer.line.appendChild(cursor);
+    await wait(360);
+
+    await stream(answer, ANSWER, { base: 45, jitter: 45 });
+  })();
 })();
 
 

@@ -129,14 +129,110 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   animation: cursor-blink 1.05s steps(1) infinite;
 }
 
-.stream-cursor.is-streaming {
-  animation: none;
-  opacity: 1;
-}
-
 @keyframes cursor-blink {
   0%, 50% { opacity: 1; }
   50.01%, 100% { opacity: 0; }
+}
+
+/* Hero "reasoning model" chat: prompt -> chain-of-thought -> answer. */
+.hero-chat {
+  display: inline-block;
+  text-align: left;
+  max-width: 620px;
+  width: 88%;
+}
+
+.chat-line {
+  line-height: 1.55;
+}
+
+.chat-prompt {
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.chat-prompt .chat-prefix {
+  color: rgba(255, 255, 255, 0.45);
+  margin-right: 8px;
+}
+
+.chat-think {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.92em;
+  margin-bottom: 14px;
+}
+
+.chat-think .think-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin: 0 0 3px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: default;
+}
+
+.chat-think.done .think-head {
+  cursor: pointer;
+}
+
+.chat-think.done .think-head:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.think-chevron {
+  font-size: 0.8em;
+  transition: transform 0.2s ease;
+}
+
+.chat-think:not(.done) .think-chevron {
+  display: none;
+}
+
+.chat-think.folded .think-chevron {
+  transform: rotate(-90deg);
+}
+
+.chat-think .txt {
+  font-style: italic;
+}
+
+.chat-think.folded .txt {
+  display: none;
+}
+
+.chat-think.is-thinking .think-label::after {
+  content: '';
+  animation: think-dots 1.4s steps(1, end) infinite;
+}
+
+.chat-think.done {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.chat-think.done .think-label {
+  font-weight: 500;
+}
+
+.chat-answer {
+  color: #fff;
+  font-weight: 500;
+  font-size: 1.05em;
+}
+
+@keyframes think-dots {
+  0%   { content: ''; }
+  25%  { content: '.'; }
+  50%  { content: '..'; }
+  75%  { content: '...'; }
+  100% { content: ''; }
 }
 
 #canvas-image-blending {
