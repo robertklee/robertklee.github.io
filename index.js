@@ -56,16 +56,17 @@ var app = document.getElementById('app');
 
   // A "retry" control lets visitors regenerate the answer with a different
   // model, dramatizing the same idea: one prompt, many possible completions.
-  // Models are implicitly grouped by capability (frontier -> balanced ->
-  // efficient) and sorted alphabetically within each tier; the menu draws a
-  // faint separator between tiers instead of explicit group labels.
+  // Models are grouped by capability tier (frontier -> balanced -> efficient)
+  // with a subtle tier label above each group, and sorted alphabetically
+  // within each tier.
   var MODEL_GROUPS = [
     ['Claude Fable 5', 'Claude Opus 5', 'Gemini 3.1 Pro', 'GPT-5.6 Sol'], // frontier
     ['Claude Sonnet 5', 'GPT-5.6 Terra'],                                         // balanced
     ['Claude Haiku 4.5', 'GPT-5.6 Luna']                                                        // efficient
   ];
+  var MODEL_GROUP_LABELS = ['Frontier', 'Balanced', 'Efficient'];
   var MODELS = [];
-  var MODEL_GROUP_OF = []; // tier index per flat model index (for separators)
+  var MODEL_GROUP_OF = []; // tier index per flat model index (for tier labels)
   MODEL_GROUPS.forEach(function (g, gi) {
     g.forEach(function (name) { MODELS.push(name); MODEL_GROUP_OF.push(gi); });
   });
@@ -293,18 +294,15 @@ var app = document.getElementById('app');
   var menu = document.createElement('div');
   menu.className = 'retry-menu';
   menu.setAttribute('role', 'menu');
-  var menuHead = document.createElement('div');
-  menuHead.className = 'retry-menu-head';
-  menuHead.textContent = 'Try again with';
-  menu.appendChild(menuHead);
+  menu.setAttribute('aria-label', 'Choose a model to retry with');
 
   var menuItems = [];
   MODELS.forEach(function (name, i) {
-    if (i > 0 && MODEL_GROUP_OF[i] !== MODEL_GROUP_OF[i - 1]) {
-      var sep = document.createElement('div');
-      sep.className = 'retry-sep';
-      sep.setAttribute('role', 'separator');
-      menu.appendChild(sep);
+    if (i === 0 || MODEL_GROUP_OF[i] !== MODEL_GROUP_OF[i - 1]) {
+      var label = document.createElement('div');
+      label.className = 'retry-group-label';
+      label.textContent = MODEL_GROUP_LABELS[MODEL_GROUP_OF[i]];
+      menu.appendChild(label);
     }
     var item = document.createElement('button');
     item.type = 'button';

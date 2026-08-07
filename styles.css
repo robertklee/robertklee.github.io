@@ -358,20 +358,17 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   pointer-events: auto;
 }
 
-.retry-menu-head {
-  padding: 4px 10px 6px;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.7rem;
+/* Subtle capability-tier labels (frontier / balanced / efficient). */
+.retry-group-label {
+  padding: 9px 10px 3px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.72rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.01em;
 }
 
-/* Faint divider between capability tiers (frontier / balanced / efficient). */
-.retry-sep {
-  height: 1px;
-  margin: 5px 8px;
-  background: rgba(255, 255, 255, 0.1);
+.retry-group-label:first-of-type {
+  padding-top: 4px;
 }
 
 .retry-item {
