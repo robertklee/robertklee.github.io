@@ -367,6 +367,13 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   letter-spacing: 0.06em;
 }
 
+/* Faint divider between capability tiers (frontier / balanced / efficient). */
+.retry-sep {
+  height: 1px;
+  margin: 5px 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .retry-item {
   display: flex;
   align-items: center;

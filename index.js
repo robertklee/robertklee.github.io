@@ -56,10 +56,19 @@ var app = document.getElementById('app');
 
   // A "retry" control lets visitors regenerate the answer with a different
   // model, dramatizing the same idea: one prompt, many possible completions.
-  var MODELS = [
-    'Claude Opus 4.8', 'GPT-5.6 Sol', 'Claude Fable 5', 'Gemini 3.1 Pro',
-    'GPT-5.5', 'Claude Sonnet 5', 'GPT-5.4 mini'
+  // Models are implicitly grouped by capability (frontier -> balanced ->
+  // efficient) and sorted alphabetically within each tier; the menu draws a
+  // faint separator between tiers instead of explicit group labels.
+  var MODEL_GROUPS = [
+    ['Claude Fable 5', 'Claude Opus 4.8', 'Gemini 3.1 Pro', 'GPT-5.6 Sol'], // frontier
+    ['Claude Sonnet 5', 'GPT-5.5'],                                         // balanced
+    ['GPT-5.4 mini']                                                        // efficient
   ];
+  var MODELS = [];
+  var MODEL_GROUP_OF = []; // tier index per flat model index (for separators)
+  MODEL_GROUPS.forEach(function (g, gi) {
+    g.forEach(function (name) { MODELS.push(name); MODEL_GROUP_OF.push(gi); });
+  });
 
   var variantIdx = Math.floor(Math.random() * VARIANTS.length);
   var modelIdx = Math.floor(Math.random() * MODELS.length);
@@ -289,7 +298,14 @@ var app = document.getElementById('app');
   menuHead.textContent = 'Try again with';
   menu.appendChild(menuHead);
 
-  var menuItems = MODELS.map(function (name, i) {
+  var menuItems = [];
+  MODELS.forEach(function (name, i) {
+    if (i > 0 && MODEL_GROUP_OF[i] !== MODEL_GROUP_OF[i - 1]) {
+      var sep = document.createElement('div');
+      sep.className = 'retry-sep';
+      sep.setAttribute('role', 'separator');
+      menu.appendChild(sep);
+    }
     var item = document.createElement('button');
     item.type = 'button';
     item.className = 'retry-item';
@@ -303,7 +319,7 @@ var app = document.getElementById('app');
       retryWith(i);
     });
     menu.appendChild(item);
-    return item;
+    menuItems.push(item);
   });
 
   var modelTag = document.createElement('span');
