@@ -226,7 +226,10 @@ var app = document.getElementById('app');
   var thinkChevron = document.createElement('span');
   thinkChevron.className = 'think-chevron';
   thinkChevron.setAttribute('aria-hidden', 'true');
-  thinkChevron.textContent = '\u25BE';
+  thinkChevron.innerHTML =
+    '<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75" ' +
+    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var thinkLabel = document.createElement('span');
   thinkLabel.className = 'think-label';
   thinkLabel.textContent = 'Thinking';
