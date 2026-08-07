@@ -138,20 +138,20 @@ h1, h2, h3, p, a, .time-text, .tech-text {
 .hero-chat {
   display: inline-block;
   text-align: left;
-  max-width: 620px;
-  width: 88%;
+  max-width: 880px;
+  width: 90%;
   font-family: 'Rubik', sans-serif;
   font-size: 1.2rem;
 }
 
 .chat-line {
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .chat-prompt {
   color: rgba(255, 255, 255, 0.75);
   font-weight: 500;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .chat-prompt .chat-prefix {
@@ -162,7 +162,7 @@ h1, h2, h3, p, a, .time-text, .tech-text {
 .chat-think {
   color: rgba(255, 255, 255, 0.6);
   font-size: 0.92em;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .chat-think .think-head {

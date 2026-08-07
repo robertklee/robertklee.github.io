@@ -7,8 +7,8 @@ var app = document.getElementById('app');
   if (!app) return;
 
   var PROMPT = 'Hi! Tell me about Robert Lee.';
-  var THOUGHT = "The visitor wants a quick intro. Robert's a senior engineer at Microsoft Azure AI Search \u2014 vector search, agentic retrieval, RAG infrastructure. Keep it to one sharp line.";
-  var ANSWER = "Welcome! I'm Robert \u2014 I build the vector search, agentic retrieval, and RAG infrastructure behind enterprise AI.";
+  var THOUGHT = "The visitor wants a quick intro, so let me pull together what matters. Robert's a senior engineer at Microsoft Azure AI Search, working across information retrieval, search relevance, and ranking \u2014 from classic keyword search to vector search, hybrid retrieval, and agentic retrieval, plus the RAG infrastructure behind enterprise AI. He's shipped work like vector quantization for major cost and latency wins, and cares about surfacing the right results fast at scale. I'll keep the reply to one sharp, welcoming line.";
+  var ANSWER = "Welcome! I'm Robert \u2014 I work on information retrieval and search relevance across vector, hybrid, and agentic retrieval.";
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
@@ -111,8 +111,9 @@ var app = document.getElementById('app');
   if (reduceMotion) {
     prompt.txt.textContent = PROMPT;
     think.txt.textContent = THOUGHT;
-    think.line.classList.add('done');
+    think.line.classList.add('done', 'folded');
     thinkLabel.textContent = 'Thought for 2s';
+    thinkHead.setAttribute('aria-expanded', 'false');
     enableThoughtToggle();
     answer.txt.textContent = ANSWER;
     answer.line.appendChild(cursor);
@@ -132,8 +133,11 @@ var app = document.getElementById('app');
     think.line.classList.add('done');
     thinkLabel.textContent = 'Thought for ' + secs + 's';
     enableThoughtToggle();
+    await wait(750);
+    think.line.classList.add('folded');
+    thinkHead.setAttribute('aria-expanded', 'false');
     answer.line.appendChild(cursor);
-    await wait(360);
+    await wait(320);
 
     await stream(answer, ANSWER, { base: 45, jitter: 45 });
   })();
