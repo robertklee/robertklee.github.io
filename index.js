@@ -8,7 +8,7 @@ var app = document.getElementById('app');
 
   var PROMPT = 'Hi! Tell me about Robert Lee.';
   var THOUGHT = "The visitor wants a quick intro, so let me pull together what matters. Robert's a senior engineer at Microsoft Azure AI Search, working across information retrieval, search relevance, and ranking \u2014 from classic keyword search to vector search, hybrid retrieval, and agentic retrieval, plus the RAG infrastructure behind enterprise AI. He's shipped work like vector quantization for major cost and latency wins, and cares about surfacing the right results fast at scale. I'll keep the reply to one sharp, welcoming line.";
-  var ANSWER = "Welcome! I'm Robert \u2014 I work on information retrieval and search relevance across vector, hybrid, and agentic retrieval.";
+  var ANSWER = "Welcome! I'm Robert \u2014 I build the vector, hybrid, and agentic retrieval that grounds enterprise AI in the right knowledge at billion-vector scale.";
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
@@ -101,6 +101,11 @@ var app = document.getElementById('app');
   think.line.insertBefore(thinkHead, think.txt);
   var answer = makeLine('chat-answer');
 
+  // Keep the thinking and answer lines hidden until their phase begins so the
+  // "Thinking" header doesn't appear while the prompt is still typing.
+  think.line.classList.add('chat-pending');
+  answer.line.classList.add('chat-pending');
+
   function enableThoughtToggle() {
     thinkHead.addEventListener('click', function () {
       var folded = think.line.classList.toggle('folded');
@@ -110,6 +115,8 @@ var app = document.getElementById('app');
 
   if (reduceMotion) {
     prompt.txt.textContent = PROMPT;
+    think.line.classList.remove('chat-pending');
+    answer.line.classList.remove('chat-pending');
     think.txt.textContent = THOUGHT;
     think.line.classList.add('done', 'folded');
     thinkLabel.textContent = 'Thought for 2s';
@@ -125,6 +132,7 @@ var app = document.getElementById('app');
     await stream(prompt, PROMPT, { base: 34, jitter: 30, subword: false });
     await wait(320);
 
+    think.line.classList.remove('chat-pending');
     think.line.classList.add('is-thinking');
     var t0 = now();
     await stream(think, THOUGHT, { base: 20, jitter: 22, punct: 60, subword: false });
@@ -136,6 +144,7 @@ var app = document.getElementById('app');
     await wait(750);
     think.line.classList.add('folded');
     thinkHead.setAttribute('aria-expanded', 'false');
+    answer.line.classList.remove('chat-pending');
     answer.line.appendChild(cursor);
     await wait(320);
 

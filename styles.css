@@ -148,6 +148,10 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   line-height: 1.5;
 }
 
+.chat-pending {
+  display: none;
+}
+
 .chat-prompt {
   color: rgba(255, 255, 255, 0.75);
   font-weight: 500;
