@@ -276,6 +276,149 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   font-size: 1.05em;
 }
 
+/* Retry / regenerate toolbar under the answer. */
+.chat-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  font-family: 'Rubik', sans-serif;
+}
+
+.chat-actions-hidden {
+  display: none;
+}
+
+.retry-wrap {
+  position: relative;
+}
+
+.retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.retry-icon {
+  font-size: 0.95rem;
+}
+
+.retry-caret {
+  font-size: 0.6rem;
+  opacity: 0.8;
+  transition: transform 0.2s ease;
+}
+
+.retry-btn[aria-expanded="true"] .retry-caret {
+  transform: rotate(180deg);
+}
+
+.retry-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  background: rgba(20, 26, 38, 0.92);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 5;
+}
+
+.retry-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.retry-menu-head {
+  padding: 4px 10px 6px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.retry-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.retry-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.retry-check {
+  width: 12px;
+  flex: none;
+  color: #7ea0c4;
+  opacity: 0;
+}
+
+.retry-item.current {
+  color: #fff;
+}
+
+.retry-item.current .retry-check {
+  opacity: 1;
+}
+
+.model-tag {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.model-tag::before {
+  content: '\25CF';
+  margin-right: 6px;
+  font-size: 0.6em;
+  vertical-align: middle;
+  color: #7ea0c4;
+}
+
 @keyframes think-dots {
   0%   { content: ''; }
   25%  { content: '.'; }

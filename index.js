@@ -54,9 +54,18 @@ var app = document.getElementById('app');
     }
   ];
 
-  var chosen = VARIANTS[Math.floor(Math.random() * VARIANTS.length)];
-  var THOUGHT = chosen.thought;
-  var ANSWER = chosen.answer;
+  // A "retry" control lets visitors regenerate the answer with a different
+  // model, dramatizing the same idea: one prompt, many possible completions.
+  var MODELS = [
+    'Claude Opus 4.8', 'GPT-5.6 Sol', 'Claude Fable 5', 'Gemini 3.1 Pro',
+    'GPT-5.5', 'Claude Sonnet 5', 'GPT-5.4 mini'
+  ];
+
+  var variantIdx = Math.floor(Math.random() * VARIANTS.length);
+  var modelIdx = Math.floor(Math.random() * MODELS.length);
+  var THOUGHT = VARIANTS[variantIdx].thought;
+  var ANSWER = VARIANTS[variantIdx].answer;
+  var runToken = 0; // bumped on every (re)generation so stale runs abort
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
@@ -112,9 +121,11 @@ var app = document.getElementById('app');
     // Keep the shared cursor as the last child of the active text node so
     // newly streamed tokens are inserted just before it.
     target.txt.appendChild(cursor);
+    var myToken = runToken; // if a retry starts a new run, this stream aborts
     return new Promise(function (resolve) {
       var i = 0;
       (function step() {
+        if (myToken !== runToken) return resolve();
         if (i >= tokens.length) return resolve();
         var chunk = tokens[i++];
         if (fade) {
@@ -167,7 +178,11 @@ var app = document.getElementById('app');
     var box = app.parentElement;
     if (!box || !box.getBoundingClientRect) return;
     var limit = Math.round(box.getBoundingClientRect().bottom) - 16;
-    var overflow = Math.round(answer.line.getBoundingClientRect().bottom) - limit;
+    // The retry toolbar sits below the answer, so clamp against whichever is
+    // currently the lowest visible element.
+    var bottomEl = (typeof actions !== 'undefined' && actions &&
+      !actions.classList.contains('chat-actions-hidden')) ? actions : answer.line;
+    var overflow = Math.round(bottomEl.getBoundingClientRect().bottom) - limit;
     if (overflow > 0) {
       think.txt.style.maxHeight = Math.max(80, think.txt.clientHeight - overflow) + 'px';
     }
@@ -235,13 +250,156 @@ var app = document.getElementById('app');
     }
   }
 
+  var toggleBound = false;
   function enableThoughtToggle() {
+    if (toggleBound) return;
+    toggleBound = true;
     thinkHead.addEventListener('click', function () {
+      if (!think.line.classList.contains('done')) return;
       setFolded(!think.line.classList.contains('folded'));
     });
   }
 
-  if (reduceMotion) {
+  // --- Retry / regenerate toolbar -----------------------------------------
+  // A subtle control under the answer lets visitors regenerate the response
+  // with a different model. Same prompt, fresh sample: it picks a different
+  // chain-of-thought/answer variant and relabels it with the chosen model.
+  var actions = document.createElement('div');
+  actions.className = 'chat-actions chat-actions-hidden';
+
+  var retryWrap = document.createElement('div');
+  retryWrap.className = 'retry-wrap';
+
+  var retryBtn = document.createElement('button');
+  retryBtn.type = 'button';
+  retryBtn.className = 'retry-btn';
+  retryBtn.setAttribute('aria-haspopup', 'true');
+  retryBtn.setAttribute('aria-expanded', 'false');
+  retryBtn.setAttribute('aria-label', 'Retry with a different model');
+  retryBtn.innerHTML =
+    '<span class="retry-icon" aria-hidden="true">\u21BB</span>' +
+    '<span class="retry-text">Retry</span>' +
+    '<span class="retry-caret" aria-hidden="true">\u25BE</span>';
+
+  var menu = document.createElement('div');
+  menu.className = 'retry-menu';
+  menu.setAttribute('role', 'menu');
+  var menuHead = document.createElement('div');
+  menuHead.className = 'retry-menu-head';
+  menuHead.textContent = 'Try again with';
+  menu.appendChild(menuHead);
+
+  var menuItems = MODELS.map(function (name, i) {
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'retry-item';
+    item.setAttribute('role', 'menuitemradio');
+    item.innerHTML =
+      '<span class="retry-check" aria-hidden="true">\u2713</span>' +
+      '<span class="retry-name"></span>';
+    item.querySelector('.retry-name').textContent = name;
+    item.addEventListener('click', function () {
+      closeMenu();
+      retryWith(i);
+    });
+    menu.appendChild(item);
+    return item;
+  });
+
+  var modelTag = document.createElement('span');
+  modelTag.className = 'model-tag';
+
+  retryWrap.appendChild(retryBtn);
+  retryWrap.appendChild(menu);
+  actions.appendChild(retryWrap);
+  actions.appendChild(modelTag);
+  chat.appendChild(actions);
+
+  function onDocClick(e) { if (!retryWrap.contains(e.target)) closeMenu(); }
+  function onKey(e) { if (e.key === 'Escape') { closeMenu(); retryBtn.focus(); } }
+  function openMenu() {
+    menu.classList.add('open');
+    retryBtn.setAttribute('aria-expanded', 'true');
+    document.addEventListener('click', onDocClick, true);
+    document.addEventListener('keydown', onKey, true);
+  }
+  function closeMenu() {
+    menu.classList.remove('open');
+    retryBtn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onDocClick, true);
+    document.removeEventListener('keydown', onKey, true);
+  }
+  retryBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (menu.classList.contains('open')) closeMenu();
+    else openMenu();
+  });
+
+  function updateMenuChecks() {
+    menuItems.forEach(function (it, i) {
+      it.classList.toggle('current', i === modelIdx);
+      it.setAttribute('aria-checked', i === modelIdx ? 'true' : 'false');
+    });
+  }
+  function setActionsVisible(show) {
+    actions.classList.toggle('chat-actions-hidden', !show);
+  }
+  function revealActions() {
+    setActionsVisible(true);
+    if (!reduceMotion) {
+      actions.classList.remove('line-enter');
+      void actions.offsetWidth;
+      actions.classList.add('line-enter');
+    }
+    // Now that the toolbar occupies space below the answer, make sure an
+    // expanded trace still leaves room for both inside the hero.
+    if (think.line.classList.contains('done') &&
+        !think.line.classList.contains('folded')) {
+      ensureAnswerVisible();
+    }
+  }
+  function applySelection() {
+    THOUGHT = VARIANTS[variantIdx].thought;
+    ANSWER = VARIANTS[variantIdx].answer;
+    modelTag.textContent = MODELS[modelIdx];
+    updateMenuChecks();
+  }
+  function pickDifferentVariant() {
+    if (VARIANTS.length < 2) return variantIdx;
+    var idx;
+    do { idx = Math.floor(Math.random() * VARIANTS.length); } while (idx === variantIdx);
+    return idx;
+  }
+  function resetGeneration() {
+    runToken++; // cancels any in-flight run's streams/awaits
+    if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+    think.txt.innerHTML = '';
+    answer.txt.innerHTML = '';
+    think.line.classList.remove('done', 'folded', 'line-enter', 'is-thinking');
+    think.line.classList.add('chat-pending');
+    think.txt.style.maxHeight = '';
+    answer.line.classList.remove('line-enter');
+    answer.line.classList.add('chat-pending');
+    thinkLabel.textContent = 'Thinking';
+    thinkHead.setAttribute('aria-expanded', 'true');
+    answerReserve = 170;
+  }
+  function retryWith(idx) {
+    modelIdx = idx;
+    variantIdx = pickDifferentVariant();
+    if (reduceMotion) {
+      renderStatic();
+    } else {
+      setActionsVisible(false); // hide the toolbar while it "regenerates"
+      run(false);               // keep the same prompt; regenerate the rest
+    }
+  }
+
+  // Instant, no-animation render (used when the visitor prefers reduced motion,
+  // and on retry in that mode).
+  function renderStatic() {
+    resetGeneration();
+    applySelection();
     prompt.txt.textContent = PROMPT;
     think.line.classList.remove('chat-pending');
     answer.line.classList.remove('chat-pending');
@@ -249,16 +407,25 @@ var app = document.getElementById('app');
     think.line.classList.add('done');
     setFolded(true);
     thinkLabel.textContent = 'Thought for 2s';
-    enableThoughtToggle();
     answer.txt.textContent = ANSWER;
     answer.txt.appendChild(cursor);
-    return;
+    revealActions();
   }
 
-  (async function run() {
-    await wait(350);
-    await stream(prompt, PROMPT, { base: 34, jitter: 30, subword: false });
-    await wait(320);
+  // Animated generation. On first load streamPrompt is true; retries keep the
+  // existing prompt and regenerate only the thinking + answer.
+  async function run(streamPrompt) {
+    resetGeneration();
+    var myToken = runToken;
+    applySelection();
+
+    if (streamPrompt) {
+      await wait(350);
+      await stream(prompt, PROMPT, { base: 34, jitter: 30, subword: false });
+      if (myToken !== runToken) return;
+      await wait(320);
+      if (myToken !== runToken) return;
+    }
 
     think.line.classList.remove('chat-pending');
     think.line.classList.add('line-enter');
@@ -266,18 +433,21 @@ var app = document.getElementById('app');
     think.txt.style.maxHeight = cotCap(false) + 'px'; // keep the live trace inside the hero
     var t0 = now();
     await stream(think, THOUGHT, { base: 20, jitter: 22, punct: 60, subword: false });
+    if (myToken !== runToken) return;
     var secs = Math.max(1, Math.round((now() - t0) / 1000));
     think.line.classList.remove('is-thinking');
     think.line.classList.add('done');
     thinkLabel.textContent = 'Thought for ' + secs + 's';
-    enableThoughtToggle();
     await wait(750);
+    if (myToken !== runToken) return;
     setFolded(true);
     answer.line.classList.remove('chat-pending');
     answer.line.classList.add('line-enter');
     await wait(320);
+    if (myToken !== runToken) return;
 
     await stream(answer, ANSWER, { base: 45, jitter: 45 });
+    if (myToken !== runToken) return;
     // Cache the answer's true height so an expanded trace always reserves
     // enough room to keep the answer within the hero. If the user expanded the
     // trace while the answer was still streaming, re-clamp it now.
@@ -288,7 +458,16 @@ var app = document.getElementById('app');
         Math.min(think.txt.scrollHeight, cotCap(true)) + 'px';
       ensureAnswerVisible();
     }
-  })();
+    revealActions();
+  }
+
+  enableThoughtToggle();
+
+  if (reduceMotion) {
+    renderStatic();
+  } else {
+    run(true);
+  }
 
   // Keep the expanded trace clamped to the hero when the viewport changes
   // (e.g. rotating a phone), so it never grows into the next section.
