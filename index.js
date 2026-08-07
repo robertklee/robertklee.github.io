@@ -71,7 +71,7 @@ var app = document.getElementById('app');
   });
 
   var variantIdx = Math.floor(Math.random() * VARIANTS.length);
-  var modelIdx = Math.floor(Math.random() * MODELS.length);
+  var modelIdx = Math.floor(Math.random() * MODEL_GROUPS[0].length); // always "pick" a frontier model on first load
   var THOUGHT = VARIANTS[variantIdx].thought;
   var ANSWER = VARIANTS[variantIdx].answer;
   var runToken = 0; // bumped on every (re)generation so stale runs abort
