@@ -6,7 +6,7 @@ var app = document.getElementById('app');
 (function heroChat() {
   if (!app) return;
 
-  var PROMPT = 'Hi! Who are you?';
+  var PROMPT = 'Hi! Tell me about Robert Lee.';
   var THOUGHT = "The visitor wants a quick intro. Robert's a senior engineer at Microsoft Azure AI Search \u2014 vector search, agentic retrieval, RAG infrastructure. Keep it to one sharp line.";
   var ANSWER = "Welcome! I'm Robert \u2014 I build the vector search, agentic retrieval, and RAG infrastructure behind enterprise AI.";
 
