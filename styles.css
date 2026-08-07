@@ -140,6 +140,8 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   text-align: left;
   max-width: 620px;
   width: 88%;
+  font-family: 'Rubik', sans-serif;
+  font-size: 1.2rem;
 }
 
 .chat-line {
