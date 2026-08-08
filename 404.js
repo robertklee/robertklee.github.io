@@ -38,24 +38,98 @@ var app = document.getElementById('app');
   // Like a real reasoning model, the same prompt yields a different chain-of-
   // thought and answer each time. Every variant lands on the same truth: there
   // is no page here (404), so the best move is to head back to the homepage.
+  // Two pools. `egg: false` variants are the straight, helpful 404s; the first
+  // load always shows one of these so the page reads clearly. `egg: true`
+  // variants are the easter eggs \u2014 playful, on-brand answers that only surface
+  // when a curious visitor hits "Retry" (and even then only some of the time,
+  // thanks to the weighting below). Keep egg answers to a single line.
   var VARIANTS = [
     {
+      w: 2,
       thought: "Someone followed a link to this route, so let me try to resolve it. I'll embed the requested path and look it up across the pages I know about \u2014 home, experience, projects, photography. Nothing matches; there's simply no document at this address. That's a 404. The honest, useful move is to point them back to the homepage, where everything actually lives.",
       answer: "That page isn't here (404). The link may be broken or the page moved \u2014 but everything's still one hop away on the homepage."
     },
     {
+      w: 2,
       thought: "Let me search for this route. Running a nearest-neighbor lookup over the site's index... the closest matches all live on the main page, but none are an exact hit for this URL. So this is a genuine miss, not a ranking problem \u2014 a real 404. I'll say so plainly and send them somewhere that exists.",
       answer: "Looks like a 404 \u2014 I searched the site and couldn't find anything at this address. Head back to the homepage to pick up where you meant to go."
     },
     {
+      w: 2,
       thought: "A request came in for a page that doesn't exist. I could try to guess at something close, but the honest answer is there's no index entry for this route \u2014 the retrieval turned up zero relevant documents. Better to return a clean 404 than to hallucinate a page. I'll offer the homepage as the way back.",
       answer: "No page lives at this URL (404). Nothing to retrieve here \u2014 but the homepage has all of Robert's work, so let's get you back on track."
     },
     {
+      w: 2,
       thought: "Time to ground this in reality. I embedded the path and scanned the index for a nearest neighbor... and the nearest neighbor is pretty far away. There's no page at this address, so the right call is a 404. I'll keep it friendly and route the visitor to the homepage.",
       answer: "Even nearest-neighbor search came up empty \u2014 there's no page at this address (404). The homepage is your best next hop."
+    },
+
+    // --- Easter eggs (retry-only) -------------------------------------------
+    {
+      egg: true, w: 1,
+      thought: "This one deserves a little poetry. The visitor hit a dead end, so instead of a dry error I'll answer in a haiku \u2014 five, seven, five \u2014 that still admits the page is gone and points home. A small reward for retrying.",
+      answer: "Page slips through the mist \u2014 no vector points to it here \u2014 the homepage remains. (404)"
+    },
+    {
+      egg: true, w: 1,
+      thought: "Let me be playful but technical. I ran approximate nearest-neighbor search over every route; the recall was honest and the answer was still 'nothing.' Even a bigger efSearch wouldn't rescue this query. I'll wink at that and send them home.",
+      answer: "I cranked efSearch all the way up and walked every layer of the HNSW graph \u2014 the nearest neighbor to this page is still just the homepage. (404, but at least the recall was honest.)"
+    },
+    {
+      egg: true, w: 1,
+      thought: "A fun angle: on Azure AI Search we compress vectors up to 32x, but this page compressed all the way to zero bytes \u2014 there's nothing left to retrieve. I'll lean into the quantization pun and point home.",
+      answer: "Someone quantized this page a little too aggressively \u2014 it compressed all the way down to 0 bytes (404). The full-precision version lives on the homepage."
+    },
+    {
+      egg: true, w: 1,
+      thought: "The tempting move is to hallucinate a convincing page. But grounding matters \u2014 if it isn't in the index, I won't pretend it is. So I'll refuse to make one up and hand back an honest 404, with the homepage as the trustworthy source.",
+      answer: "I could hallucinate a lovely page for you here\u2026 but I'd rather stay grounded. There's genuinely nothing at this URL (404) \u2014 the homepage is the source of truth."
+    },
+    {
+      egg: true, w: 1,
+      thought: "Let me give this a retro-terminal wink. The route resolves to a null pointer; the honest status is 404. I'll keep it short and a little nerdy, then route home.",
+      answer: "> GET this_page \u2192 404 NOT_FOUND \u00b7 nearest match: '/' \u00b7 hint: head to the homepage."
+    },
+    {
+      egg: true, w: 1,
+      thought: "They hit retry, which means they're curious \u2014 nice. There's still no page here, but I can reward the curiosity with a different flavor of the same truth. I'll acknowledge the retry loop and gently point home before they generate a dozen more.",
+      answer: "Keep hitting retry and I'll keep finding new ways to say the same thing: this page doesn't exist (404). The homepage, however, definitely does."
+    },
+    {
+      egg: true, w: 1,
+      thought: "If they've retried this far, they've basically found the easter egg. I'll let them in on it \u2014 the missing page is real, but the hunt is the fun part \u2014 and still make sure they can get back to the actual site.",
+      answer: "Congrats \u2014 you found the easter egg. The page you wanted is still missing (that part's real: 404), but you've earned a fast track back to the homepage."
+    },
+    {
+      egg: true, w: 1,
+      thought: "The backdrop is a snowy mountain, so I'll lean into the 'lost' metaphor. This URL is off the map; no trail leads here. I'll admit the 404 and point down the ridge to the homepage.",
+      answer: "You've wandered off the map \u2014 there's no trail to this page (404). Follow the ridge back down to the homepage."
     }
   ];
+
+  // Weighted, exclusion-aware variant picker. `allowEggs = false` restricts the
+  // draw to the straight 404s (used on first load); `true` opens up the easter
+  // eggs (used on every retry). The weights make eggs an occasional surprise
+  // rather than the default.
+  function pickVariant(exclude, allowEggs) {
+    var pool = [];
+    var total = 0;
+    VARIANTS.forEach(function (v, i) {
+      if (i === exclude) return;
+      if (!allowEggs && v.egg) return;
+      var w = v.w || 1;
+      pool.push({ i: i, w: w });
+      total += w;
+    });
+    if (!pool.length) return exclude < 0 ? 0 : exclude;
+    var r = Math.random() * total;
+    for (var k = 0; k < pool.length; k++) {
+      r -= pool[k].w;
+      if (r <= 0) return pool[k].i;
+    }
+    return pool[pool.length - 1].i;
+  }
 
   // Same model line-up as the homepage, grouped by capability tier, so the
   // "retry with a different model" control feels consistent across the site.
@@ -71,7 +145,7 @@ var app = document.getElementById('app');
     g.forEach(function (name) { MODELS.push(name); MODEL_GROUP_OF.push(gi); });
   });
 
-  var variantIdx = Math.floor(Math.random() * VARIANTS.length);
+  var variantIdx = pickVariant(-1, false); // first load: a straight 404, no egg
   var modelIdx = Math.floor(Math.random() * MODEL_GROUPS[0].length); // pick a frontier model first
   var THOUGHT = VARIANTS[variantIdx].thought;
   var ANSWER = VARIANTS[variantIdx].answer;
@@ -394,10 +468,9 @@ var app = document.getElementById('app');
     retry.updateChecks();
   }
   function pickDifferentVariant() {
-    if (VARIANTS.length < 2) return variantIdx;
-    var idx;
-    do { idx = Math.floor(Math.random() * VARIANTS.length); } while (idx === variantIdx);
-    return idx;
+    // Retry opens up the easter eggs; the weighting keeps them an occasional
+    // surprise rather than every time.
+    return pickVariant(variantIdx, true);
   }
   function resetGeneration() {
     runToken++;
