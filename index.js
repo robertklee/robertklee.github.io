@@ -11,16 +11,16 @@ var app = document.getElementById('app');
   // chosen prompt is fixed for the load (a retry regenerates the answer to the
   // same question, like a real "regenerate").
   var PROMPTS = [
-    'Hi! Tell me about Robert Lee.',
-    'Who is Robert Lee?',
-    'Can you introduce me to Robert Lee?',
-    'What should I know about Robert Lee?',
-    'Give me the quick rundown on Robert Lee.',
-    'What does Robert Lee work on?',
+    'Hi! Tell me about Robert.',
+    'Who is Robert?',
+    'Can you introduce me to Robert?',
+    'What should I know about Robert?',
+    'Give me the quick rundown on Robert.',
+    'What does Robert work on?',
     'Tell me a bit about Robert.',
-    'So, who exactly is Robert Lee?',
-    "What's Robert Lee all about?",
-    'Hey \u2014 introduce me to Robert Lee.'
+    'So, who exactly is Robert?',
+    "What's Robert all about?",
+    'Hey \u2014 introduce me to Robert.'
   ];
   var PROMPT = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
 
@@ -45,8 +45,8 @@ var app = document.getElementById('app');
       answer: "Welcome! I'm Robert \u2014 I build the agentic retrieval that grounds LLMs and AI agents in governed, enterprise-grade knowledge."
     },
     {
-      thought: "Let me focus on the systems side. Robert works on distributed search infrastructure serving billions of vectors, where performance and correctness are everything, and he's often the engineer who root-causes the gnarliest production incidents. The story here is reliability at massive scale. One confident line should do it.",
-      answer: "Welcome! I'm Robert \u2014 I build distributed retrieval that stays fast, correct, and reliable across billions of vectors."
+      thought: "Let me focus on the systems side. Robert works on a distributed search engine where billions of vectors are partitioned across replicated nodes and every query fans out in parallel, so performance and correctness are everything \u2014 and he's often the engineer who debugs the hardest production incidents at scale. The story here is reliability at massive scale. One confident line should do it.",
+      answer: "Welcome! I'm Robert \u2014 I build distributed retrieval that fans out across sharded, replicated nodes to stay fast and correct across billions of vectors."
     },
     {
       thought: "Zooming out, Robert's field is information retrieval: search relevance and ranking for complex, global queries. His day-to-day sits right where classic information retrieval meets modern vector search and applied machine learning. I want the intro to signal genuine depth in search, phrased warmly in a single line.",
@@ -99,8 +99,8 @@ var app = document.getElementById('app');
           answer: "My work spans the full retrieval spectrum on Azure AI Search \u2014 keyword, vector, and hybrid search that fuses both \u2014 plus the relevance and ranking that decide what surfaces first. I focus on getting the right result to the top even for the world's messiest, most global queries."
         },
         {
-          thought: "Let me emphasize the systems reality behind the search. This is distributed retrieval infrastructure serving billions of embeddings, where a millisecond and a correctness bug both matter, and where I'm often the one who root-causes the hardest production incidents. I'll make the point that it's search and serious distributed systems at once.",
-          answer: "Under the hood it's distributed retrieval infrastructure serving billions of embeddings, where a millisecond and a correctness bug both matter. I build and harden that engine \u2014 and I'm usually the one who root-causes the gnarliest production incidents when something breaks at scale."
+          thought: "Let me emphasize the distributed reality behind the search. Billions of embeddings are partitioned into shards across many nodes; a query fans out to every partition in parallel and the partial results are merged into one ranked list, while each shard is built from immutable segments merged in the background so indexing never blocks reads. Both latency and correctness are non-negotiable here, and I'm often the one who root-causes the hardest incidents. I'll make the point that it's search and serious distributed systems at once.",
+          answer: "Under the hood it's a distributed engine: billions of embeddings partitioned into shards across many nodes, queries fanning out in parallel and merging into one globally ranked result, with each shard built from immutable segments that merge in the background so indexing never blocks search. Both latency and correctness are non-negotiable at that scale \u2014 I build and harden that engine, and I'm usually the one who root-causes the toughest incidents when something breaks."
         }
       ]
     },
@@ -114,7 +114,7 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "This is specifically about relevance, so I want a concrete, technical contribution rather than platitudes. My clearest one is the hybrid-search stack: I designed subscore fusion and score thresholding so blended vector and keyword results rank sensibly together instead of fighting each other. I'll lead with that precise piece of work.",
+          thought: "The clearest, most concrete relevance contribution I have is the hybrid-search stack: I designed subscore fusion and score thresholding so blended vector and keyword results rank sensibly together instead of fighting each other. That's a precise, technical piece of work, so I'll describe exactly what it does.",
           answer: "I strengthened Azure AI Search's relevance stack by designing hybrid-search subscore fusion and score thresholding \u2014 so when we blend vector and keyword retrieval, the combined results rank in a relevant, high-quality order rather than working against each other."
         },
         {
@@ -122,12 +122,12 @@ var app = document.getElementById('app');
           answer: "Relevance is the ceiling on any RAG or agent system \u2014 the model can only reason over what retrieval hands it. So I treat improving relevance as grounding GenAI: better ranking of vector, keyword, and semantic results means LLMs and agents read the right evidence and hallucinate less."
         },
         {
-          thought: "A more novel relevance angle is the diversity work. Instead of returning ten near-duplicate vector hits, diversity-aware sampling broadens the evidence set so answer synthesis answers global questions that require synthesis across diverse topics. That's relevance beyond naive top-k, and it's a fresh idea worth surfacing.",
+          thought: "A more novel relevance angle is the diversity work. Instead of returning ten near-duplicate vector hits, diversity-aware sampling broadens the evidence set so a model can answer global questions that require synthesis across diverse topics. That's relevance beyond naive top-k \u2014 optimizing the whole result set, not just each individual score.",
           answer: "Beyond classic ranking, I'm building diversity-aware retrieval: instead of ten near-duplicate results, we sample a broader, more complete evidence set. For complex questions that require synthesis across diverse topics, that's a big relevance win \u2014 the model sees the full picture, not ten copies of the same fact."
         },
         {
-          thought: "Relevance claims are only trustworthy if they're measured, so I'll stress rigor. I back relevance changes with data-driven ship criteria and extensive A/B testing, and my expanded test coverage has caught real defects. I want to signal that I ship relevance by evidence, not by intuition.",
-          answer: "I ship relevance changes rigorously \u2014 data-driven ship criteria and extensive A/B testing, not vibes. That discipline matters: expanded test coverage I added once caught a critical bug in a new quantization algorithm before it ever reached customers."
+          thought: "Relevance claims are only trustworthy if they're measured, so this answer should be about evaluation. I back relevance changes with offline metrics like NDCG and recall@k on labeled query sets, plus data-driven ship criteria and online A/B tests \u2014 and expanded test coverage that has caught real defects. The point is that relevance is shipped on evidence, not intuition.",
+          answer: "I ship relevance changes on evidence, not intuition \u2014 offline evaluation with metrics like NDCG and recall@k over labeled query sets, data-driven ship criteria, and online A/B tests. That discipline matters: expanded test coverage I added once caught a critical bug in a new quantization algorithm before it ever reached customers."
         }
       ]
     },
@@ -143,6 +143,10 @@ var app = document.getElementById('app');
         {
           thought: "This is a distributed-systems question, so I want a concrete, hard example rather than buzzwords. The best one is the quota enforcement mechanism I designed for HNSW indexes, tied to actual physical resource utilization and data-driven, which cut limit overshoot by 100x. That's real capacity and reliability engineering. I'll lead with it.",
           answer: "One I'm proud of: I designed a vector quota enforcement mechanism for HNSW vector indexes, tied to real physical resource utilization, that cut limit overshoot by 100x. It took cross-team design work to get right, and it keeps a billion-vector service from tipping over under load."
+        },
+        {
+          thought: "A distributed-systems question is a chance to describe the architecture itself. The engine partitions billions of vectors into shards spread across many nodes, each shard replicated for availability and throughput; a query fans out to every partition in parallel and the partial results are merged into one globally ranked answer. On top of that, each shard is built from immutable segments that are flushed and merged in the background so writes never block reads. The genuinely hard part is keeping that fan-out fast and consistent \u2014 tail latency, rebalancing, replication, and failover \u2014 as the index grows into the billions. I'll center the architecture and the hard problem it creates.",
+          answer: "The engine I work on is distributed to its core. Billions of vectors are partitioned into shards spread across many nodes, each shard replicated for availability and throughput. A single query fans out to every partition in parallel, and the partial results are merged into one globally ranked answer \u2014 so the whole cluster answers together. Underneath, each shard is built from immutable segments that are flushed and merged in the background, so indexing never blocks search. The hardest part is keeping that fan-out fast and consistent as data grows \u2014 taming tail latency when the slowest partition gates the query, and handling rebalancing, replication, and node failover without dropping a beat."
         },
         {
           thought: "The reliability side is a strong signal for a systems role. As a subject-matter expert I root-cause deeply technical production incidents across teams \u2014 restoring customer service fast, then driving durable fixes so the defect doesn't recur. I'll frame it as being the person called when things break at scale.",
@@ -180,8 +184,8 @@ var app = document.getElementById('app');
           answer: "Cutting vector-search cost by 8-32x isn't just a benchmark \u2014 it changes what customers can afford to build. Quantization let people run far larger indexes and richer AI applications on the same budget, so the performance work directly expanded what's possible on the platform."
         },
         {
-          thought: "The most concrete performance angle is the similarity-comparison kernel itself \u2014 the inner loop that runs billions of times per query. I hand-tuned distance computation with SIMD: vectorizing dot-product and cosine and Euclidean math to process many vector dimensions per instruction, and using bit-parallel Hamming distance with popcount over packed binary-quantized vectors. That low-level detail is my strongest proof of performance depth, so I'll make it the centerpiece.",
-          answer: "The hot path in vector search is the similarity comparison \u2014 the distance kernel that runs billions of times per query. I accelerated that inner loop with SIMD: vectorizing dot-product and cosine and Euclidean distance to process many vector dimensions per instruction, and using bit-parallel Hamming distance with popcount over packed binary-quantized vectors. Optimizing that kernel is where most of the latency win actually comes from."
+          thought: "The most concrete performance angle is the similarity-comparison kernel itself \u2014 the inner loop that dominates query cost. I hand-tuned distance computation with SIMD: vectorizing dot-product and cosine and Euclidean math to process many vector dimensions per instruction, and using bit-parallel Hamming distance with popcount over packed binary-quantized vectors. That low-level detail is where the real depth is, so I'll make it the centerpiece.",
+          answer: "The hot path in vector search is the similarity comparison \u2014 the distance kernel that dominates the cost of every query. I accelerated that inner loop with SIMD: vectorizing dot-product and cosine and Euclidean distance to process many vector dimensions per instruction, and using bit-parallel Hamming distance with popcount over packed binary-quantized vectors. Optimizing that kernel is where most of the latency win actually comes from."
         }
       ]
     },
@@ -195,20 +199,20 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "For a RAG question I want the most defensible framing: I don't just wire up pipelines, I build the retrieval infrastructure underneath RAG \u2014 the vector, hybrid, and semantic search that decides what an LLM actually reads. Positioning myself as the foundation the model reasons over is both accurate and impressive.",
+          thought: "For a RAG question the most accurate framing is infrastructural: I don't just wire up pipelines, I build the retrieval infrastructure underneath RAG \u2014 the vector, hybrid, and semantic search that decides what an LLM actually reads. Grounding is the foundation the model reasons over, so that's what I'll focus on.",
           answer: "I build the retrieval layer beneath RAG \u2014 the vector, hybrid, and semantic search on Azure AI Search that decides what an LLM actually gets to read. Generation is only as good as its grounding, and grounding is exactly what I work on: getting the right enterprise knowledge in front of the model."
         },
         {
-          thought: "The most current thread is agentic retrieval, so I should surface it. I led a cross-team effort to move quality improvements from research prototype to shipped Public Preview, and integrated Azure AI Search into agent workflows \u2014 tool calling, multi-agent orchestration, RAG \u2014 grounding agents in governed enterprise knowledge. That's frontier work worth leading with.",
-          answer: "My most current work is agentic retrieval: I led a cross-team effort to take quality improvements from research prototype to shipped Public Preview, and integrated Azure AI Search into agent workflows \u2014 tool calling, multi-agent orchestration, and RAG \u2014 so LLM agents are grounded in governed, permission-aware enterprise knowledge."
+          thought: "The most current thread is agentic retrieval, so I'll go deep on the orchestration. Rather than a single top-k call, an agent plans and decomposes a query into sub-questions, issues multiple retrievals, and reasons over the results across several steps \u2014 with search exposed as a tool the model can call iteratively. I led a cross-team effort to move those quality improvements from research prototype to shipped Public Preview, grounding agents in governed enterprise knowledge.",
+          answer: "My most current work is agentic retrieval \u2014 going beyond a single top-k lookup. An agent plans and decomposes a complex query into sub-questions, runs multiple retrievals, and synthesizes across the results over several steps, with search exposed as a tool it can call iteratively. I led a cross-team effort to take those improvements from research prototype to shipped Public Preview, integrating Azure AI Search into tool-calling and multi-agent workflows so LLM agents stay grounded in governed, permission-aware enterprise knowledge."
         },
         {
           thought: "Enterprises care about trust, not just recall, so I'll highlight governance. A real differentiator in my work is governed, permission-aware retrieval \u2014 agents reach exactly the right information and nothing they shouldn't see. That's what makes RAG safe to deploy inside a real company.",
           answer: "For enterprise AI, trust matters as much as recall. I focus on governed, permission-aware retrieval \u2014 grounding LLMs and multi-agent workflows so they reach exactly the right information and nothing they shouldn't. That's what makes RAG safe to deploy inside a real company."
         },
         {
-          thought: "I can show genuine ML depth beyond the retrieval layer. I've trained deep neural networks from scratch for computer vision \u2014 a stacked-hourglass pose model on COCO \u2014 and I apply ML to relevance and ranking. So I understand both the models and the retrieval that feeds them, which is unusual and worth showing.",
-          answer: "I understand both ends of the stack. I've trained deep neural networks from scratch for computer vision \u2014 a stacked-hourglass human-pose model on COCO \u2014 and I apply ML to search relevance and ranking. So when I build retrieval for LLMs, I actually understand the models consuming it."
+          thought: "A concrete RAG question deserves the mechanics of good grounding, not a slogan. What an LLM reads is decided upstream of generation: how documents are chunked, how they're embedded, and how hybrid retrieval and ranking pick the top evidence \u2014 with citations so answers stay verifiable. It helps that I've trained models from scratch, so I understand both the retrieval and the models consuming it. I'll ground the answer in those mechanics.",
+          answer: "Good RAG lives or dies on what the model actually reads, and that's decided upstream of generation: how documents are chunked, how they're embedded, and how hybrid retrieval plus ranking select the top evidence \u2014 with citations so answers stay verifiable. That's exactly the layer I build on Azure AI Search. It also helps that I've trained deep neural networks from scratch, so I genuinely understand both the retrieval and the models consuming it."
         }
       ]
     },
@@ -238,7 +242,7 @@ var app = document.getElementById('app');
     {
       id: 'projects',
       prompts: [
-        "What has Robert built outside work?",
+        "What has Robert built?",
         "What are his notable projects?",
         "Show me a project Robert's worked on.",
         "What's Robert most proud of building?"
@@ -249,12 +253,12 @@ var app = document.getElementById('app');
           answer: "Two builds I'm proudest of. First, human pose estimation \u2014 I led a student team to build a stacked-hourglass network from scratch on COCO-2017, predicting 17 keypoints with a heatmap approach and training from random initialization to performance comparable with the late-2016 COCO leaderboard (it's live on Streamlit, so you can try it on your own photos). Second, the vector-quantization engine on Azure AI Search \u2014 SIMD-accelerated distance computation over binary and scalar quantized vectors, delivering 8-32x cost savings and up to 20x lower latency at billion-scale. One deep-ML, one low-level systems: together they're the range I'm most proud of."
         },
         {
-          thought: "I have real computer-vision range beyond pose, so I'll show breadth. A U-Net for road segmentation on KITTI reaching up to 99.1% F1, and a self-supervised monocular depth model on DrivingStereo using stereo photometric reconstruction and edge-aware smoothness. Two quite different CV problems tackled hands-on.",
-          answer: "I've built a range of computer-vision systems: a U-Net for semantic road segmentation on KITTI reaching up to 99.1% F1, and a self-supervised monocular depth-estimation model on the DrivingStereo dataset using stereo photometric reconstruction and edge-aware smoothness \u2014 no ground-truth depth required."
+          thought: "For computer vision I should lead with my flagship, the COCO human-pose project, and treat the rest as supporting range. I was team lead building a stacked-hourglass network from scratch on COCO-2017 \u2014 17 keypoints via heatmaps, trained from random initialization to performance comparable with the late-2016 COCO leaderboard, and it's live on Streamlit. I've done other CV too \u2014 a KITTI road-segmentation U-Net and self-supervised monocular depth on DrivingStereo \u2014 but pose is the one I went deepest on, so it leads.",
+          answer: "My deepest computer-vision project is human pose estimation \u2014 I led a student team to build a stacked-hourglass network from scratch on COCO-2017, predicting 17 keypoints with a heatmap approach and training from random initialization to performance comparable with the late-2016 COCO leaderboard (it's live on Streamlit, so you can try it on your own photos). I've built more CV besides \u2014 a U-Net for KITTI road segmentation at up to 99.1% F1 and a self-supervised monocular depth model on DrivingStereo \u2014 but pose estimation is where I went furthest."
         },
         {
-          thought: "For the systems-minded, the DCT optimization is the right pick. A 10x speedup over a naive Discrete Cosine Transform using C and assembly, CMake for portability, Valgrind profiling, and a custom assembly operator. It shows low-level performance chops that connect straight to my current work.",
-          answer: "On the systems side, I optimized a Discrete Cosine Transform in C and assembly for a 10x speedup over the naive implementation \u2014 profiling with Valgrind, configuring CMake for platform-agnostic builds, and writing a custom assembly operator. It's the same performance instinct I now apply to vector search."
+          thought: "For the systems-minded, my strongest low-level performance work is the SIMD-accelerated distance engine behind vector search. I hand-vectorized the hot path \u2014 dot-product, cosine, and Euclidean kernels over scalar-quantized vectors, plus bit-parallel Hamming with hardware popcount over binary-quantized codes. It shows the same performance instinct I bring to production retrieval today, so I'll lead with it.",
+          answer: "On the systems side, the work I'm most confident in is the SIMD-accelerated distance engine behind vector search. I hand-vectorized the hot path \u2014 dot-product, cosine, and Euclidean kernels over scalar-quantized vectors, and bit-parallel Hamming distance using hardware popcount over binary-quantized codes \u2014 which is what drives the 8-32x cost savings and up to 20x lower latency at scale. It's low-level performance work in service of large-scale retrieval, exactly the kind of systems problem I enjoy."
         },
         {
           thought: "A fun one shows range and initiative: a reinforcement-learning Battlesnake controller trained with keras-rl using a mix of self-play and public opponents, to survive longest in a real-time multi-snake arena. It signals I'll reach for RL when a problem fits, so I'll mention it lightly.",
@@ -268,7 +272,7 @@ var app = document.getElementById('app');
         "How has Robert shown leadership?",
         "Tell me about his leadership experience.",
         "Has Robert led teams or communities?",
-        "What's his community involvement?"
+        "Where has Robert taken the lead?"
       ],
       variants: [
         {
@@ -299,12 +303,12 @@ var app = document.getElementById('app');
           answer: "The one I'm proudest of is the Schulich Leader Scholarship \u2014 an $80,000 full-ride awarded to just 50 students nationally, chosen from ~1,500 nominees (one per Canadian high school) out of 300,000 graduating students, for excellence in STEM combined with leadership. It's the recognition I hold above all the rest."
         },
         {
-          thought: "All my recognition ladders up to the Schulich Leader Scholarship, so I'll keep it front and center but from a different angle \u2014 what it actually rewards. Schulich selects for the combination of STEM excellence, leadership, and entrepreneurial promise, which is exactly the blend I try to live. I'll frame it as recognition of both the technical and the leadership sides of me, backed by a 97% engineering average.",
-          answer: "The Schulich Leader Scholarship means the most to me because of what it rewards \u2014 not just grades, but STEM excellence combined with leadership and entrepreneurial promise. Being one of 50 chosen nationally, on top of a 97% cumulative average in Electrical & Computer Engineering, told me the technical and the leadership sides of my work were both landing."
+          thought: "This angle should be about the academic record itself. I graduated with a 97% cumulative average in Electrical & Computer Engineering, earned the Governor General's Academic Medal, and won the Jamie Cassels Undergraduate Research Award to research hardware acceleration for machine-learning neural networks. That's the through-line \u2014 consistent academic excellence plus real research \u2014 so I'll center that rather than the scholarship.",
+          answer: "Academically, I graduated with a 97% cumulative average in Electrical & Computer Engineering, earned the Governor General's Academic Medal, and won the Jamie Cassels Undergraduate Research Award \u2014 which funded my research into hardware acceleration for machine-learning neural networks. It's a record of consistent excellence paired with hands-on research, which matters more to me than any single prize."
         },
         {
-          thought: "For the third angle I'll lead with Schulich's selectivity and use it as the anchor for the broader record. One of 50 from ~1,500 nominees out of 300,000 graduates is a number that lands on its own, and it headlines 20+ awards worth over $100,000 \u2014 including the Governor General's Academic Medal and a national-champion finish at the Michael Smith Science Challenge. Schulich leads, the rest support.",
-          answer: "The Schulich Leader Scholarship is the one I lead with \u2014 an $80,000 full-ride, one of 50 awarded nationally from ~1,500 nominees (one per Canadian high school) out of 300,000 graduates. It anchors 20+ awards worth over $100,000, including the Governor General's Academic Medal and a national-champion 97.5% at the Michael Smith Science Challenge among 1,700+ candidates."
+          thought: "For variety I'll lead with the competition wins, which show applied engineering under pressure rather than grades. I was national champion at the Michael Smith Science Challenge with a record 97.5% among 1,700+ candidates, took 1st at the Western Engineering Competition building a robot to collect Martian artifacts, and won UVEC senior design three years running. These sit inside 20+ awards worth over $100,000. I'll make hands-on wins the story.",
+          answer: "Beyond scholarships, I've won a lot of hands-on engineering competitions: national champion at the Michael Smith Science Challenge (a record 97.5% among 1,700+ candidates), 1st place at the Western Engineering Competition for a Mars-artifact-collecting robot, and three straight 1st-place UVEC senior-design finishes. They're part of 20+ awards worth over $100,000, and they're the ones where I got to actually build under pressure."
         }
       ]
     },
@@ -318,8 +322,8 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "They want the toolkit, so I'll name languages but center the systems depth. I work mostly in C++, C#, Java, and Python, but the real strength is systems: distributed retrieval, vector storage and quantization, SIMD-level performance, and relevance and ranking at scale.",
-          answer: "I work day-to-day in C++, C#, Java, and Python \u2014 but my real strength is systems: distributed retrieval infrastructure, vector storage and quantization, SIMD-level performance, and search relevance and ranking at billion-vector scale."
+          thought: "They want the toolkit, so I'll name languages but center the systems depth. I work mostly in C++, C#, Java, and Python, but the real strength is distributed systems: sharded, replicated retrieval with query fan-out, vector storage and quantization, SIMD-level performance, and relevance and ranking at scale.",
+          answer: "I work day-to-day in C++, C#, Java, and Python \u2014 but my real strength is distributed systems: sharded, replicated retrieval with parallel query fan-out and background segment merges, vector storage and quantization, SIMD-level performance, and search relevance and ranking at billion-vector scale."
         },
         {
           thought: "For a distributed-systems audience I'll highlight the low-level side. SIMD-accelerated math, binary and scalar quantization, memory and latency optimization, plus an embedded background in ARM assembly and VHDL. Depth close to the hardware is the differentiator here.",
@@ -340,8 +344,8 @@ var app = document.getElementById('app');
   // within each tier.
   var MODEL_GROUPS = [
     ['Claude Fable 5', 'Claude Mythos 5 - Research Preview', 'Claude Opus 5', 'Gemini 3.1 Pro', 'GPT-5.6 Sol'], // frontier
-    ['Claude Sonnet 5', 'GPT-5.6 Terra'],                                         // balanced
-    ['Claude Haiku 4.5', 'GPT-5.6 Luna']                                                        // efficient
+    ['Claude Sonnet 5', 'GPT-5.6 Terra'], // balanced
+    ['Claude Haiku 4.5', 'GPT-5.6 Luna'] // efficient
   ];
   var MODEL_GROUP_LABELS = ['Frontier', 'Balanced', 'Efficient'];
   var MODELS = [];
