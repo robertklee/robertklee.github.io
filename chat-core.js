@@ -82,6 +82,48 @@ window.HeroChat = (function () {
     return Math.min(4, Math.max(1, Math.round((now() - t0) / 1000)));
   }
 
+  // Turn a display model name ("GPT-5.6 Sol", "Claude Mythos 5 - Research
+  // Preview") into a plausible wire model id ("gpt-5.6-sol", "claude-mythos-5")
+  // for the mock request body below.
+  function slugifyModel(name) {
+    if (!name) return '';
+    return String(name).toLowerCase()
+      .replace(/\s*-\s*research preview\s*$/, '')
+      .replace(/[^a-z0-9.]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  // Fire-and-forget "call" to a chat-completions endpoint. There is no backend
+  // here -- the whole page is static and every "thought" is hand-written
+  // JavaScript -- so this request simply 404s and is never awaited. It exists
+  // only so a visitor watching the Network tab sees a believable streaming
+  // completion request (model, chat messages, stream:true, a bearer token)
+  // instead of immediately clocking that nothing is being called. The endpoint
+  // is same-origin on purpose: a cross-origin call would spray CORS/DNS errors
+  // into the console and give the trick away. Any failure is swallowed.
+  function mockCompletion(opts) {
+    opts = opts || {};
+    try {
+      if (typeof fetch !== 'function') return;
+      var messages = [
+        { role: 'system', content: 'You are the assistant on Robert Lee\u2019s homepage.' }
+      ];
+      if (opts.prompt) messages.push({ role: 'user', content: String(opts.prompt) });
+      var headers = { 'Content-Type': 'application/json' };
+      if (opts.key) headers['Authorization'] = 'Bearer ' + opts.key;
+      fetch(opts.endpoint || '/v1/chat/completions', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          model: slugifyModel(opts.model) || 'gpt-5.6-sol',
+          messages: messages,
+          stream: true,
+          temperature: 0.7
+        })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   // Build a chat line: an optional prefix span (e.g. the prompt caret) plus a
   // `.txt` span the streamer writes into. Returns { line, txt }.
   function makeLine(parent, cls, prefix) {
@@ -454,6 +496,7 @@ window.HeroChat = (function () {
     thinkPace: thinkPace,
     thoughtSecs: thoughtSecs,
     reportedSecs: reportedSecs,
+    mockCompletion: mockCompletion,
     makeLine: makeLine,
     createCursor: createCursor,
     createStreamer: createStreamer,

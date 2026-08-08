@@ -580,6 +580,7 @@ var app = document.getElementById('app');
   function renderStatic() {
     resetGeneration();
     applySelection();
+    H.mockCompletion({ model: MODELS[modelIdx], prompt: PROMPT, key: FAKE_API_KEY });
     prompt.txt.textContent = PROMPT;
     think.line.classList.remove('chat-pending');
     answer.line.classList.remove('chat-pending');
@@ -599,6 +600,7 @@ var app = document.getElementById('app');
     resetGeneration();
     var myToken = runToken;
     applySelection();
+    H.mockCompletion({ model: MODELS[modelIdx], prompt: PROMPT, key: FAKE_API_KEY });
 
     if (streamPrompt) {
       await wait(350);
@@ -920,6 +922,7 @@ var app = document.getElementById('app');
     t.retried = false;
     lastFollowTurn = t;
     scrollChatToBottom();
+    H.mockCompletion({ model: MODELS[t.modelIdx], prompt: promptText, key: FAKE_API_KEY });
 
     if (reduceMotion) {
       t.prompt.txt.textContent = promptText;
@@ -999,6 +1002,11 @@ var app = document.getElementById('app');
   async function regenFollow(t, v) {
     runToken++; // this turn owns the stream now; abort any other in-flight run
     var myToken = runToken;
+    H.mockCompletion({
+      model: MODELS[t.modelIdx],
+      prompt: t.prompt && t.prompt.txt ? t.prompt.txt.textContent : '',
+      key: FAKE_API_KEY
+    });
     if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
     // Reset this turn's thinking + answer for a fresh "regeneration".
     t.think.txt.innerHTML = '';
