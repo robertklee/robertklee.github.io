@@ -743,6 +743,28 @@ ul {
   text-align: left;
 }
 
+/* Text-only sections (education, leadership, awards, image-less projects) */
+
+.text-block {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 10px;
+  text-align: left;
+}
+
+.text-block ul {
+  margin: 0;
+  padding-left: 0;
+}
+
+.text-block li {
+  font-family: 'Rubik', sans-serif;
+  font-size: 1.15rem;
+  color: var(--text);
+  padding-bottom: 10px;
+  line-height: 1.5;
+}
+
 /* Buttons (replaces Bootstrap .btn / .btn-outline-success) */
 
 .btn {
