@@ -487,7 +487,17 @@ h1, h2, h3, p, a, .time-text, .tech-text {
 }
 
 .follow-meta {
-  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.retry-btn:disabled,
+.retry-btn.retry-used {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
 }
 
 #hero-dim {

@@ -115,15 +115,15 @@ var app = document.getElementById('app');
       variants: [
         {
           thought: "This is specifically about relevance, so I want a concrete, technical contribution rather than platitudes. My clearest one is the hybrid-search stack: I designed subscore fusion and score thresholding so blended vector and keyword results rank sensibly together instead of fighting each other. I'll lead with that precise piece of work.",
-          answer: "I strengthened Azure AI Search's relevance stack by designing hybrid-search subscore fusion and score thresholding \u2014 so when we blend vector and keyword retrieval, the combined results rank in a sane, high-quality order rather than working against each other."
+          answer: "I strengthened Azure AI Search's relevance stack by designing hybrid-search subscore fusion and score thresholding \u2014 so when we blend vector and keyword retrieval, the combined results rank in a relevant, high-quality order rather than working against each other."
         },
         {
           thought: "Relevance now has a new stakeholder: the LLM. Better ranking directly improves what a model gets to read, so I should frame relevance as grounding GenAI \u2014 retrieval quality sets a ceiling on answer quality. Connecting relevance to reducing hallucination makes the impact concrete.",
           answer: "Relevance is the ceiling on any RAG or agent system \u2014 the model can only reason over what retrieval hands it. So I treat improving relevance as grounding GenAI: better ranking of vector, keyword, and semantic results means LLMs and agents read the right evidence and hallucinate less."
         },
         {
-          thought: "A more novel relevance angle is the diversity work. Instead of returning ten near-duplicate hits, diversity-aware sampling broadens the evidence set so answer synthesis has more to work with. That's relevance beyond naive top-k, and it's a fresh idea worth surfacing.",
-          answer: "Beyond classic ranking, I'm building diversity-aware retrieval: instead of ten near-duplicate results, we sample a broader, more complete evidence set. For complex questions that's a big relevance win \u2014 the model sees the full picture, not ten copies of the same fact."
+          thought: "A more novel relevance angle is the diversity work. Instead of returning ten near-duplicate vector hits, diversity-aware sampling broadens the evidence set so answer synthesis answers global questions that require synthesis across diverse topics. That's relevance beyond naive top-k, and it's a fresh idea worth surfacing.",
+          answer: "Beyond classic ranking, I'm building diversity-aware retrieval: instead of ten near-duplicate results, we sample a broader, more complete evidence set. For complex questions that require synthesis across diverse topics, that's a big relevance win \u2014 the model sees the full picture, not ten copies of the same fact."
         },
         {
           thought: "Relevance claims are only trustworthy if they're measured, so I'll stress rigor. I back relevance changes with data-driven ship criteria and extensive A/B testing, and my expanded test coverage has caught real defects. I want to signal that I ship relevance by evidence, not by intuition.",
@@ -141,12 +141,12 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "This is a distributed-systems question, so I want a concrete, hard example rather than buzzwords. The best one is the quota-enforcement mechanism I designed for HNSW indexes, tied to actual physical resource utilization and data-driven, which cut limit overshoot by 100x. That's real capacity and reliability engineering. I'll lead with it.",
-          answer: "One I'm proud of: I designed a data-driven quota-enforcement mechanism for HNSW vector indexes, tied to real physical resource utilization, that cut limit overshoot by 100x. It took cross-team design work to get right, and it keeps a billion-vector service from tipping over under load."
+          thought: "This is a distributed-systems question, so I want a concrete, hard example rather than buzzwords. The best one is the quota enforcement mechanism I designed for HNSW indexes, tied to actual physical resource utilization and data-driven, which cut limit overshoot by 100x. That's real capacity and reliability engineering. I'll lead with it.",
+          answer: "One I'm proud of: I designed a vector quota enforcement mechanism for HNSW vector indexes, tied to real physical resource utilization, that cut limit overshoot by 100x. It took cross-team design work to get right, and it keeps a billion-vector service from tipping over under load."
         },
         {
           thought: "The reliability side is a strong signal for a systems role. As a subject-matter expert I root-cause deeply technical production incidents across teams \u2014 restoring customer service fast, then driving durable fixes so the defect doesn't recur. I'll frame it as being the person called when things break at scale.",
-          answer: "I'm often the engineer who root-causes the gnarliest production incidents \u2014 coordinating across teams to restore customer service quickly, then making sure the underlying defect is understood and permanently fixed. Debugging a distributed search service at billion-vector scale is genuinely hard, and I like that."
+          answer: "I'm often the engineer who root-causes the gnarliest production incidents \u2014 coordinating across teams to restore customer service quickly, then making sure the underlying defect is understood and permanently fixed. Debugging a distributed search service at billion-vector scale is genuinely hard, and I enjoy the challenge."
         },
         {
           thought: "A clean systems-engineering example is the telemetry-database migration I did earlier: a phased, zero-downtime migration of a core table that preserved data integrity and delivered a 50-100x query speedup. It shows careful data-plane work on a live system, which is exactly the kind of thing that earns trust.",
@@ -788,6 +788,7 @@ var app = document.getElementById('app');
   }
 
   var activeSuggestRow = null;
+  var lastFollowTurn = null; // only the newest follow-up turn is retryable
 
   function scrollChatToBottom() {
     if (convoMode) chat.scrollTop = chat.scrollHeight;
@@ -886,12 +887,21 @@ var app = document.getElementById('app');
     t.answer.line.classList.add('chat-pending');
     var meta = document.createElement('div');
     meta.className = 'follow-meta chat-actions-hidden';
+    var rbtn = document.createElement('button');
+    rbtn.type = 'button';
+    rbtn.className = 'retry-btn follow-retry';
+    rbtn.setAttribute('aria-label', 'Retry this answer with a different model');
+    rbtn.innerHTML =
+      '<span class="retry-icon" aria-hidden="true">\u21BB</span>' +
+      '<span class="retry-text">Retry</span>';
     var mtag = document.createElement('span');
     mtag.className = 'model-tag';
+    meta.appendChild(rbtn);
     meta.appendChild(mtag);
     wrap.appendChild(meta);
     t.meta = meta;
     t.modelTag = mtag;
+    t.retryBtn = rbtn;
     return t;
   }
 
@@ -902,6 +912,32 @@ var app = document.getElementById('app');
       var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
     }
     return pool.slice(0, n);
+  }
+
+  function pickDifferentVariantIdx(topic, currentIdx) {
+    var n = topic.variants.length;
+    if (n < 2) return currentIdx;
+    var idx;
+    do { idx = Math.floor(Math.random() * n); } while (idx === currentIdx);
+    return idx;
+  }
+
+  function pickDifferentModel(currentIdx) {
+    if (MODELS.length < 2) return currentIdx;
+    var idx;
+    do { idx = Math.floor(Math.random() * MODELS.length); } while (idx === currentIdx);
+    return idx;
+  }
+
+  // Each follow-up turn allows a single retry. Once the visitor moves on to a
+  // new turn (or has already used it), the button is spent.
+  function disableFollowRetry(t) {
+    if (!t) return;
+    t.retried = true;
+    if (t.retryBtn) {
+      t.retryBtn.disabled = true;
+      t.retryBtn.classList.add('retry-used');
+    }
   }
 
   function showSuggestions(excludeId) {
@@ -934,8 +970,16 @@ var app = document.getElementById('app');
     hideIntroActions();
     runToken++; // abort any in-flight follow-up stream
     var myToken = runToken;
-    var variant = topic.variants[Math.floor(Math.random() * topic.variants.length)];
+    var variantIdx2 = Math.floor(Math.random() * topic.variants.length);
+    var variant = topic.variants[variantIdx2];
+    disableFollowRetry(lastFollowTurn); // spend the previous turn's retry
     var t = createFollowTurn();
+    t.topic = topic;
+    t.variantIdx = variantIdx2;
+    t.modelIdx = modelIdx;
+    t.retried = false;
+    t.retryBtn.addEventListener('click', function () { retryFollow(t); });
+    lastFollowTurn = t;
     scrollChatToBottom();
 
     if (reduceMotion) {
@@ -948,7 +992,7 @@ var app = document.getElementById('app');
       t.answer.line.classList.remove('chat-pending');
       t.answer.txt.textContent = variant.answer;
       t.answer.txt.appendChild(cursor);
-      t.modelTag.textContent = MODELS[modelIdx];
+      t.modelTag.textContent = MODELS[t.modelIdx];
       t.meta.classList.remove('chat-actions-hidden');
       showSuggestions(topic.id);
       return;
@@ -980,13 +1024,72 @@ var app = document.getElementById('app');
     if (myToken !== runToken) return;
     await stream(t.answer, variant.answer, { base: 42, jitter: 42 });
     if (myToken !== runToken) return;
-    t.modelTag.textContent = MODELS[modelIdx];
+    t.modelTag.textContent = MODELS[t.modelIdx];
     t.meta.classList.remove('chat-actions-hidden');
     t.meta.classList.add('line-enter');
     scrollChatToBottom();
     await wait(450);
     if (myToken !== runToken) return;
     showSuggestions(topic.id);
+    scrollChatToBottom();
+  }
+
+  // Regenerate a single follow-up turn in place with a different variant and a
+  // different model \u2014 one retry per turn (the button is spent on use).
+  function retryFollow(t) {
+    if (!t || t.retried) return;
+    disableFollowRetry(t);
+    t.variantIdx = pickDifferentVariantIdx(t.topic, t.variantIdx);
+    t.modelIdx = pickDifferentModel(t.modelIdx);
+    var v = t.topic.variants[t.variantIdx];
+
+    if (reduceMotion) {
+      if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+      t.think.txt.textContent = v.thought;
+      t.answer.txt.textContent = v.answer;
+      t.answer.txt.appendChild(cursor);
+      t.modelTag.textContent = MODELS[t.modelIdx];
+      return;
+    }
+    regenFollow(t, v);
+  }
+
+  async function regenFollow(t, v) {
+    runToken++; // this turn owns the stream now; abort any other in-flight run
+    var myToken = runToken;
+    if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+    // Reset this turn's thinking + answer for a fresh "regeneration".
+    t.think.txt.innerHTML = '';
+    t.answer.txt.innerHTML = '';
+    t.think.line.classList.remove('done', 'folded', 'line-enter');
+    t.think.txt.style.maxHeight = '';
+    t.thinkEls.head.setAttribute('aria-expanded', 'true');
+    t.thinkLabel.textContent = 'Thinking';
+    t.modelTag.textContent = '';
+    t.think.line.classList.add('is-thinking');
+
+    var t0 = now();
+    await stream(t.think, v.thought, { base: 18, jitter: 20, punct: 60, subword: false });
+    if (myToken !== runToken) return;
+    var secs = Math.max(1, Math.round((now() - t0) / 1000));
+    t.think.line.classList.remove('is-thinking');
+    t.think.line.classList.add('done');
+    t.thinkLabel.textContent = 'Thought for ' + secs + 's';
+    scrollChatToBottom();
+    await wait(650);
+    if (myToken !== runToken) return;
+    simpleFold(t.thinkEls, true);
+    await wait(300);
+    if (myToken !== runToken) return;
+    await stream(t.answer, v.answer, { base: 42, jitter: 42 });
+    if (myToken !== runToken) return;
+    t.modelTag.textContent = MODELS[t.modelIdx];
+    scrollChatToBottom();
+    await wait(450);
+    if (myToken !== runToken) return;
+    // Re-offer follow-ups: the retry may have aborted the original turn's
+    // suggestions before they rendered, so ensure they're present afterward.
+    showSuggestions(t.topic.id);
     scrollChatToBottom();
   }
 
