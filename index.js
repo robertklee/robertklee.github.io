@@ -4,7 +4,21 @@
 // lines of hand-written JavaScript pretending to reason. Hard-coding a real 
 // secret in client-side source is incorrect anyways. ;)
 // ---------------------------------------------------------------------------
-var FAKE_API_KEY = 'CTF{this_is_definitely_not_an_api_key-\uD83E\uDEA4}';
+function revealDecoyKey(stashed) {
+  // Runtime-only decode of the UTF-8 bytes (handles the emoji in the payload);
+  // deliberately not a plain string literal so the "key" resists a quick grep.
+  try {
+    return decodeURIComponent(
+      atob(stashed)
+        .split('')
+        .map(function (c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); })
+        .join('')
+    );
+  } catch (e) {
+    return '';
+  }
+}
+var FAKE_API_KEY = revealDecoyKey('Q1RGe3RoaXNfaXNfZGVmaW5pdGVseV9ub3RfYW5fYXBpX2tleS3wn6qkfQ==');
 
 var app = document.getElementById('app');
 
