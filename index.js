@@ -938,11 +938,36 @@ var app = document.getElementById('app');
     meta.appendChild(retryCtl.wrap);
     meta.appendChild(mtag);
     wrap.appendChild(meta);
+    var gen = document.createElement('div');
+    gen.className = 'gen-indicator';
+    gen.setAttribute('aria-hidden', 'true');
+    var orb = document.createElement('span');
+    orb.className = 'gen-orb';
+    gen.appendChild(orb);
+    wrap.appendChild(gen);
     t.meta = meta;
+    t.gen = gen;
     t.modelTag = mtag;
     t.retryCtl = retryCtl;
     t.retryBtn = retryCtl.btn;
     return t;
+  }
+
+  // While a follow-up turn streams, hide its retry/model footer and show an
+  // ephemeral animated indicator; swap them back once the answer completes.
+  function showGenerating(t) {
+    if (!t) return;
+    t.meta.classList.add('chat-actions-hidden');
+    t.meta.classList.remove('line-enter');
+    if (t.gen) t.gen.classList.add('on');
+  }
+
+  function finishGenerating(t) {
+    if (!t) return;
+    if (t.gen) t.gen.classList.remove('on');
+    t.meta.classList.remove('chat-actions-hidden', 'line-enter');
+    void t.meta.offsetWidth; // reflow so the reveal animation replays
+    t.meta.classList.add('line-enter');
   }
 
   function pickTopics(excludeId, n) {
@@ -971,6 +996,12 @@ var app = document.getElementById('app');
     if (t.retryBtn) {
       t.retryBtn.disabled = true;
       t.retryBtn.classList.add('retry-used');
+    }
+    // If this turn was superseded mid-generation, drop its indicator and
+    // reveal the (now spent) footer so it doesn't linger as an orb.
+    if (t.gen && t.gen.classList.contains('on')) {
+      t.gen.classList.remove('on');
+      t.meta.classList.remove('chat-actions-hidden');
     }
   }
 
@@ -1040,6 +1071,7 @@ var app = document.getElementById('app');
 
     t.think.line.classList.remove('chat-pending');
     t.think.line.classList.add('line-enter', 'is-thinking');
+    showGenerating(t);
     var t0 = now();
     await stream(t.think, variant.thought, thinkPace(variant.thought));
     if (myToken !== runToken) return;
@@ -1058,8 +1090,7 @@ var app = document.getElementById('app');
     await stream(t.answer, variant.answer, { base: 42, jitter: 42 });
     if (myToken !== runToken) return;
     t.modelTag.textContent = MODELS[t.modelIdx];
-    t.meta.classList.remove('chat-actions-hidden');
-    t.meta.classList.add('line-enter');
+    finishGenerating(t);
     scrollChatToBottom();
     await wait(450);
     if (myToken !== runToken) return;
@@ -1102,6 +1133,7 @@ var app = document.getElementById('app');
     t.thinkEls.head.setAttribute('aria-expanded', 'true');
     t.thinkLabel.textContent = 'Thinking';
     t.modelTag.textContent = '';
+    showGenerating(t);
     t.think.line.classList.add('is-thinking');
 
     var t0 = now();
@@ -1120,6 +1152,7 @@ var app = document.getElementById('app');
     await stream(t.answer, v.answer, { base: 42, jitter: 42 });
     if (myToken !== runToken) return;
     t.modelTag.textContent = MODELS[t.modelIdx];
+    finishGenerating(t);
     scrollChatToBottom();
     await wait(450);
     if (myToken !== runToken) return;
