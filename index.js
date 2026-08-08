@@ -1,3 +1,11 @@
+// ---------------------------------------------------------------------------
+// EASTER EGG (the decoy "API key"). Did you grep for "API_KEY"?.
+// This whole "chat" has no backend and no model behind it -- it's a few hundred 
+// lines of hand-written JavaScript pretending to reason. Hard-coding a real 
+// secret in client-side source is incorrect anyways. ;)
+// ---------------------------------------------------------------------------
+var FAKE_API_KEY = 'CTF{this_is_definitely_not_an_api_key-\uD83E\uDEA4}';
+
 var app = document.getElementById('app');
 
 // Turn the hero into a mini "reasoning model" moment: a user prompt, a brief
@@ -1109,3 +1117,29 @@ HeroChat.initThemeToggle(granimInstance);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
 })();
+
+// EASTER EGG (console): a wink for the friends who crack open devtools hunting
+// for an "API key" or a prompt to inject. There's no backend here \u2014 the whole
+// chat is hand-written JavaScript \u2014 so the only thing to find is this note.
+;(function () {
+  try {
+    if (!window.console || !console.log) return;
+    var title = [
+      'font-size:18px',
+      'font-weight:700',
+      'padding:6px 0',
+      'color:#80d3fe'
+    ].join(';');
+    var body = 'font-size:13px;line-height:1.5;color:inherit';
+    console.log('%cLooking for the API key? \uD83D\uDC40', title);
+    console.log(
+      '%cThere isn\u2019t one \u2014 this "model" is a few hundred lines of hand-written JS. ' +
+      'No backend, no key, no system prompt to inject. (Keys don\u2019t belong in ' +
+      'client-side code anyway.) Thanks for the curiosity!',
+      body
+    );
+    console.log('%cHere\u2019s a clearly-fake one to enjoy: ' + FAKE_API_KEY, body);
+    console.log('%cCurious how real retrieval systems work? That\u2019s Robert\u2019s day job \u2192 https://github.com/robertklee', body);
+  } catch (e) {}
+})();
+
