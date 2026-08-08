@@ -454,6 +454,34 @@ var app = document.getElementById('app');
       ? window.performance.now() : Date.now();
   }
 
+  // Pace a "thinking" stream so it genuinely takes a random 1-4 seconds to play
+  // out: we spread the trace's tokens across a target window instead of always
+  // streaming at the same speed. The "Thought for Ns" pill is then computed from
+  // the real elapsed time, so the label reflects what actually happened rather
+  // than a faked number. A real reasoning model rarely lands on the exact same
+  // duration twice.
+  function thinkPace(text) {
+    var targetMs = 1000 + Math.random() * 3000; // aim for somewhere in 1-4s
+    var n = Math.max(1, tokenize(text, false).length);
+    // Every token carries an unavoidable per-token cost (span creation, insert,
+    // scroll) even at zero delay. Subtract an estimate of it so short targets are
+    // actually reachable and a genuine ~1s can occur, not just 2-4s.
+    var overheadPerTok = 9;
+    var avg = Math.max(0, targetMs / n - overheadPerTok); // delay from base+jitter
+    // base + jitter/2 averages to ~avg; punct 0 keeps the total near target.
+    return { base: avg * 0.6, jitter: avg * 0.8, punct: 0, subword: false };
+  }
+
+  // For the reduced-motion / static render there is no animation to time, so we
+  // just pick a plausible thinking duration in the same 1-4s range.
+  function thoughtSecs() {
+    return 1 + Math.floor(Math.random() * 4);
+  }
+
+  function reportedSecs(t0) {
+    return Math.min(4, Math.max(1, Math.round((now() - t0) / 1000)));
+  }
+
   // The hero is a fixed-height block; an expanded chain-of-thought must not
   // grow past it (on narrow screens the overflow would overlap the next
   // section). Cap the open trace to the space actually available, anchored to
@@ -729,7 +757,7 @@ var app = document.getElementById('app');
     think.txt.textContent = THOUGHT;
     think.line.classList.add('done');
     setFolded(true);
-    thinkLabel.textContent = 'Thought for 2s';
+    thinkLabel.textContent = 'Thought for ' + thoughtSecs() + 's';
     answer.txt.textContent = ANSWER;
     answer.txt.appendChild(cursor);
     revealActions();
@@ -756,9 +784,9 @@ var app = document.getElementById('app');
     think.line.classList.add('is-thinking');
     think.txt.style.maxHeight = cotCap(false) + 'px'; // keep the live trace inside the hero
     var t0 = now();
-    await stream(think, THOUGHT, { base: 20, jitter: 22, punct: 60, subword: false });
+    await stream(think, THOUGHT, thinkPace(THOUGHT));
     if (myToken !== runToken) return;
-    var secs = Math.max(1, Math.round((now() - t0) / 1000));
+    var secs = reportedSecs(t0);
     think.line.classList.remove('is-thinking');
     think.line.classList.add('done');
     thinkLabel.textContent = 'Thought for ' + secs + 's';
@@ -993,7 +1021,7 @@ var app = document.getElementById('app');
       t.think.txt.textContent = variant.thought;
       t.think.line.classList.add('done');
       simpleFold(t.thinkEls, true);
-      t.thinkLabel.textContent = 'Thought for 2s';
+      t.thinkLabel.textContent = 'Thought for ' + thoughtSecs() + 's';
       t.answer.line.classList.remove('chat-pending');
       t.answer.txt.textContent = variant.answer;
       t.answer.txt.appendChild(cursor);
@@ -1013,9 +1041,9 @@ var app = document.getElementById('app');
     t.think.line.classList.remove('chat-pending');
     t.think.line.classList.add('line-enter', 'is-thinking');
     var t0 = now();
-    await stream(t.think, variant.thought, { base: 18, jitter: 20, punct: 60, subword: false });
+    await stream(t.think, variant.thought, thinkPace(variant.thought));
     if (myToken !== runToken) return;
-    var secs = Math.max(1, Math.round((now() - t0) / 1000));
+    var secs = reportedSecs(t0);
     t.think.line.classList.remove('is-thinking');
     t.think.line.classList.add('done');
     t.thinkLabel.textContent = 'Thought for ' + secs + 's';
@@ -1077,9 +1105,9 @@ var app = document.getElementById('app');
     t.think.line.classList.add('is-thinking');
 
     var t0 = now();
-    await stream(t.think, v.thought, { base: 18, jitter: 20, punct: 60, subword: false });
+    await stream(t.think, v.thought, thinkPace(v.thought));
     if (myToken !== runToken) return;
-    var secs = Math.max(1, Math.round((now() - t0) / 1000));
+    var secs = reportedSecs(t0);
     t.think.line.classList.remove('is-thinking');
     t.think.line.classList.add('done');
     t.thinkLabel.textContent = 'Thought for ' + secs + 's';
