@@ -421,12 +421,22 @@ var app = document.getElementById('app');
     // Keep the shared cursor as the last child of the active text node so
     // newly streamed tokens are inserted just before it.
     target.txt.appendChild(cursor);
+    // Lead the currently-generating line with the ephemeral orb, if requested.
+    var orb = opts.orb && opts.orb.gen;
+    if (orb) {
+      target.txt.insertBefore(orb, target.txt.firstChild);
+      orb.classList.add('on');
+    }
     var myToken = runToken; // if a retry starts a new run, this stream aborts
     return new Promise(function (resolve) {
+      function finish() {
+        if (orb) orb.classList.remove('on');
+        resolve();
+      }
       var i = 0;
       (function step() {
-        if (myToken !== runToken) return resolve();
-        if (i >= tokens.length) return resolve();
+        if (myToken !== runToken) return finish();
+        if (i >= tokens.length) return finish();
         var chunk = tokens[i++];
         if (fade) {
           // Each token fades in for that ChatGPT "tokens landing" feel.
@@ -460,7 +470,7 @@ var app = document.getElementById('app');
   // the real elapsed time, so the label reflects what actually happened rather
   // than a faked number. A real reasoning model rarely lands on the exact same
   // duration twice.
-  function thinkPace(text) {
+  function thinkPace(text, orb) {
     var targetMs = 1000 + Math.random() * 3000; // aim for somewhere in 1-4s
     var n = Math.max(1, tokenize(text, false).length);
     // Every token carries an unavoidable per-token cost (span creation, insert,
@@ -469,7 +479,7 @@ var app = document.getElementById('app');
     var overheadPerTok = 9;
     var avg = Math.max(0, targetMs / n - overheadPerTok); // delay from base+jitter
     // base + jitter/2 averages to ~avg; punct 0 keeps the total near target.
-    return { base: avg * 0.6, jitter: avg * 0.8, punct: 0, subword: false };
+    return { base: avg * 0.6, jitter: avg * 0.8, punct: 0, subword: false, orb: orb };
   }
 
   // For the reduced-motion / static render there is no animation to time, so we
@@ -938,13 +948,11 @@ var app = document.getElementById('app');
     meta.appendChild(retryCtl.wrap);
     meta.appendChild(mtag);
     wrap.appendChild(meta);
-    var gen = document.createElement('div');
-    gen.className = 'gen-indicator';
+    // Inline "generating" orb. It isn't attached here; stream() inserts it at
+    // the head of whichever line (thought or answer) is currently streaming.
+    var gen = document.createElement('span');
+    gen.className = 'gen-orb';
     gen.setAttribute('aria-hidden', 'true');
-    var orb = document.createElement('span');
-    orb.className = 'gen-orb';
-    gen.appendChild(orb);
-    wrap.appendChild(gen);
     t.meta = meta;
     t.gen = gen;
     t.modelTag = mtag;
@@ -953,13 +961,13 @@ var app = document.getElementById('app');
     return t;
   }
 
-  // While a follow-up turn streams, hide its retry/model footer and show an
-  // ephemeral animated indicator; swap them back once the answer completes.
+  // While a follow-up turn streams, hide its retry/model footer. The animated
+  // orb itself is placed inline at the head of the streaming line by stream(),
+  // and the footer is swapped back in once the answer completes.
   function showGenerating(t) {
     if (!t) return;
     t.meta.classList.add('chat-actions-hidden');
     t.meta.classList.remove('line-enter');
-    if (t.gen) t.gen.classList.add('on');
   }
 
   function finishGenerating(t) {
@@ -1073,7 +1081,7 @@ var app = document.getElementById('app');
     t.think.line.classList.add('line-enter', 'is-thinking');
     showGenerating(t);
     var t0 = now();
-    await stream(t.think, variant.thought, thinkPace(variant.thought));
+    await stream(t.think, variant.thought, thinkPace(variant.thought, t));
     if (myToken !== runToken) return;
     var secs = reportedSecs(t0);
     t.think.line.classList.remove('is-thinking');
@@ -1087,7 +1095,7 @@ var app = document.getElementById('app');
     t.answer.line.classList.add('line-enter');
     await wait(300);
     if (myToken !== runToken) return;
-    await stream(t.answer, variant.answer, { base: 42, jitter: 42 });
+    await stream(t.answer, variant.answer, { base: 42, jitter: 42, orb: t });
     if (myToken !== runToken) return;
     t.modelTag.textContent = MODELS[t.modelIdx];
     finishGenerating(t);
@@ -1137,7 +1145,7 @@ var app = document.getElementById('app');
     t.think.line.classList.add('is-thinking');
 
     var t0 = now();
-    await stream(t.think, v.thought, thinkPace(v.thought));
+    await stream(t.think, v.thought, thinkPace(v.thought, t));
     if (myToken !== runToken) return;
     var secs = reportedSecs(t0);
     t.think.line.classList.remove('is-thinking');
@@ -1149,7 +1157,7 @@ var app = document.getElementById('app');
     simpleFold(t.thinkEls, true);
     await wait(300);
     if (myToken !== runToken) return;
-    await stream(t.answer, v.answer, { base: 42, jitter: 42 });
+    await stream(t.answer, v.answer, { base: 42, jitter: 42, orb: t });
     if (myToken !== runToken) return;
     t.modelTag.textContent = MODELS[t.modelIdx];
     finishGenerating(t);
