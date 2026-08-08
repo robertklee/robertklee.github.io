@@ -30,43 +30,43 @@ var app = document.getElementById('app');
   var VARIANTS = [
     {
       thought: "The visitor wants a quick intro, so let me pull together what matters. Robert's a senior engineer at Microsoft Azure AI Search, working across information retrieval, search relevance, and ranking \u2014 from classic keyword search to vector search, hybrid retrieval, and agentic retrieval, plus the RAG infrastructure behind enterprise AI. He's shipped work like vector quantization for major cost and latency wins, and cares about surfacing the right results fast at scale. I'll keep the reply to one sharp, welcoming line.",
-      answer: "Welcome! I'm Robert \u2014 I build the vector, hybrid, and agentic retrieval that grounds enterprise AI with the right knowledge at billion-vector scale."
+      answer: "Welcome! I'm Robert, a senior engineer on Azure AI Search \u2014 I build the vector, hybrid, and agentic retrieval that grounds enterprise AI at billion-vector scale."
     },
     {
       thought: "Let me think about what makes Robert's work stand out. On Azure AI Search he drove vector quantization from public preview all the way to GA \u2014 compression that cut customers' memory and cost by up to 8\u201332\u00d7 and latency by as much as 20\u00d7. So a recurring theme is making billion-scale vector search dramatically cheaper and faster without giving up relevance. I'll lead with that efficiency angle in a single line.",
-      answer: "Welcome! I'm Robert \u2014 I make billion-scale vector search dramatically cheaper and faster, so enterprise AI finds the right answer in milliseconds."
+      answer: "Hey, I'm Robert. I make billion-scale vector search dramatically cheaper and faster, so enterprise AI finds the right answer in milliseconds."
     },
     {
       thought: "The most interesting part of Robert's work is relevance. He built a hybrid-search relevance stack on Azure AI Search that fuses keyword and vector signals, and he tunes ranking for messy, complex, global queries. The through-line is getting the right results to the top \u2014 not just returning matches. Let me capture that in one line.",
-      answer: "Welcome! I'm Robert \u2014 I fuse keyword and vector search into ranking that puts the right result first, even for the world's messiest queries."
+      answer: "I'm Robert \u2014 I fuse keyword and vector search into ranking that puts the right result first, even for the world's messiest queries."
     },
     {
       thought: "What's most current in Robert's work? Agentic retrieval \u2014 turning research prototypes into production systems that ground LLMs and multi-agent workflows in governed enterprise knowledge. The goal is giving AI agents trustworthy, permission-aware access to the right information. I'll frame the intro around grounding AI, in one sentence.",
-      answer: "Welcome! I'm Robert \u2014 I build the agentic retrieval that grounds LLMs and AI agents in governed, enterprise-grade knowledge."
+      answer: "Nice to meet you \u2014 I'm Robert, and I build the agentic retrieval that grounds LLMs and AI agents in governed, enterprise-grade knowledge."
     },
     {
       thought: "Let me focus on the systems side. Robert works on a distributed search engine where billions of vectors are partitioned across replicated nodes and every query fans out in parallel, so performance and correctness are everything \u2014 and he's often the engineer who debugs the hardest production incidents at scale. The story here is reliability at massive scale. One confident line should do it.",
-      answer: "Welcome! I'm Robert \u2014 I build distributed retrieval that fans out across sharded, replicated nodes to stay fast and correct across billions of vectors."
+      answer: "Robert here. I build distributed retrieval that fans out across sharded, replicated nodes to stay fast and correct across billions of vectors."
     },
     {
       thought: "Zooming out, Robert's field is information retrieval: search relevance and ranking for complex, global queries. His day-to-day sits right where classic information retrieval meets modern vector search and applied machine learning. I want the intro to signal genuine depth in search, phrased warmly in a single line.",
-      answer: "Welcome! I'm Robert \u2014 I work where information retrieval, vector search, and applied ML meet, helping people find exactly what they need."
+      answer: "Hi \u2014 I'm Robert, and I work where information retrieval, vector search, and applied ML meet, helping people find exactly what they need."
     },
     {
       thought: "A lot of people care about RAG right now, so let me connect Robert to that. He doesn't just wire up pipelines \u2014 he builds the retrieval infrastructure underneath RAG: the vector and hybrid search, indexing, and ranking that decide what an LLM actually gets to read. I'll make the intro about being the foundation for RAG, in one line.",
-      answer: "Welcome! I'm Robert \u2014 I build the retrieval infrastructure beneath enterprise RAG that decides what your AI actually gets to read."
+      answer: "That's me \u2014 I'm Robert, and I build the retrieval infrastructure beneath enterprise RAG that decides what your AI actually gets to read."
     },
     {
       thought: "One thing that really defines Robert is shipping. He takes ambitious retrieval research and turns it into production-grade features that reach general availability and get adopted widely \u2014 vector quantization is a good example. The theme is carrying big ideas all the way to customers at scale. Let me say that simply.",
-      answer: "Welcome! I'm Robert \u2014 I take ambitious retrieval research all the way to production, shipping features that reach billion-vector scale."
+      answer: "I'm Robert. I take ambitious retrieval research all the way to production, shipping features that reach billion-vector scale."
     },
     {
       thought: "Let me pick something a little less obvious. Robert built the benchmarking infrastructure that made a new serverless search offering possible, alongside quantization work that slashed cost and latency. So part of his impact is the measurement and infra that let big bets ship safely. I'll keep the intro about enabling what ships, in one line.",
-      answer: "Welcome! I'm Robert \u2014 I build the benchmarks and infrastructure that let ambitious search features ship with confidence at scale."
+      answer: "Great to meet you \u2014 I'm Robert, and I build the benchmarks and infrastructure that let ambitious search features ship with confidence at scale."
     },
     {
       thought: "Maybe I should show some range. Beyond the retrieval engine at Azure AI Search, Robert has trained deep neural networks from scratch and loves building communities and mentoring engineers. But the core is the same: a builder who cares about getting the right information to people. Let me give a warm, human one-liner that still nods to the work.",
-      answer: "Welcome! I'm Robert \u2014 an engineer who loves building things that help people find the right answer, from neural nets to billion-scale search."
+      answer: "Hi there \u2014 I'm Robert, an engineer who loves building things that help people find the right answer, from neural nets to billion-scale search."
     }
   ];
 
