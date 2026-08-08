@@ -197,6 +197,20 @@ var app = document.getElementById('app');
   actions.appendChild(modelTag);
   chat.appendChild(actions);
 
+  // Ephemeral glowing "generating" orb, mirroring the homepage hero: shown
+  // while the answer streams, then swapped for the retry/model footer. The
+  // label beside it names the model that's responding.
+  var gen = document.createElement('div');
+  gen.className = 'gen-indicator';
+  gen.setAttribute('aria-hidden', 'true');
+  var genOrb = document.createElement('span');
+  genOrb.className = 'gen-orb';
+  gen.appendChild(genOrb);
+  var genModel = document.createElement('span');
+  genModel.className = 'gen-model';
+  gen.appendChild(genModel);
+  chat.appendChild(gen);
+
   // The homepage, rendered as a chip so it matches the site's suggested-action
   // styling. `.chat-suggest { display: flex }` is declared after
   // `.chat-actions-hidden` in styles.css (equal specificity, so it wins), which
@@ -257,6 +271,7 @@ var app = document.getElementById('app');
     answer.line.classList.add('chat-pending');
     thinkLabel.textContent = 'Thinking';
     thinkHead.setAttribute('aria-expanded', 'true');
+    gen.classList.remove('on');
     fold.setReserve(150);
   }
   function retryWith(idx) {
@@ -301,6 +316,8 @@ var app = document.getElementById('app');
     think.line.classList.remove('chat-pending');
     think.line.classList.add('line-enter');
     think.line.classList.add('is-thinking');
+    genModel.textContent = H.MODELS[modelIdx];
+    gen.classList.add('on'); // glowing "generating" orb with the responding model
     think.txt.style.maxHeight = fold.cotCap(false) + 'px';
     var t0 = H.now();
     await stream(think, THOUGHT, H.thinkPace(THOUGHT));
@@ -326,6 +343,7 @@ var app = document.getElementById('app');
         Math.min(think.txt.scrollHeight, fold.cotCap(true)) + 'px';
       fold.ensureAnswerVisible();
     }
+    gen.classList.remove('on'); // swap the orb for the retry/model footer
     revealActions();
   }
 
