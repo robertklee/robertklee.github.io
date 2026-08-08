@@ -571,6 +571,22 @@ body.convo-active .scroll-cue {
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* The prompt-injection easter-egg chip: same shape as a normal suggestion, with
+   a faint warm tint so it reads as "special" without shouting easter egg. */
+.egg-chip {
+  border-color: rgba(240, 171, 81, 0.5);
+  background: rgba(58, 42, 24, 0.42);
+}
+
+.egg-chip:hover {
+  border-color: rgba(240, 171, 81, 0.85);
+  background: rgba(58, 42, 24, 0.62);
+}
+
+.egg-chip .suggest-plus {
+  color: rgba(240, 171, 81, 0.9);
+}
+
 /* --- Conversation mode: darkened backdrop + scrollable chat panel ------- */
 .chat-turn {
   margin-top: 18px;
