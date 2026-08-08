@@ -568,87 +568,101 @@ var app = document.getElementById('app');
   // A subtle control under the answer lets visitors regenerate the response
   // with a different model. Same prompt, fresh sample: it picks a different
   // chain-of-thought/answer variant and relabels it with the chosen model.
+
+  // Builds a reusable "retry with a different model" dropdown: a pill button
+  // plus a grouped model menu. opts.onPick(idx) fires when a model is chosen;
+  // opts.getCurrent() supplies the checked model when the menu opens.
+  function buildRetryMenu(opts) {
+    var wrap = document.createElement('div');
+    wrap.className = 'retry-wrap';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'retry-btn';
+    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-label', 'Retry with a different model');
+    btn.innerHTML =
+      '<span class="retry-icon" aria-hidden="true">\u21BB</span>' +
+      '<span class="retry-text">Retry</span>' +
+      '<span class="retry-caret" aria-hidden="true">\u25BE</span>';
+    var menu = document.createElement('div');
+    menu.className = 'retry-menu';
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-label', 'Choose a model to retry with');
+    var items = [];
+    MODELS.forEach(function (name, i) {
+      if (i === 0 || MODEL_GROUP_OF[i] !== MODEL_GROUP_OF[i - 1]) {
+        var label = document.createElement('div');
+        label.className = 'retry-group-label';
+        label.textContent = MODEL_GROUP_LABELS[MODEL_GROUP_OF[i]];
+        menu.appendChild(label);
+      }
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'retry-item';
+      item.setAttribute('role', 'menuitemradio');
+      item.innerHTML =
+        '<span class="retry-check" aria-hidden="true">\u2713</span>' +
+        '<span class="retry-name"></span>';
+      item.querySelector('.retry-name').textContent = name;
+      item.addEventListener('click', function () {
+        closeMenu();
+        opts.onPick(i);
+      });
+      menu.appendChild(item);
+      items.push(item);
+    });
+    wrap.appendChild(btn);
+    wrap.appendChild(menu);
+
+    function onDocClick(e) { if (!wrap.contains(e.target)) closeMenu(); }
+    function onKey(e) { if (e.key === 'Escape') { closeMenu(); btn.focus(); } }
+    function updateChecks() {
+      var cur = opts.getCurrent();
+      items.forEach(function (it, i) {
+        it.classList.toggle('current', i === cur);
+        it.setAttribute('aria-checked', i === cur ? 'true' : 'false');
+      });
+    }
+    function openMenu() {
+      updateChecks();
+      menu.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      document.addEventListener('click', onDocClick, true);
+      document.addEventListener('keydown', onKey, true);
+    }
+    function closeMenu() {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      document.removeEventListener('click', onDocClick, true);
+      document.removeEventListener('keydown', onKey, true);
+    }
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (menu.classList.contains('open')) closeMenu();
+      else openMenu();
+    });
+    return {
+      wrap: wrap, btn: btn, menu: menu,
+      updateChecks: updateChecks, closeMenu: closeMenu
+    };
+  }
+
   var actions = document.createElement('div');
   actions.className = 'chat-actions chat-actions-hidden';
 
-  var retryWrap = document.createElement('div');
-  retryWrap.className = 'retry-wrap';
-
-  var retryBtn = document.createElement('button');
-  retryBtn.type = 'button';
-  retryBtn.className = 'retry-btn';
-  retryBtn.setAttribute('aria-haspopup', 'true');
-  retryBtn.setAttribute('aria-expanded', 'false');
-  retryBtn.setAttribute('aria-label', 'Retry with a different model');
-  retryBtn.innerHTML =
-    '<span class="retry-icon" aria-hidden="true">\u21BB</span>' +
-    '<span class="retry-text">Retry</span>' +
-    '<span class="retry-caret" aria-hidden="true">\u25BE</span>';
-
-  var menu = document.createElement('div');
-  menu.className = 'retry-menu';
-  menu.setAttribute('role', 'menu');
-  menu.setAttribute('aria-label', 'Choose a model to retry with');
-
-  var menuItems = [];
-  MODELS.forEach(function (name, i) {
-    if (i === 0 || MODEL_GROUP_OF[i] !== MODEL_GROUP_OF[i - 1]) {
-      var label = document.createElement('div');
-      label.className = 'retry-group-label';
-      label.textContent = MODEL_GROUP_LABELS[MODEL_GROUP_OF[i]];
-      menu.appendChild(label);
-    }
-    var item = document.createElement('button');
-    item.type = 'button';
-    item.className = 'retry-item';
-    item.setAttribute('role', 'menuitemradio');
-    item.innerHTML =
-      '<span class="retry-check" aria-hidden="true">\u2713</span>' +
-      '<span class="retry-name"></span>';
-    item.querySelector('.retry-name').textContent = name;
-    item.addEventListener('click', function () {
-      closeMenu();
-      retryWith(i);
-    });
-    menu.appendChild(item);
-    menuItems.push(item);
+  var introRetry = buildRetryMenu({
+    onPick: function (i) { retryWith(i); },
+    getCurrent: function () { return modelIdx; }
   });
 
   var modelTag = document.createElement('span');
   modelTag.className = 'model-tag';
 
-  retryWrap.appendChild(retryBtn);
-  retryWrap.appendChild(menu);
-  actions.appendChild(retryWrap);
+  actions.appendChild(introRetry.wrap);
   actions.appendChild(modelTag);
   chat.appendChild(actions);
 
-  function onDocClick(e) { if (!retryWrap.contains(e.target)) closeMenu(); }
-  function onKey(e) { if (e.key === 'Escape') { closeMenu(); retryBtn.focus(); } }
-  function openMenu() {
-    menu.classList.add('open');
-    retryBtn.setAttribute('aria-expanded', 'true');
-    document.addEventListener('click', onDocClick, true);
-    document.addEventListener('keydown', onKey, true);
-  }
-  function closeMenu() {
-    menu.classList.remove('open');
-    retryBtn.setAttribute('aria-expanded', 'false');
-    document.removeEventListener('click', onDocClick, true);
-    document.removeEventListener('keydown', onKey, true);
-  }
-  retryBtn.addEventListener('click', function (e) {
-    e.stopPropagation();
-    if (menu.classList.contains('open')) closeMenu();
-    else openMenu();
-  });
-
-  function updateMenuChecks() {
-    menuItems.forEach(function (it, i) {
-      it.classList.toggle('current', i === modelIdx);
-      it.setAttribute('aria-checked', i === modelIdx ? 'true' : 'false');
-    });
-  }
   function setActionsVisible(show) {
     actions.classList.toggle('chat-actions-hidden', !show);
   }
@@ -670,7 +684,7 @@ var app = document.getElementById('app');
     THOUGHT = VARIANTS[variantIdx].thought;
     ANSWER = VARIANTS[variantIdx].answer;
     modelTag.textContent = MODELS[modelIdx];
-    updateMenuChecks();
+    introRetry.updateChecks();
   }
   function pickDifferentVariant() {
     if (VARIANTS.length < 2) return variantIdx;
@@ -887,21 +901,19 @@ var app = document.getElementById('app');
     t.answer.line.classList.add('chat-pending');
     var meta = document.createElement('div');
     meta.className = 'follow-meta chat-actions-hidden';
-    var rbtn = document.createElement('button');
-    rbtn.type = 'button';
-    rbtn.className = 'retry-btn follow-retry';
-    rbtn.setAttribute('aria-label', 'Retry this answer with a different model');
-    rbtn.innerHTML =
-      '<span class="retry-icon" aria-hidden="true">\u21BB</span>' +
-      '<span class="retry-text">Retry</span>';
+    var retryCtl = buildRetryMenu({
+      onPick: function (i) { retryFollowWithModel(t, i); },
+      getCurrent: function () { return t.modelIdx; }
+    });
     var mtag = document.createElement('span');
     mtag.className = 'model-tag';
-    meta.appendChild(rbtn);
+    meta.appendChild(retryCtl.wrap);
     meta.appendChild(mtag);
     wrap.appendChild(meta);
     t.meta = meta;
     t.modelTag = mtag;
-    t.retryBtn = rbtn;
+    t.retryCtl = retryCtl;
+    t.retryBtn = retryCtl.btn;
     return t;
   }
 
@@ -922,18 +934,12 @@ var app = document.getElementById('app');
     return idx;
   }
 
-  function pickDifferentModel(currentIdx) {
-    if (MODELS.length < 2) return currentIdx;
-    var idx;
-    do { idx = Math.floor(Math.random() * MODELS.length); } while (idx === currentIdx);
-    return idx;
-  }
-
   // Each follow-up turn allows a single retry. Once the visitor moves on to a
   // new turn (or has already used it), the button is spent.
   function disableFollowRetry(t) {
     if (!t) return;
     t.retried = true;
+    if (t.retryCtl) t.retryCtl.closeMenu();
     if (t.retryBtn) {
       t.retryBtn.disabled = true;
       t.retryBtn.classList.add('retry-used');
@@ -978,7 +984,6 @@ var app = document.getElementById('app');
     t.variantIdx = variantIdx2;
     t.modelIdx = modelIdx;
     t.retried = false;
-    t.retryBtn.addEventListener('click', function () { retryFollow(t); });
     lastFollowTurn = t;
     scrollChatToBottom();
 
@@ -1034,13 +1039,16 @@ var app = document.getElementById('app');
     scrollChatToBottom();
   }
 
-  // Regenerate a single follow-up turn in place with a different variant and a
-  // different model \u2014 one retry per turn (the button is spent on use).
-  function retryFollow(t) {
+  // Regenerate a single follow-up turn in place with the chosen model and a
+  // different variant \u2014 one retry per turn (the control is spent on use). The
+  // picked model also becomes the current model, so later turns continue with
+  // it.
+  function retryFollowWithModel(t, i) {
     if (!t || t.retried) return;
+    t.modelIdx = i;
+    modelIdx = i; // subsequent turns continue with the chosen model
     disableFollowRetry(t);
     t.variantIdx = pickDifferentVariantIdx(t.topic, t.variantIdx);
-    t.modelIdx = pickDifferentModel(t.modelIdx);
     var v = t.topic.variants[t.variantIdx];
 
     if (reduceMotion) {
