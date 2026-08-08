@@ -161,6 +161,16 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Hero identity: name + role sit quietly above the live reasoning-model chat,
+   which does the actual introducing. */
+.hero-tagline {
+  margin: 12px 0 0;
+  font-family: 'Rubik', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+}
+
 /* Hero "reasoning model" chat: prompt -> chain-of-thought -> answer. */
 .hero-chat {
   display: inline-block;
