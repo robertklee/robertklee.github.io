@@ -1295,3 +1295,33 @@ btn_proj_3.onclick = function() {
   }
 })();
 
+// SCROLL CUE: the hero fills the viewport, so hint that there's more below.
+// Fades out once the visitor starts scrolling and reappears at the top; a
+// click smooth-scrolls past the hero to the Introduction section.
+;(function () {
+  var cue = document.querySelector('.scroll-cue');
+  if (!cue) return;
+  var hero = document.querySelector('.hero-viewport');
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  cue.addEventListener('click', function () {
+    var y = hero
+      ? hero.getBoundingClientRect().bottom + window.pageYOffset
+      : window.innerHeight;
+    window.scrollTo({ top: y, behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(function () {
+      if (window.pageYOffset > 40) cue.classList.add('cue-hidden');
+      else cue.classList.remove('cue-hidden');
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
+

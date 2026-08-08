@@ -176,10 +176,79 @@ h1, h2, h3, p, a, .time-text, .tech-text {
    fold. Content is top-anchored (not vertically centered) so the streaming
    chain-of-thought grows downward without shifting the heading. */
 .hero-viewport {
+  position: relative;
   min-height: 100vh;
   min-height: 100dvh;
   padding-top: clamp(56px, 15vh, 170px);
   box-sizing: border-box;
+}
+
+/* Scroll cue: a quiet hint that the hero is full-screen and there's more
+   content just below the fold. Fades out once the visitor scrolls, hides in
+   conversation mode, and its bounce respects reduced-motion. Clicking it
+   smooth-scrolls past the hero to the Introduction. */
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: 'Rubik', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  opacity: 1;
+  transition: opacity 0.5s ease, color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scroll-cue:hover {
+  color: #ffffff;
+}
+
+.scroll-cue:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.scroll-cue svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+  animation: scroll-cue-bounce 1.8s ease-in-out infinite;
+}
+
+.scroll-cue.cue-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.convo-active .scroll-cue {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes scroll-cue-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue svg {
+    animation: none;
+  }
 }
 
 /* Hero "reasoning model" chat: prompt -> chain-of-thought -> answer. */
