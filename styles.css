@@ -433,6 +433,126 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   color: #7ea0c4;
 }
 
+/* --- Suggested follow-ups (ChatGPT-style chips) ------------------------- */
+.chat-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.suggest-enter {
+  animation: suggest-in 0.5s ease both;
+}
+
+@keyframes suggest-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.suggest-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(17, 22, 35, 0.42);
+  color: rgba(255, 255, 255, 0.95);
+  font-family: inherit;
+  font-size: 0.86rem;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.suggest-chip:hover {
+  background: rgba(17, 22, 35, 0.62);
+  border-color: rgba(255, 255, 255, 0.55);
+  transform: translateY(-1px);
+}
+
+.suggest-plus {
+  font-size: 1.05em;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- Conversation mode: darkened backdrop + scrollable chat panel ------- */
+.chat-turn {
+  margin-top: 18px;
+}
+
+.follow-meta {
+  margin-top: 8px;
+}
+
+#hero-dim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 750px;
+  background: radial-gradient(120% 100% at 50% 32%,
+    rgba(8, 12, 22, 0.5), rgba(4, 7, 14, 0.74));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+}
+
+#hero-dim.on {
+  opacity: 1;
+}
+
+.hero-chat.convo {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: rgba(13, 18, 30, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+  transition: background 0.6s ease, border-color 0.6s ease;
+}
+
+.hero-chat.convo::-webkit-scrollbar {
+  width: 7px;
+}
+
+.hero-chat.convo::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+}
+
+/* On phones, keep the chips to a single swipeable row so they never add
+   unpredictable height to the fixed-height hero. */
+@media only screen and (max-width: 550px) {
+  .chat-suggest {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .chat-suggest::-webkit-scrollbar {
+    display: none;
+  }
+  .suggest-chip {
+    flex: 0 0 auto;
+  }
+  .hero-chat.convo {
+    padding: 14px 15px;
+  }
+}
+
 @keyframes think-dots {
   0%   { content: ''; }
   25%  { content: '.'; }
