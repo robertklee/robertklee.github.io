@@ -611,6 +611,16 @@ body.convo-active .scroll-cue {
   animation: gen-orb 3s ease-in-out infinite;
 }
 
+/* Model name shown beside the generating orb, matching the .model-tag look
+   (minus its leading dot, since the orb already plays that role). */
+.gen-model {
+  margin-left: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 @keyframes gen-orb {
   0%, 100% { transform: scale(0.7); background: #7ea0c4; filter: blur(0); box-shadow: 0 0 0 0 rgba(126, 160, 196, 0); }
   33% { transform: scale(1.15); background: #ffffff; filter: blur(2.6px); box-shadow: 0 0 18px 7px rgba(255, 255, 255, 0.28); }

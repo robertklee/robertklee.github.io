@@ -451,6 +451,21 @@ var app = document.getElementById('app');
   actions.appendChild(modelTag);
   chat.appendChild(actions);
 
+  // Ephemeral glowing "generating" orb for the intro sequence, mirroring the
+  // one shown for follow-up turns (createFollowTurn). It sits where the retry/
+  // model footer will land: shown while the intro streams, swapped out for the
+  // toolbar once the answer completes.
+  var introGen = document.createElement('div');
+  introGen.className = 'gen-indicator';
+  introGen.setAttribute('aria-hidden', 'true');
+  var introOrb = document.createElement('span');
+  introOrb.className = 'gen-orb';
+  introGen.appendChild(introOrb);
+  var introGenModel = document.createElement('span');
+  introGenModel.className = 'gen-model';
+  introGen.appendChild(introGenModel);
+  chat.appendChild(introGen);
+
   function setActionsVisible(show) {
     actions.classList.toggle('chat-actions-hidden', !show);
   }
@@ -493,6 +508,7 @@ var app = document.getElementById('app');
     answer.line.classList.add('chat-pending');
     thinkLabel.textContent = 'Thinking';
     thinkHead.setAttribute('aria-expanded', 'true');
+    introGen.classList.remove('on');
     fold.setReserve(170);
   }
   function retryWith(idx) {
@@ -542,6 +558,8 @@ var app = document.getElementById('app');
     think.line.classList.remove('chat-pending');
     think.line.classList.add('line-enter');
     think.line.classList.add('is-thinking');
+    introGenModel.textContent = MODELS[modelIdx];
+    introGen.classList.add('on'); // glowing "generating" orb, as on follow-ups
     think.txt.style.maxHeight = cotCap(false) + 'px'; // keep the live trace inside the hero
     var t0 = now();
     await stream(think, THOUGHT, thinkPace(THOUGHT));
@@ -570,6 +588,7 @@ var app = document.getElementById('app');
         Math.min(think.txt.scrollHeight, cotCap(true)) + 'px';
       ensureAnswerVisible();
     }
+    introGen.classList.remove('on'); // swap the orb for the retry/model footer
     revealActions();
     showSuggestions('intro');
   }
@@ -704,9 +723,13 @@ var app = document.getElementById('app');
     var orb = document.createElement('span');
     orb.className = 'gen-orb';
     gen.appendChild(orb);
+    var genModel = document.createElement('span');
+    genModel.className = 'gen-model';
+    gen.appendChild(genModel);
     wrap.appendChild(gen);
     t.meta = meta;
     t.gen = gen;
+    t.genModel = genModel;
     t.modelTag = mtag;
     t.retryCtl = retryCtl;
     t.retryBtn = retryCtl.btn;
@@ -719,6 +742,7 @@ var app = document.getElementById('app');
     if (!t) return;
     t.meta.classList.add('chat-actions-hidden');
     t.meta.classList.remove('line-enter');
+    if (t.genModel) t.genModel.textContent = MODELS[t.modelIdx];
     if (t.gen) t.gen.classList.add('on');
   }
 
