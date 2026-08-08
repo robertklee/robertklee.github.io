@@ -839,12 +839,16 @@ var app = document.getElementById('app');
       void els.txt.offsetHeight;
       els.txt.style.maxHeight = '0px';
     } else {
+      // Only keep the transcript pinned to the bottom if the visitor was
+      // already there; if they've scrolled up to re-read a trace, expanding it
+      // must not yank the view down to the latest message.
+      var atBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 8;
       els.txt.style.maxHeight = els.txt.scrollHeight + 'px';
       var done = function (e) {
         if (e.propertyName && e.propertyName !== 'max-height') return;
         els.txt.style.maxHeight = 'none';
         els.txt.removeEventListener('transitionend', done);
-        scrollChatToBottom();
+        if (atBottom) scrollChatToBottom();
       };
       els.txt.addEventListener('transitionend', done);
     }
