@@ -691,6 +691,7 @@ var app = document.getElementById('app');
   // turns, then from CHIPS_UNTIL on we show only the CTA and let it wind down.
   var CTA_AFTER = 10;
   var CHIPS_UNTIL = 12;
+  var EGG_MIN_TURN = 3; // the easter egg never appears before this many turns
 
   function scrollChatToBottom() {
     if (convoMode) chat.scrollTop = chat.scrollHeight;
@@ -934,10 +935,11 @@ var app = document.getElementById('app');
   }
 
   // Rarely swap the last suggestion chip for the prompt-injection easter egg
-  // (see EASTER_EGG). It fires at most once per visit and only some of the
-  // time, so it stays a surprise; clicking it runs the normal chat flow.
+  // (see EASTER_EGG). It only appears once the visitor is a few turns in, fires
+  // at most once per visit, and only some of the time, so it stays a surprise;
+  // clicking it runs the normal chat flow.
   function maybeAddEasterEgg(row) {
-    if (eggShown || Math.random() > 0.10) return;
+    if (eggShown || turnCount < EGG_MIN_TURN || Math.random() > 0.10) return;
     var chips = row.querySelectorAll('.suggest-chip');
     if (!chips.length) return;
     var phrasing = EASTER_EGG.prompts[Math.floor(Math.random() * EASTER_EGG.prompts.length)];
