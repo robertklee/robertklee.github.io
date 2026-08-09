@@ -1,12 +1,33 @@
-// Shared "reasoning model" chat engine used by both the homepage hero
-// (index.js) and the 404 page (404.js). It bundles the pieces both pages need:
-// token streaming, the collapsible chain-of-thought fold logic, the
-// retry/model picker, the animated mountain backdrop, and the theme toggle.
-// Everything is exposed on the global `HeroChat` object; page scripts supply
-// only their own content and orchestration.
+// Shared simulated-model UI used by the homepage hero (index.js) and the 404
+// page (404.js). It owns streaming, collapsible thinking traces, model retry
+// controls, the animated backdrop, and theme switching. Page scripts provide
+// their content and orchestrate each response through the global `HeroChat`.
 window.HeroChat = (function () {
   var reduceMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Centralized timing profile for the simulated model. Per-stream options can
+  // override the token delays; thinking traces derive their pace from length.
+  var THINK_BASE_MS = 800; // Fixed time added before length-based thinking.
+  var THINK_PER_TOKEN_MS = 60; // Target time added per whitespace token.
+  var THINK_JITTER_MS = 700; // Maximum random variance in the target duration.
+  var THINK_MAX_MS = 7000; // Hard cap for the generated thinking target.
+  var THINK_RENDER_OVERHEAD_PER_TOKEN_MS = 9; // Estimated DOM work per token.
+  var THINK_LEAD_MS = 150; // Base pause before the first thinking token.
+  var THINK_BASE_DELAY_RATIO = 0.6; // Guaranteed share of average token delay.
+  var THINK_DELAY_JITTER_RATIO = 0.8; // Random share of average token delay.
+  var THOUGHT_MIN_SECS = 1; // Minimum displayed "Thought for" duration.
+  var THOUGHT_MAX_SECS = 9; // Maximum displayed "Thought for" duration.
+  var FALLBACK_THOUGHT_RANGE_SECS = 4; // Random range when no thought is given.
+  var STATIC_THOUGHT_JITTER_SECS = 1; // Variance for reduced-motion labels.
+
+  var STREAM_BASE_MS = 48; // Default minimum delay between output tokens.
+  var STREAM_JITTER_MS = 46; // Maximum random delay added to each token.
+  var STREAM_PUNCTUATION_MS = 150; // Extra pause after punctuation.
+  var STREAM_LEAD_JITTER_RATIO = 0.5; // Up to 50% variance on first-token delay.
+  var STREAM_HITCH_CHANCE = 0.04; // Per-token chance of a brief cadence stall.
+  var STREAM_HITCH_MIN_MS = 30; // Minimum extra delay during a cadence stall.
+  var STREAM_HITCH_JITTER_MS = 70; // Additional random stall delay.
 
   // Reused for every collapsible "thinking" trace.
   var CHEVRON_SVG =
@@ -52,24 +73,24 @@ window.HeroChat = (function () {
       ? window.performance.now() : Date.now();
   }
 
-  // Spread a "thinking" stream across a random 1-4s window so its "Thought for
-  // Ns" pill reflects a plausible, non-repeating duration. `extra` merges in any
-  // per-call stream options (e.g. an `orb`).
+  // Pace a thinking trace from its token count so longer traces take longer.
+  // `extra` can override any generated stream option for a specific call.
   function thinkPace(text, extra) {
     var n = Math.max(1, tokenize(text, false).length);
-    // Thinking time scales with how much there is to "reason" about: a longer
-    // chain-of-thought takes proportionally longer to stream, plus a little
-    // randomness, clamped to a believable window.
-    var targetMs = Math.min(8000, 800 + n * 60 + Math.random() * 700);
-    // Every token carries an unavoidable per-token cost (span creation, insert,
-    // scroll) even at zero delay. Subtract an estimate so short targets are
-    // actually reachable and a genuine short think can occur.
-    var overheadPerTok = 9;
-    var avg = Math.max(0, targetMs / n - overheadPerTok);
-    var o = { base: avg * 0.6, jitter: avg * 0.8, punct: 0, subword: false,
-      // A short beat before the first thought token appears, like a real model
-      // spinning up before it emits anything.
-      lead: 200 };
+    var targetMs = Math.min(
+      THINK_MAX_MS,
+      THINK_BASE_MS + n * THINK_PER_TOKEN_MS + Math.random() * THINK_JITTER_MS
+    );
+    // DOM insertion and scrolling consume time even with a zero-millisecond
+    // timeout, so remove that estimated cost from the requested token delay.
+    var avg = Math.max(0, targetMs / n - THINK_RENDER_OVERHEAD_PER_TOKEN_MS);
+    var o = {
+      base: avg * THINK_BASE_DELAY_RATIO,
+      jitter: avg * THINK_DELAY_JITTER_RATIO,
+      punct: 0,
+      subword: false,
+      lead: THINK_LEAD_MS
+    };
     if (extra) {
       for (var k in extra) {
         if (Object.prototype.hasOwnProperty.call(extra, k)) o[k] = extra[k];
@@ -78,17 +99,26 @@ window.HeroChat = (function () {
     return o;
   }
 
-  // For the reduced-motion / static render there's no animation to time, so we
-  // derive a plausible thinking duration that still scales with thought length.
+  // Reduced-motion rendering skips streaming, but its label still uses the
+  // same base and per-token scaling.
   function thoughtSecs(text) {
-    if (!text) return 1 + Math.floor(Math.random() * 4);
+    if (!text) {
+      return THOUGHT_MIN_SECS +
+        Math.floor(Math.random() * FALLBACK_THOUGHT_RANGE_SECS);
+    }
     var n = Math.max(1, tokenize(text, false).length);
-    var secs = Math.round((800 + n * 60) / 1000 + Math.random());
-    return Math.max(1, Math.min(9, secs));
+    var secs = Math.round(
+      (THINK_BASE_MS + n * THINK_PER_TOKEN_MS) / 1000 +
+      Math.random() * STATIC_THOUGHT_JITTER_SECS
+    );
+    return Math.max(THOUGHT_MIN_SECS, Math.min(THOUGHT_MAX_SECS, secs));
   }
 
   function reportedSecs(t0) {
-    return Math.min(9, Math.max(1, Math.round((now() - t0) / 1000)));
+    return Math.min(
+      THOUGHT_MAX_SECS,
+      Math.max(THOUGHT_MIN_SECS, Math.round((now() - t0) / 1000))
+    );
   }
 
   // Build a chat line: an optional prefix span (e.g. the prompt caret) plus a
@@ -119,19 +149,18 @@ window.HeroChat = (function () {
   }
 
   // Create a token streamer bound to a shared cursor. `cfg.getToken` supplies
-  // the live run token so a stream aborts when a newer (re)generation starts;
-  // `cfg.onChunk` runs after each token (used to keep a scrolling transcript
-  // pinned to the newest text).
+  // the active generation token so stale streams can stop; `cfg.onChunk` keeps
+  // consumers such as the scrolling transcript synchronized with each token.
+  // Stream options control per-token base/jitter/punctuation delays, the
+  // first-token lead, subword splitting, token fading, and an optional orb.
   function createStreamer(cfg) {
     cfg = cfg || {};
     var cursor = cfg.cursor;
     return function stream(target, text, opts) {
       opts = opts || {};
-      var base = opts.base == null ? 48 : opts.base;
-      var jitter = opts.jitter == null ? 46 : opts.jitter;
-      var punct = opts.punct == null ? 190 : opts.punct;
-      // Optional "time to first token" pause so a stream doesn't begin the
-      // instant it's called -- real models take a beat before emitting text.
+      var base = opts.base == null ? STREAM_BASE_MS : opts.base;
+      var jitter = opts.jitter == null ? STREAM_JITTER_MS : opts.jitter;
+      var punct = opts.punct == null ? STREAM_PUNCTUATION_MS : opts.punct;
       var lead = opts.lead == null ? 0 : opts.lead;
       var fade = opts.fade !== false && !reduceMotion;
       var tokens = tokenize(text, opts.subword !== false);
@@ -157,7 +186,7 @@ window.HeroChat = (function () {
           if (i >= tokens.length) return finish();
           var chunk = tokens[i++];
           if (fade) {
-            // Each token fades in for that ChatGPT "tokens landing" feel.
+            // Fade each token as it lands instead of inserting it abruptly.
             var span = document.createElement('span');
             span.className = 'tok';
             span.textContent = chunk;
@@ -170,13 +199,16 @@ window.HeroChat = (function () {
           if (cfg.onChunk) cfg.onChunk();
           var delay = base + Math.random() * jitter;
           if (/[.,;!?\u2014]$/.test(chunk)) delay += punct;
-          // Occasionally the stream "hitches" -- a brief stall, like a real
-          // model catching up -- so the cadence isn't perfectly uniform.
-          if (Math.random() < 0.04) delay += 50 + Math.random() * 110;
+          // A rare, short stall prevents the cadence from feeling metronomic.
+          if (Math.random() < STREAM_HITCH_CHANCE) {
+            delay += STREAM_HITCH_MIN_MS + Math.random() * STREAM_HITCH_JITTER_MS;
+          }
           setTimeout(step, delay);
         }
-        // Hold for the lead (plus a little jitter) before the first token lands.
-        var firstLead = lead > 0 ? lead + Math.random() * lead * 0.5 : 0;
+        // Add proportional jitter to the configured time-to-first-token pause.
+        var firstLead = lead > 0
+          ? lead + Math.random() * lead * STREAM_LEAD_JITTER_RATIO
+          : 0;
         if (firstLead > 0) setTimeout(step, firstLead); else step();
       });
     };
