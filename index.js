@@ -902,7 +902,7 @@ var app = document.getElementById('app');
   // (see EASTER_EGG). It fires at most once per visit and only some of the
   // time, so it stays a surprise; clicking it runs the normal chat flow.
   function maybeAddEasterEgg(row) {
-    if (eggShown || Math.random() > 0.25) return;
+    if (eggShown || Math.random() > 0.10) return;
     var chips = row.querySelectorAll('.suggest-chip');
     if (!chips.length) return;
     var phrasing = EASTER_EGG.prompts[Math.floor(Math.random() * EASTER_EGG.prompts.length)];
