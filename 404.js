@@ -334,7 +334,7 @@ var app = document.getElementById('app');
     await H.wait(320);
     if (myToken !== runToken) return;
 
-    await stream(answer, ANSWER, { base: 45, jitter: 45 });
+    await stream(answer, ANSWER, { base: 45, jitter: 45, lead: 260 });
     if (myToken !== runToken) return;
     fold.refreshReserve();
     if (think.line.classList.contains('done') &&

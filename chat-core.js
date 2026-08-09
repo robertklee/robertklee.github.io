@@ -63,7 +63,10 @@ window.HeroChat = (function () {
     // actually reachable and a genuine ~1s can occur, not just 2-4s.
     var overheadPerTok = 9;
     var avg = Math.max(0, targetMs / n - overheadPerTok);
-    var o = { base: avg * 0.6, jitter: avg * 0.8, punct: 0, subword: false };
+    var o = { base: avg * 0.6, jitter: avg * 0.8, punct: 0, subword: false,
+      // A short beat before the first thought token appears, like a real model
+      // spinning up before it emits anything.
+      lead: 200 };
     if (extra) {
       for (var k in extra) {
         if (Object.prototype.hasOwnProperty.call(extra, k)) o[k] = extra[k];
@@ -121,6 +124,9 @@ window.HeroChat = (function () {
       var base = opts.base == null ? 45 : opts.base;
       var jitter = opts.jitter == null ? 45 : opts.jitter;
       var punct = opts.punct == null ? 180 : opts.punct;
+      // Optional "time to first token" pause so a stream doesn't begin the
+      // instant it's called -- real models take a beat before emitting text.
+      var lead = opts.lead == null ? 0 : opts.lead;
       var fade = opts.fade !== false && !reduceMotion;
       var tokens = tokenize(text, opts.subword !== false);
       // Keep the shared cursor as the last child of the active text node so
@@ -140,7 +146,7 @@ window.HeroChat = (function () {
           resolve();
         }
         var i = 0;
-        (function step() {
+        function step() {
           if (stale()) return finish();
           if (i >= tokens.length) return finish();
           var chunk = tokens[i++];
@@ -159,7 +165,10 @@ window.HeroChat = (function () {
           var delay = base + Math.random() * jitter;
           if (/[.,;!?\u2014]$/.test(chunk)) delay += punct;
           setTimeout(step, delay);
-        })();
+        }
+        // Hold for the lead (plus a little jitter) before the first token lands.
+        var firstLead = lead > 0 ? lead + Math.random() * lead * 0.5 : 0;
+        if (firstLead > 0) setTimeout(step, firstLead); else step();
       });
     };
   }
