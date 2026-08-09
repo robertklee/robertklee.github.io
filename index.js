@@ -685,6 +685,12 @@ var app = document.getElementById('app');
   var activeSuggestRow = null;
   var lastFollowTurn = null; // only the newest follow-up turn is retryable
   var eggShown = false; // the prompt-injection easter egg appears at most once
+  var turnCount = 0; // completed follow-up turns (drives the "reach out" nudge)
+  // Once the chat runs long, nudge visitors toward reaching Robert directly:
+  // the CTA appears from CTA_AFTER turns on, chips continue for a couple more
+  // turns, then from CHIPS_UNTIL on we show only the CTA and let it wind down.
+  var CTA_AFTER = 10;
+  var CHIPS_UNTIL = 12;
 
   function scrollChatToBottom() {
     if (convoMode) chat.scrollTop = chat.scrollHeight;
@@ -860,22 +866,51 @@ var app = document.getElementById('app');
     }
   }
 
+  // A friendly "reach out to Robert" card shown once the conversation runs long.
+  function buildContactCta() {
+    var cta = document.createElement('div');
+    cta.className = 'chat-cta';
+    var msg = document.createElement('span');
+    msg.className = 'chat-cta-text';
+    msg.textContent = 'Enjoying the conversation? I\u2019m just JavaScript \u2014 but the real Robert would love to hear from you. Reach out directly:';
+    cta.appendChild(msg);
+    var links = document.createElement('div');
+    links.className = 'chat-cta-links';
+    var li = document.createElement('a');
+    li.className = 'chat-cta-link';
+    li.href = 'https://www.linkedin.com/in/robert-k-lee/';
+    li.target = '_blank';
+    li.rel = 'noopener noreferrer';
+    li.textContent = 'Connect on LinkedIn';
+    var em = document.createElement('a');
+    em.className = 'chat-cta-link';
+    em.href = 'mailto:hello@robertkl.com';
+    em.textContent = 'Email Robert';
+    links.appendChild(li);
+    links.appendChild(em);
+    cta.appendChild(links);
+    return cta;
+  }
+
   function showSuggestions(excludeId) {
     removeActiveSuggestions();
     var row = document.createElement('div');
     row.className = 'chat-suggest' + (reduceMotion ? '' : ' suggest-enter');
-    pickTopics(excludeId, 3).forEach(function (topic) {
-      var phrasing = topic.prompts[pickUnusedIdx(usedPrompts, topic.id, topic.prompts.length)];
-      var chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'suggest-chip';
-      chip.innerHTML = '<span class="suggest-plus" aria-hidden="true">+</span>' +
-        '<span class="suggest-text"></span>';
-      chip.querySelector('.suggest-text').textContent = phrasing;
-      chip.addEventListener('click', function () { runChip(chip, topic, phrasing, row); });
-      row.appendChild(chip);
-    });
-    maybeAddEasterEgg(row);
+    if (turnCount < CHIPS_UNTIL) {
+      pickTopics(excludeId, 3).forEach(function (topic) {
+        var phrasing = topic.prompts[pickUnusedIdx(usedPrompts, topic.id, topic.prompts.length)];
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'suggest-chip';
+        chip.innerHTML = '<span class="suggest-plus" aria-hidden="true">+</span>' +
+          '<span class="suggest-text"></span>';
+        chip.querySelector('.suggest-text').textContent = phrasing;
+        chip.addEventListener('click', function () { runChip(chip, topic, phrasing, row); });
+        row.appendChild(chip);
+      });
+      maybeAddEasterEgg(row);
+    }
+    if (turnCount >= CTA_AFTER) row.appendChild(buildContactCta());
     chat.appendChild(row);
     activeSuggestRow = row;
     if (convoMode) scrollChatToBottom();
@@ -921,6 +956,7 @@ var app = document.getElementById('app');
   async function askTopic(topic, promptText, sourceRow) {
     // Ignore a double-click on a chip whose row was already consumed.
     if (!sourceRow || !sourceRow.parentNode) return;
+    turnCount++;
     enterConvoMode();
     sourceRow.parentNode.removeChild(sourceRow);
     if (sourceRow === activeSuggestRow) activeSuggestRow = null;

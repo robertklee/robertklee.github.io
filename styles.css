@@ -587,6 +587,56 @@ body.convo-active .scroll-cue {
   color: rgba(240, 171, 81, 0.9);
 }
 
+/* After a long conversation, a full-width card nudging visitors to reach Robert
+   directly. It sits in the suggestion row and wraps onto its own line. */
+.chat-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(17, 22, 35, 0.5);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.chat-cta-text {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.chat-cta-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chat-cta-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(128, 211, 254, 0.55);
+  background: rgba(128, 211, 254, 0.14);
+  color: rgba(255, 255, 255, 0.95);
+  font-family: inherit;
+  font-size: 0.86rem;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.chat-cta-link:hover {
+  background: rgba(128, 211, 254, 0.26);
+  border-color: rgba(128, 211, 254, 0.85);
+  transform: translateY(-1px);
+}
+
 /* --- Conversation mode: darkened backdrop + scrollable chat panel ------- */
 .chat-turn {
   margin-top: 18px;
