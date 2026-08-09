@@ -393,7 +393,31 @@ var app = document.getElementById('app');
   var CHEVRON_SVG = H.CHEVRON_SVG;
   var MODELS = H.MODELS;
 
-  var variantIdx = Math.floor(Math.random() * VARIANTS.length);
+  // Track which variant (answer) and prompt (chip) indices have already been
+  // shown, per topic, so the "model" never repeats the same answer or the same
+  // suggestion chip within a visit. When a pool is exhausted we start a fresh
+  // cycle without immediately repeating the option we just showed.
+  var usedVariants = {}; // topicId -> variant indices already shown
+  var usedPrompts = {};  // topicId -> phrasing indices already shown
+  function pickUnusedIdx(store, key, count, avoid) {
+    if (count <= 1) return 0;
+    var used = store[key] || (store[key] = []);
+    var last = used.length ? used[used.length - 1] : -1;
+    if (used.length >= count) used.length = 0; // exhausted: begin a fresh cycle
+    if (avoid == null && used.length === 0) avoid = last; // no back-to-back repeat
+    var pool = [];
+    for (var i = 0; i < count; i++) {
+      if (used.indexOf(i) === -1 && i !== avoid) pool.push(i);
+    }
+    if (!pool.length) { // only the avoided option is left; allow it
+      for (var j = 0; j < count; j++) if (used.indexOf(j) === -1) pool.push(j);
+    }
+    var idx = pool[Math.floor(Math.random() * pool.length)];
+    used.push(idx);
+    return idx;
+  }
+
+  var variantIdx = pickUnusedIdx(usedVariants, 'intro', VARIANTS.length);
   var modelIdx = Math.floor(Math.random() * H.MODEL_GROUPS[0].length); // always "pick" a frontier model on first load
   var THOUGHT = VARIANTS[variantIdx].thought;
   var ANSWER = VARIANTS[variantIdx].answer;
@@ -543,10 +567,7 @@ var app = document.getElementById('app');
     introRetry.updateChecks();
   }
   function pickDifferentVariant() {
-    if (VARIANTS.length < 2) return variantIdx;
-    var idx;
-    do { idx = Math.floor(Math.random() * VARIANTS.length); } while (idx === variantIdx);
-    return idx;
+    return pickUnusedIdx(usedVariants, 'intro', VARIANTS.length, variantIdx);
   }
   function resetGeneration() {
     runToken++; // cancels any in-flight run's streams/awaits
@@ -818,11 +839,7 @@ var app = document.getElementById('app');
   }
 
   function pickDifferentVariantIdx(topic, currentIdx) {
-    var n = topic.variants.length;
-    if (n < 2) return currentIdx;
-    var idx;
-    do { idx = Math.floor(Math.random() * n); } while (idx === currentIdx);
-    return idx;
+    return pickUnusedIdx(usedVariants, topic.id, topic.variants.length, currentIdx);
   }
 
   // Each follow-up turn allows a single retry. Once the visitor moves on to a
@@ -848,7 +865,7 @@ var app = document.getElementById('app');
     var row = document.createElement('div');
     row.className = 'chat-suggest' + (reduceMotion ? '' : ' suggest-enter');
     pickTopics(excludeId, 3).forEach(function (topic) {
-      var phrasing = topic.prompts[Math.floor(Math.random() * topic.prompts.length)];
+      var phrasing = topic.prompts[pickUnusedIdx(usedPrompts, topic.id, topic.prompts.length)];
       var chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'suggest-chip';
@@ -910,7 +927,7 @@ var app = document.getElementById('app');
     hideIntroActions();
     runToken++; // abort any in-flight follow-up stream
     var myToken = runToken;
-    var variantIdx2 = Math.floor(Math.random() * topic.variants.length);
+    var variantIdx2 = pickUnusedIdx(usedVariants, topic.id, topic.variants.length);
     var variant = topic.variants[variantIdx2];
     disableFollowRetry(lastFollowTurn); // spend the previous turn's retry
     var t = createFollowTurn();
