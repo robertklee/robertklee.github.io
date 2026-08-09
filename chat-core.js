@@ -13,7 +13,7 @@ window.HeroChat = (function () {
   var THINK_JITTER_MS = 700; // Maximum random variance in the target duration.
   var THINK_MAX_MS = 7000; // Hard cap for the generated thinking target.
   var THINK_RENDER_OVERHEAD_PER_TOKEN_MS = 9; // Estimated DOM work per token.
-  var THINK_LEAD_MS = 150; // Base pause before the first thinking token.
+  var THINK_LEAD_MS = 350; // Base pause before the first thinking token.
   var THINK_BASE_DELAY_RATIO = 0.6; // Guaranteed share of average token delay.
   var THINK_DELAY_JITTER_RATIO = 0.8; // Random share of average token delay.
   var THOUGHT_MIN_SECS = 1; // Minimum displayed "Thought for" duration.
@@ -23,11 +23,17 @@ window.HeroChat = (function () {
 
   var STREAM_BASE_MS = 48; // Default minimum delay between output tokens.
   var STREAM_JITTER_MS = 46; // Maximum random delay added to each token.
-  var STREAM_PUNCTUATION_MS = 150; // Extra pause after punctuation.
-  var STREAM_LEAD_JITTER_RATIO = 0.5; // Up to 50% variance on first-token delay.
+  var STREAM_PUNCTUATION_MS = 120; // Extra pause after punctuation.
+  var STREAM_LEAD_JITTER_RATIO = 0.7; // Up to 70% variance on first-token delay.
   var STREAM_HITCH_CHANCE = 0.04; // Per-token chance of a brief cadence stall.
   var STREAM_HITCH_MIN_MS = 30; // Minimum extra delay during a cadence stall.
   var STREAM_HITCH_JITTER_MS = 70; // Additional random stall delay.
+
+  // Sub-word streaming: real models reveal partial words as separate tokens, so
+  // answer streams split longer words into fragments instead of showing them
+  // whole. Thinking traces and prompt echoes opt out via `subword: false`.
+  var SUBWORD_MIN_LEN = 5; // Words longer than this split into fragments.
+  var SUBWORD_CHUNK_LEN = 4; // Target characters per streamed fragment.
 
   // Reused for every collapsible "thinking" trace.
   var CHEVRON_SVG =
@@ -55,10 +61,16 @@ window.HeroChat = (function () {
       if (!subword) { out.push(word); return; }
       var lead = word.match(/^\s*/)[0];
       var core = word.slice(lead.length);
-      if (core.length > 7) {
-        var cut = Math.ceil(core.length / 2);
-        out.push(lead + core.slice(0, cut));
-        out.push(core.slice(cut));
+      if (core.length > SUBWORD_MIN_LEN) {
+        // Break the word into roughly SUBWORD_CHUNK_LEN-sized fragments, evenly
+        // distributed (rounded piece count) so no stray sliver trails the word.
+        var pieces = Math.max(1, Math.round(core.length / SUBWORD_CHUNK_LEN));
+        var size = Math.ceil(core.length / pieces);
+        for (var p = 0; p < pieces; p++) {
+          var seg = core.slice(p * size, (p + 1) * size);
+          if (!seg) break;
+          out.push(p === 0 ? lead + seg : seg);
+        }
       } else { out.push(word); }
     });
     return out;
