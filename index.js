@@ -629,7 +629,7 @@ var app = document.getElementById('app');
     await wait(320);
     if (myToken !== runToken) return;
 
-    await stream(answer, ANSWER, { base: 45, jitter: 45, lead: 260 });
+    await stream(answer, ANSWER, { base: 62, jitter: 55, lead: 260 });
     if (myToken !== runToken) return;
     // Cache the answer's true height so an expanded trace always reserves
     // enough room to keep the answer within the hero. If the user expanded the
@@ -962,7 +962,7 @@ var app = document.getElementById('app');
     t.answer.line.classList.add('line-enter');
     await wait(300);
     if (myToken !== runToken) return;
-    await stream(t.answer, variant.answer, { base: 42, jitter: 42, lead: 260 });
+    await stream(t.answer, variant.answer, { base: 58, jitter: 52, lead: 260 });
     if (myToken !== runToken) return;
     t.modelTag.textContent = MODELS[t.modelIdx];
     finishGenerating(t);
@@ -1024,7 +1024,7 @@ var app = document.getElementById('app');
     simpleFold(t.thinkEls, true);
     await wait(300);
     if (myToken !== runToken) return;
-    await stream(t.answer, v.answer, { base: 42, jitter: 42, lead: 260 });
+    await stream(t.answer, v.answer, { base: 58, jitter: 52, lead: 260 });
     if (myToken !== runToken) return;
     t.modelTag.textContent = MODELS[t.modelIdx];
     finishGenerating(t);

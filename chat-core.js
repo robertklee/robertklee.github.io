@@ -127,9 +127,9 @@ window.HeroChat = (function () {
     var cursor = cfg.cursor;
     return function stream(target, text, opts) {
       opts = opts || {};
-      var base = opts.base == null ? 45 : opts.base;
-      var jitter = opts.jitter == null ? 45 : opts.jitter;
-      var punct = opts.punct == null ? 180 : opts.punct;
+      var base = opts.base == null ? 55 : opts.base;
+      var jitter = opts.jitter == null ? 50 : opts.jitter;
+      var punct = opts.punct == null ? 210 : opts.punct;
       // Optional "time to first token" pause so a stream doesn't begin the
       // instant it's called -- real models take a beat before emitting text.
       var lead = opts.lead == null ? 0 : opts.lead;
