@@ -747,21 +747,18 @@ body.convo-active .scroll-cue {
   border-radius: 4px;
 }
 
-/* On phones, keep the chips to a single swipeable row so they never add
-   unpredictable height to the fixed-height hero. */
+/* On phones, let the chips wrap onto multiple lines so a long first chip is
+   fully visible instead of hidden behind a horizontal scroll. */
 @media only screen and (max-width: 550px) {
   .chat-suggest {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    flex-wrap: wrap;
     padding-bottom: 2px;
   }
-  .chat-suggest::-webkit-scrollbar {
-    display: none;
-  }
   .suggest-chip {
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
   }
   .hero-chat.convo {
     padding: 14px 15px;
