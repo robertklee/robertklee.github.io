@@ -56,11 +56,14 @@ window.HeroChat = (function () {
   // Ns" pill reflects a plausible, non-repeating duration. `extra` merges in any
   // per-call stream options (e.g. an `orb`).
   function thinkPace(text, extra) {
-    var targetMs = 1000 + Math.random() * 3000;
     var n = Math.max(1, tokenize(text, false).length);
+    // Thinking time scales with how much there is to "reason" about: a longer
+    // chain-of-thought takes proportionally longer to stream, plus a little
+    // randomness, clamped to a believable window.
+    var targetMs = Math.min(8000, 800 + n * 60 + Math.random() * 700);
     // Every token carries an unavoidable per-token cost (span creation, insert,
     // scroll) even at zero delay. Subtract an estimate so short targets are
-    // actually reachable and a genuine ~1s can occur, not just 2-4s.
+    // actually reachable and a genuine short think can occur.
     var overheadPerTok = 9;
     var avg = Math.max(0, targetMs / n - overheadPerTok);
     var o = { base: avg * 0.6, jitter: avg * 0.8, punct: 0, subword: false,
@@ -76,13 +79,16 @@ window.HeroChat = (function () {
   }
 
   // For the reduced-motion / static render there's no animation to time, so we
-  // pick a plausible thinking duration in the same 1-4s range.
-  function thoughtSecs() {
-    return 1 + Math.floor(Math.random() * 4);
+  // derive a plausible thinking duration that still scales with thought length.
+  function thoughtSecs(text) {
+    if (!text) return 1 + Math.floor(Math.random() * 4);
+    var n = Math.max(1, tokenize(text, false).length);
+    var secs = Math.round((800 + n * 60) / 1000 + Math.random());
+    return Math.max(1, Math.min(9, secs));
   }
 
   function reportedSecs(t0) {
-    return Math.min(4, Math.max(1, Math.round((now() - t0) / 1000)));
+    return Math.min(9, Math.max(1, Math.round((now() - t0) / 1000)));
   }
 
   // Build a chat line: an optional prefix span (e.g. the prompt caret) plus a

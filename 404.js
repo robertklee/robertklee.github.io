@@ -294,7 +294,7 @@ var app = document.getElementById('app');
     think.txt.textContent = THOUGHT;
     think.line.classList.add('done');
     fold.setFolded(true);
-    thinkLabel.textContent = 'Thought for ' + H.thoughtSecs() + 's';
+    thinkLabel.textContent = 'Thought for ' + H.thoughtSecs(THOUGHT) + 's';
     answer.txt.textContent = ANSWER;
     answer.txt.appendChild(cursor);
     revealActions();
