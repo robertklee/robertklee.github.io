@@ -170,6 +170,9 @@ window.HeroChat = (function () {
           if (cfg.onChunk) cfg.onChunk();
           var delay = base + Math.random() * jitter;
           if (/[.,;!?\u2014]$/.test(chunk)) delay += punct;
+          // Occasionally the stream "hitches" -- a brief stall, like a real
+          // model catching up -- so the cadence isn't perfectly uniform.
+          if (Math.random() < 0.05) delay += 100 + Math.random() * 220;
           setTimeout(step, delay);
         }
         // Hold for the lead (plus a little jitter) before the first token lands.
