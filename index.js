@@ -689,8 +689,8 @@ var app = document.getElementById('app');
   // Once the chat runs long, nudge visitors toward reaching Robert directly:
   // the CTA appears from CTA_AFTER turns on, chips continue for a couple more
   // turns, then from CHIPS_UNTIL on we show only the CTA and let it wind down.
-  var CTA_AFTER = 10;
-  var CHIPS_UNTIL = 12;
+  var CTA_AFTER = 3;
+  var CHIPS_UNTIL = 10;
   var EGG_MIN_TURN = 3; // the easter egg never appears before this many turns
 
   function scrollChatToBottom() {
@@ -873,7 +873,7 @@ var app = document.getElementById('app');
     cta.className = 'chat-cta';
     var msg = document.createElement('span');
     msg.className = 'chat-cta-text';
-    msg.textContent = 'Enjoying the conversation? I\u2019m just JavaScript \u2014 but the real Robert would love to hear from you. Reach out directly:';
+    msg.textContent = 'Enjoying the conversation? Reach out to the real Robert:';
     cta.appendChild(msg);
     var links = document.createElement('div');
     links.className = 'chat-cta-links';
