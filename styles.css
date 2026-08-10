@@ -169,6 +169,7 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   font-size: 1.15rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.82);
+  transition: margin 0.5s ease, font-size 0.5s ease, color 0.4s ease;
 }
 
 /* The hero fills the viewport so the first thing a visitor sees is the live
@@ -181,6 +182,28 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   min-height: 100dvh;
   padding-top: clamp(56px, 15vh, 170px);
   box-sizing: border-box;
+  transition: padding-top 0.5s ease;
+}
+
+/* Hero name transitions with the rest of the header so it can glide up. */
+.hero-viewport > h1 {
+  transition: font-size 0.5s ease, color 0.4s ease;
+}
+
+/* Conversation mode: glide the name/role up and shrink them to hand more
+   vertical room to the chat. updateConvoHeight (index.js) tracks this move
+   frame-by-frame so the scroll panel grows in lockstep with the header. */
+body.convo-active .hero-viewport {
+  padding-top: clamp(14px, 4vh, 48px);
+}
+
+body.convo-active .hero-viewport > h1 {
+  font-size: 2.05rem;
+}
+
+body.convo-active .hero-tagline {
+  margin-top: 4px;
+  font-size: 1rem;
 }
 
 /* Scroll cue: a quiet hint that the hero is full-screen and there's more

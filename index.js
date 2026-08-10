@@ -771,7 +771,14 @@ var app = document.getElementById('app');
     document.body.classList.add('convo-active');
     heroDim.classList.add('on');
     chat.classList.add('convo');
-    updateConvoHeight();
+    // The header glides up (CSS transition) to free vertical room, so track the
+    // chat height frame-by-frame while it settles -- the panel grows in lockstep
+    // with the move instead of leaving a gap or overshooting the reserved band.
+    var settleUntil = Date.now() + 650;
+    (function settle() {
+      updateConvoHeight();
+      if (Date.now() < settleUntil) requestAnimationFrame(settle);
+    })();
   }
 
   function hideIntroActions() {
