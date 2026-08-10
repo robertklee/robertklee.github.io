@@ -257,11 +257,25 @@ body.convo-active .scroll-cue {
   text-align: left;
   max-width: 880px;
   width: 90%;
+  padding: 18px 20px;
+  border: 1px solid transparent;
+  border-radius: 16px;
   font-family: 'Rubik', sans-serif;
   /* Scale the whole conversation down as the viewport narrows (chat text is
      em-relative to this), holding 1.2rem on desktop and easing to 0.95rem on
      phones so it isn't oversized on limited widths. */
   font-size: clamp(0.95rem, 3.6vw, 1.2rem);
+  /* A soft glass scrim lifts the intro greeting off the busy hero image so it
+     stays readable over the photo. When a chip starts the conversation, .convo
+     deepens this same panel (darker fill, a faint border + lifted shadow, more
+     blur) alongside the #hero-dim fade -- keeping identical padding/radius here
+     means that hand-off has no layout jump. */
+  background: rgba(13, 18, 30, 0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition: background 0.6s ease, border-color 0.6s ease,
+    box-shadow 0.6s ease, -webkit-backdrop-filter 0.6s ease,
+    backdrop-filter 0.6s ease;
 }
 
 .chat-line {
@@ -737,14 +751,11 @@ body.convo-active .scroll-cue {
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
-  padding: 18px 20px;
-  border-radius: 16px;
   background: rgba(13, 18, 30, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
-  transition: background 0.6s ease, border-color 0.6s ease;
 }
 
 .hero-chat.convo::-webkit-scrollbar {
@@ -760,9 +771,11 @@ body.convo-active .scroll-cue {
 @media only screen and (max-width: 550px) {
   /* Reclaim edge space: the default 5%-a-side margin is wider than it needs to
      be on a phone, so widen the chat box to a slim fixed gutter as the screen
-     shrinks. Applies to the intro and conversation states alike. */
+     shrinks. The tighter padding applies to the intro and conversation states
+     alike, so deepening into the console doesn't shift the text. */
   .hero-chat {
     width: calc(100% - 10px);
+    padding: 14px 15px;
   }
   /* Keep the chips on one line and let them scroll sideways instead of
      stacking, with edge fades + a one-time nudge hinting there's more. */
@@ -792,9 +805,6 @@ body.convo-active .scroll-cue {
   .suggest-chips.more-left.more-right {
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14%, #000 80%, transparent 100%);
     mask-image: linear-gradient(to right, transparent 0, #000 14%, #000 80%, transparent 100%);
-  }
-  .hero-chat.convo {
-    padding: 14px 15px;
   }
 }
 
