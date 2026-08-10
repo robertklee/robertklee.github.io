@@ -434,7 +434,27 @@ var app = document.getElementById('app');
   // Track whether the visitor is parked at the bottom. Streaming only auto-
   // scrolls while this holds, so scrolling up to re-read earlier text sticks
   // instead of being yanked back down on the next token.
+  //
+  // Only a genuine visitor gesture may flip this off. Content reflow -- most
+  // notably the thinking fold collapsing/expanding at the start of a chip-driven
+  // turn -- also fires scroll events, and those must NOT disengage auto-follow;
+  // otherwise the fold animation could nudge the view a few pixels off the
+  // bottom and strand the streaming answer above the fold. So we gate the
+  // scroll handler behind a short window opened by wheel / touch / scrollbar /
+  // key input, and ignore reflow- or script-driven scrolls.
+  var userScrollUntil = 0;
+  function markUserScroll() { userScrollUntil = Date.now() + 500; }
+  chat.addEventListener('wheel', markUserScroll, { passive: true });
+  chat.addEventListener('touchmove', markUserScroll, { passive: true });
+  chat.addEventListener('keydown', markUserScroll);
+  chat.addEventListener('mousedown', function (e) {
+    // A press on the scroll container itself (not a chip/link within it) is a
+    // scrollbar grab, so let drags started there count as visitor scrolling.
+    if (e.target === chat) markUserScroll();
+  });
   chat.addEventListener('scroll', function () {
+    if (Date.now() > userScrollUntil) return; // reflow / programmatic scroll
+    markUserScroll(); // keep the window alive through touch-scroll momentum
     stickBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 24;
   });
 
