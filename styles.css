@@ -258,7 +258,10 @@ body.convo-active .scroll-cue {
   max-width: 880px;
   width: 90%;
   font-family: 'Rubik', sans-serif;
-  font-size: 1.2rem;
+  /* Scale the whole conversation down as the viewport narrows (chat text is
+     em-relative to this), holding 1.2rem on desktop and easing to 0.95rem on
+     phones so it isn't oversized on limited widths. */
+  font-size: clamp(0.95rem, 3.6vw, 1.2rem);
 }
 
 .chat-line {
