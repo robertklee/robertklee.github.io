@@ -423,10 +423,19 @@ var app = document.getElementById('app');
   var ANSWER = VARIANTS[variantIdx].answer;
   var runToken = 0; // bumped on every (re)generation so stale runs abort
   var convoMode = false; // becomes true once the visitor asks a follow-up
+  var stickBottom = true; // auto-follow new output unless the visitor scrolls up
+  var activeTurnTop = null; // top element of the current turn (for revealing its answer)
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
   app.appendChild(chat);
+
+  // Track whether the visitor is parked at the bottom. Streaming only auto-
+  // scrolls while this holds, so scrolling up to re-read earlier text sticks
+  // instead of being yanked back down on the next token.
+  chat.addEventListener('scroll', function () {
+    stickBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 24;
+  });
 
   var cursor = H.createCursor();
 
@@ -447,7 +456,7 @@ var app = document.getElementById('app');
   var stream = H.createStreamer({
     cursor: cursor,
     getToken: function () { return runToken; },
-    onChunk: function () { if (convoMode) chat.scrollTop = chat.scrollHeight; }
+    onChunk: function () { if (convoMode && stickBottom) chat.scrollTop = chat.scrollHeight; }
   });
 
   var prompt = makeLine('chat-prompt', '\u276F');
@@ -601,6 +610,8 @@ var app = document.getElementById('app');
   function renderStatic() {
     resetGeneration();
     applySelection();
+    activeTurnTop = prompt.line;
+    stickBottom = true;
     prompt.txt.textContent = PROMPT;
     think.line.classList.remove('chat-pending');
     answer.line.classList.remove('chat-pending');
@@ -620,6 +631,8 @@ var app = document.getElementById('app');
     resetGeneration();
     var myToken = runToken;
     applySelection();
+    activeTurnTop = prompt.line;
+    stickBottom = true;
 
     if (streamPrompt) {
       await wait(350);
@@ -694,7 +707,27 @@ var app = document.getElementById('app');
   var EGG_MIN_TURN = 3; // the easter egg never appears before this many turns
 
   function scrollChatToBottom() {
-    if (convoMode) chat.scrollTop = chat.scrollHeight;
+    if (convoMode && stickBottom) chat.scrollTop = chat.scrollHeight;
+  }
+
+  // When suggestions/CTA appear, don't yank the panel to the very bottom (which
+  // buries the answer above the fold on small screens). If the whole turn plus
+  // its suggestions fit, reveal them; otherwise pin the turn's top so the answer
+  // reads from its first line. Parks the visitor off-bottom, disengaging auto-
+  // follow until they scroll back down or start a new turn.
+  function revealAnswer(topEl, bottomEl) {
+    if (!convoMode) return;
+    if (!topEl || !bottomEl) { scrollChatToBottom(); return; }
+    var ctop = chat.getBoundingClientRect().top;
+    var top = topEl.getBoundingClientRect().top - ctop + chat.scrollTop;
+    var bottom = bottomEl.getBoundingClientRect().bottom - ctop + chat.scrollTop;
+    var viewH = chat.clientHeight;
+    var PAD = 12;
+    if (bottom - top <= viewH - PAD) {
+      chat.scrollTop = Math.max(0, bottom - viewH + PAD);
+    } else {
+      chat.scrollTop = Math.max(0, top - PAD);
+    }
   }
 
   // Size the scroll panel to the room left in the hero below the chat's top.
@@ -914,7 +947,7 @@ var app = document.getElementById('app');
     if (turnCount >= CTA_AFTER) row.appendChild(buildContactCta());
     chat.appendChild(row);
     activeSuggestRow = row;
-    if (convoMode) scrollChatToBottom();
+    revealAnswer(activeTurnTop, row);
     return row;
   }
 
@@ -960,6 +993,7 @@ var app = document.getElementById('app');
     if (!sourceRow || !sourceRow.parentNode) return;
     turnCount++;
     enterConvoMode();
+    stickBottom = true; // a visitor-initiated turn re-engages auto-follow
     sourceRow.parentNode.removeChild(sourceRow);
     if (sourceRow === activeSuggestRow) activeSuggestRow = null;
     hideIntroActions();
@@ -970,6 +1004,7 @@ var app = document.getElementById('app');
     disableFollowRetry(lastFollowTurn); // spend the previous turn's retry
     var t = createFollowTurn();
     t.topic = topic;
+    activeTurnTop = t.wrap;
     t.variantIdx = variantIdx2;
     t.modelIdx = modelIdx;
     t.retried = false;
@@ -1025,7 +1060,6 @@ var app = document.getElementById('app');
     await wait(450);
     if (myToken !== runToken) return;
     showSuggestions(topic.id);
-    scrollChatToBottom();
   }
 
   // Regenerate a single follow-up turn in place with the chosen model and a
@@ -1054,6 +1088,8 @@ var app = document.getElementById('app');
   async function regenFollow(t, v) {
     runToken++; // this turn owns the stream now; abort any other in-flight run
     var myToken = runToken;
+    activeTurnTop = t.wrap;
+    stickBottom = true;
     if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
     // Reset this turn's thinking + answer for a fresh "regeneration".
     t.think.txt.innerHTML = '';
@@ -1089,7 +1125,6 @@ var app = document.getElementById('app');
     // Re-offer follow-ups: the retry may have aborted the original turn's
     // suggestions before they rendered, so ensure they're present afterward.
     showSuggestions(t.topic.id);
-    scrollChatToBottom();
   }
 
   enableThoughtToggle();
