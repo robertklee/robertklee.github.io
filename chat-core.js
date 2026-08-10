@@ -9,9 +9,9 @@ window.HeroChat = (function () {
   // Centralized timing profile for the simulated model. Per-stream options can
   // override the token delays; thinking traces derive their pace from length.
   var THINK_BASE_MS = 800; // Fixed time added before length-based thinking.
-  var THINK_PER_TOKEN_MS = 60; // Target time added per whitespace token.
+  var THINK_PER_TOKEN_MS = 50; // Target time added per whitespace token.
   var THINK_JITTER_MS = 700; // Maximum random variance in the target duration.
-  var THINK_MAX_MS = 7000; // Hard cap for the generated thinking target.
+  var THINK_MAX_MS = 6000; // Hard cap for the generated thinking target.
   var THINK_RENDER_OVERHEAD_PER_TOKEN_MS = 9; // Estimated DOM work per token.
   var THINK_LEAD_MS = 350; // Base pause before the first thinking token.
   var THINK_BASE_DELAY_RATIO = 0.6; // Guaranteed share of average token delay.
