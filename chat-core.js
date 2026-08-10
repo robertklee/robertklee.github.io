@@ -171,6 +171,23 @@ window.HeroChat = (function () {
     return cursor;
   }
 
+  // Merge the contiguous streamed `.tok` spans inside a finished line's text
+  // node into one plain text node, preserving order and any surrounding
+  // non-token nodes (the trailing cursor, a lead orb). No-op if none are found.
+  function collapseTokens(el) {
+    if (!el) return;
+    var first = null, text = '', node = el.firstChild, next;
+    while (node) {
+      next = node.nextSibling;
+      if (node.nodeType === 1 && node.className === 'tok') {
+        text += node.textContent;
+        if (!first) first = node; else el.removeChild(node);
+      }
+      node = next;
+    }
+    if (first) el.replaceChild(document.createTextNode(text), first);
+  }
+
   // Create a token streamer bound to a shared cursor. `cfg.getToken` supplies
   // the active generation token so stale streams can stop; `cfg.onChunk` keeps
   // consumers such as the scrolling transcript synchronized with each token.
@@ -201,6 +218,14 @@ window.HeroChat = (function () {
       return new Promise(function (resolve) {
         function finish() {
           if (orb) orb.classList.remove('on');
+          // Collapse the streamed .tok spans of a completed line back into a
+          // single text node: fewer DOM nodes for later reflows to walk (turns
+          // persist in the scroll history), no retained animation-fill state,
+          // and word-split fragments become contiguous text so find-in-page and
+          // selection behave. Only .tok spans are merged; the trailing cursor
+          // (and the dormant lead orb) keep their positions. Skipped when a
+          // retry has superseded this run, since that content is cleared anyway.
+          if (fade && !stale()) collapseTokens(target.txt);
           resolve();
         }
         var i = 0;
