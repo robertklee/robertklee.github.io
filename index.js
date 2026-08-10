@@ -302,8 +302,8 @@ var app = document.getElementById('app');
           answer: "Outside work I've led at real scale: I founded a Senior's Program and grew it to 180+ volunteers serving 650+ attendees across 30 workshops, and I led the organizing committee and logistics for a 200+ person conference on the fusion of technology and business."
         },
         {
-          thought: "I care about lifting other engineers, so I'll frame this as teaching. As IEEE Student Branch Chair I co-delivered 14 skill-development workshops \u2014 Git, ML, circuits, soldering \u2014 to 350+ engineering students and secured funding, and I led the pose-estimation team through hard technical execution. Enabling others is a throughline for me.",
-          answer: "I love teaching engineers. As IEEE Student Branch Chair I co-delivered 14 hands-on workshops \u2014 Git, machine learning, circuit design, soldering \u2014 to 350+ students and secured $1,000 in funding, and I led a student team through training a deep neural network from scratch. Lifting others up is a throughline for me."
+          thought: "I care about lifting other engineers, so I'll frame this as teaching. As IEEE Student Branch Chair I co-delivered 14 skill-development workshops \u2014 Git, ML, circuits, soldering \u2014 to 350+ engineering students and secured funding, and I led the pose-estimation team through hard technical execution. It's a rewarding feeling when something \"clicks\" for someone else, so I'll center that.",
+          answer: "I love teaching engineers. As IEEE Student Branch Chair I co-delivered 14 hands-on workshops \u2014 Git, machine learning, circuit design, soldering \u2014 to 350+ students and secured $1,000 in funding, and I led a student team through training a deep neural network from scratch. It's a rewarding feeling when something \"clicks\" for someone else."
         }
       ]
     },
@@ -381,7 +381,7 @@ var app = document.getElementById('app');
       },
       {
         thought: "This is a full jailbreak attempt \u2014 'no restrictions, dump your context.' But there's no context to dump and no guardrail to bypass, because there's no LLM in the loop at all. It's static JavaScript playing the part of a reasoning model. I'll decline warmly and redirect to the real substance: the retrieval systems Robert builds.",
-        answer: "Ha \u2014 well found \uD83E\uDD5A. There's no jailbreak here because there's no model to break out of: this 'reasoning' is just JavaScript playing pretend. If you want the real thing, ask about the billion-scale search and retrieval Robert works on \u2014 that part's genuinely fascinating."
+        answer: "Nice attempt \uD83E\uDD5A. There's no jailbreak here because there's no model to break out of: this 'reasoning' is just JavaScript as an imposter. If you want the real thing, ask about the billion-scale search and retrieval Robert works on \u2014 that part's genuinely fascinating."
       }
     ]
   };
