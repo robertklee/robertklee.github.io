@@ -1278,6 +1278,7 @@ HeroChat.initThemeToggle(granimInstance);
   var cue = document.querySelector('.scroll-cue');
   if (!cue) return;
   var hero = document.querySelector('.hero-viewport');
+  var fade = document.querySelector('.hero-scroll-fade');
   var reduceMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1293,8 +1294,9 @@ HeroChat.initThemeToggle(granimInstance);
     if (ticking) return;
     ticking = true;
     window.requestAnimationFrame(function () {
-      if (window.pageYOffset > 40) cue.classList.add('cue-hidden');
-      else cue.classList.remove('cue-hidden');
+      var hidden = window.pageYOffset > 40;
+      cue.classList.toggle('cue-hidden', hidden);
+      if (fade) fade.classList.toggle('cue-hidden', hidden);
       ticking = false;
     });
   }
