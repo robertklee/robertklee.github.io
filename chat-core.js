@@ -30,6 +30,7 @@ window.HeroChat = (function () {
   var STREAM_HITCH_CHANCE = 0.04; // Per-token chance of a brief cadence stall.
   var STREAM_HITCH_MIN_MS = 30; // Minimum extra delay during a cadence stall.
   var STREAM_HITCH_JITTER_MS = 70; // Additional random stall delay.
+  var COLLAPSE_TOKEN_DOM_NODES_DELAY = 1000; // Token fade-in duration; must be greater than .tok CSS fade-in animation.
 
   // Sub-word streaming: real models reveal partial words as separate tokens, so
   // answer streams split longer words into fragments instead of showing them
@@ -223,9 +224,18 @@ window.HeroChat = (function () {
           // persist in the scroll history), no retained animation-fill state,
           // and word-split fragments become contiguous text so find-in-page and
           // selection behave. Only .tok spans are merged; the trailing cursor
-          // (and the dormant lead orb) keep their positions. Skipped when a
-          // retry has superseded this run, since that content is cleared anyway.
-          if (fade && !stale()) collapseTokens(target.txt);
+          // (and the dormant lead orb) keep their positions. Deferred past the
+          // fade duration so the last tokens finish fading before their spans
+          // are replaced (a synchronous swap would snap them to full opacity).
+          // Skipped when a retry has superseded this run, since that content is
+          // cleared anyway. This is invisible work -- the text/layout is
+          // identical -- so it runs after resolve() without blocking callers.
+          if (fade) {
+            var mergeTarget = target.txt;
+            setTimeout(function () {
+              if (!stale()) collapseTokens(mergeTarget);
+            }, COLLAPSE_TOKEN_DOM_NODES_DELAY);
+          }
           resolve();
         }
         var i = 0;
