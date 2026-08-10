@@ -222,7 +222,7 @@ var app = document.getElementById('app');
   homeChip.className = 'suggest-chip';
   homeChip.href = '/';
   homeChip.innerHTML =
-    '<span class="suggest-plus" aria-hidden="true">\u2302</span>' +
+    '<span class="suggest-plus" aria-hidden="true">\uD83C\uDFE0</span>' +
     '<span class="suggest-text">Take me to the homepage</span>' +
     '<span class="suggest-plus" aria-hidden="true">\u2192</span>';
   suggest.appendChild(homeChip);
