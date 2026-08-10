@@ -240,7 +240,7 @@ window.HeroChat = (function () {
     btn.setAttribute('aria-label', 'Retry with a different model');
     btn.innerHTML =
       '<span class="retry-icon" aria-hidden="true">\u21BB</span>' +
-      '<span class="retry-text">Retry</span>' +
+      '<span class="retry-text">Change model</span>' +
       '<span class="retry-caret" aria-hidden="true">\u25BE</span>';
     var menu = document.createElement('div');
     menu.className = 'retry-menu';
