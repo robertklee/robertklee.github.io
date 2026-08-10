@@ -425,7 +425,6 @@ var app = document.getElementById('app');
   var convoMode = false; // becomes true once the visitor asks a follow-up
   var stickBottom = true; // auto-follow new output unless the visitor scrolls up
   var activeTurnTop = null; // top element of the current turn (for revealing its answer)
-  var chipHintDone = false; // the one-time "chips scroll sideways" nudge has played
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
@@ -981,8 +980,8 @@ var app = document.getElementById('app');
 
   // On narrow screens the suggestion chips sit on a single horizontally-
   // scrollable line. Toggle edge-fade classes so it's clear more chips exist
-  // beyond the visible edge, and give a one-time nudge so the overflow is
-  // discoverable without the visitor having to guess.
+  // beyond the visible edge, and give a subtle one-time sideways nudge so the
+  // overflow is discoverable without the visitor having to guess.
   function initChipScroll(chipsWrap) {
     function nudge(x) {
       if (chipsWrap.scrollTo) chipsWrap.scrollTo({ left: x, behavior: 'smooth' });
@@ -994,14 +993,34 @@ var app = document.getElementById('app');
       chipsWrap.classList.toggle('more-left', chipsWrap.scrollLeft > 2);
     }
     chipsWrap.addEventListener('scroll', update);
-    requestAnimationFrame(function () {
-      update();
+    requestAnimationFrame(update); // paint the edge fades right away
+
+    // Nudge this chip set once, but only after it has actually scrolled into
+    // view. The intro's chips are appended while they may still be below the
+    // fold, so firing immediately (and once per visit) burned the hint off-
+    // screen and left the follow-up turns -- where the visitor is actually
+    // picking chips -- with no motion cue. Gating on visibility per set means
+    // each fresh, overflowing row gets exactly one visible nudge.
+    var hinted = false;
+    function hint() {
+      if (hinted || reduceMotion) return;
       var max = chipsWrap.scrollWidth - chipsWrap.clientWidth;
-      if (reduceMotion || chipHintDone || max < 24) return; // nothing to hint at
-      chipHintDone = true; // nudge once per visit; the edge fade stays every turn
+      if (max < 24) return; // nothing beyond the edge to reveal
+      hinted = true;
       nudge(Math.min(48, max));
-      setTimeout(function () { nudge(0); }, 600);
-    });
+      setTimeout(function () { nudge(0); }, 650);
+    }
+    if (typeof IntersectionObserver === 'function') {
+      var io = new IntersectionObserver(function (entries) {
+        if (entries[0] && entries[0].isIntersecting) {
+          io.disconnect();
+          requestAnimationFrame(hint);
+        }
+      }, { threshold: 0.6 });
+      io.observe(chipsWrap);
+    } else {
+      requestAnimationFrame(hint);
+    }
   }
 
   // EASTER EGG (chip tampering). The chips are the only "input" on the page, so
