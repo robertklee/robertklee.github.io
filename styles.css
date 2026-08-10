@@ -526,9 +526,15 @@ body.convo-active .scroll-cue {
 /* --- Suggested follow-ups (ChatGPT-style chips) ------------------------- */
 .chat-suggest {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.suggest-chips {
+  display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
 }
 
 .suggest-enter {
@@ -747,18 +753,36 @@ body.convo-active .scroll-cue {
   border-radius: 4px;
 }
 
-/* On phones, let the chips wrap onto multiple lines so a long first chip is
-   fully visible instead of hidden behind a horizontal scroll. */
+/* Phone tweaks: keep suggestion chips on one scrollable line (below). */
 @media only screen and (max-width: 550px) {
-  .chat-suggest {
-    flex-wrap: wrap;
-    padding-bottom: 2px;
+  /* Keep the chips on one line and let them scroll sideways instead of
+     stacking, with edge fades + a one-time nudge hinting there's more. */
+  .suggest-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 2px 0 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+  .suggest-chips::-webkit-scrollbar {
+    display: none;
   }
   .suggest-chip {
-    flex: 0 1 auto;
-    max-width: 100%;
-    white-space: normal;
-    text-align: left;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .suggest-chips.more-right {
+    -webkit-mask-image: linear-gradient(to right, #000 80%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 80%, transparent 100%);
+  }
+  .suggest-chips.more-left:not(.more-right) {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14%);
+    mask-image: linear-gradient(to right, transparent 0, #000 14%);
+  }
+  .suggest-chips.more-left.more-right {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14%, #000 80%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 14%, #000 80%, transparent 100%);
   }
   .hero-chat.convo {
     padding: 14px 15px;

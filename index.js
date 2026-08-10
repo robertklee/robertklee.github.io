@@ -425,6 +425,7 @@ var app = document.getElementById('app');
   var convoMode = false; // becomes true once the visitor asks a follow-up
   var stickBottom = true; // auto-follow new output unless the visitor scrolls up
   var activeTurnTop = null; // top element of the current turn (for revealing its answer)
+  var chipHintDone = false; // the one-time "chips scroll sideways" nudge has played
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
@@ -930,7 +931,10 @@ var app = document.getElementById('app');
     removeActiveSuggestions();
     var row = document.createElement('div');
     row.className = 'chat-suggest' + (reduceMotion ? '' : ' suggest-enter');
+    var chipsWrap = null;
     if (turnCount < CHIPS_UNTIL) {
+      chipsWrap = document.createElement('div');
+      chipsWrap.className = 'suggest-chips';
       pickTopics(excludeId, 3).forEach(function (topic) {
         var phrasing = topic.prompts[pickUnusedIdx(usedPrompts, topic.id, topic.prompts.length)];
         var chip = document.createElement('button');
@@ -940,15 +944,42 @@ var app = document.getElementById('app');
           '<span class="suggest-text"></span>';
         chip.querySelector('.suggest-text').textContent = phrasing;
         chip.addEventListener('click', function () { runChip(chip, topic, phrasing, row); });
-        row.appendChild(chip);
+        chipsWrap.appendChild(chip);
       });
+      row.appendChild(chipsWrap);
       maybeAddEasterEgg(row);
     }
     if (turnCount >= CTA_AFTER) row.appendChild(buildContactCta());
     chat.appendChild(row);
     activeSuggestRow = row;
     revealAnswer(activeTurnTop, row);
+    if (chipsWrap) initChipScroll(chipsWrap);
     return row;
+  }
+
+  // On narrow screens the suggestion chips sit on a single horizontally-
+  // scrollable line. Toggle edge-fade classes so it's clear more chips exist
+  // beyond the visible edge, and give a one-time nudge so the overflow is
+  // discoverable without the visitor having to guess.
+  function initChipScroll(chipsWrap) {
+    function nudge(x) {
+      if (chipsWrap.scrollTo) chipsWrap.scrollTo({ left: x, behavior: 'smooth' });
+      else chipsWrap.scrollLeft = x;
+    }
+    function update() {
+      var max = chipsWrap.scrollWidth - chipsWrap.clientWidth;
+      chipsWrap.classList.toggle('more-right', chipsWrap.scrollLeft < max - 2);
+      chipsWrap.classList.toggle('more-left', chipsWrap.scrollLeft > 2);
+    }
+    chipsWrap.addEventListener('scroll', update);
+    requestAnimationFrame(function () {
+      update();
+      var max = chipsWrap.scrollWidth - chipsWrap.clientWidth;
+      if (reduceMotion || chipHintDone || max < 24) return; // nothing to hint at
+      chipHintDone = true; // nudge once per visit; the edge fade stays every turn
+      nudge(Math.min(48, max));
+      setTimeout(function () { nudge(0); }, 600);
+    });
   }
 
   // EASTER EGG (chip tampering). The chips are the only "input" on the page, so
