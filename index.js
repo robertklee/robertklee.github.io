@@ -758,8 +758,10 @@ var app = document.getElementById('app');
     if (!convoMode) return;
     var box = app.parentElement;
     if (!box || !box.getBoundingClientRect) return;
+    // Leave a band at the hero's bottom for the persistent scroll cue so the
+    // compact chevron never overlaps the chat's chips/CTA in conversation mode.
     var avail = Math.floor(box.getBoundingClientRect().bottom -
-      chat.getBoundingClientRect().top - 14);
+      chat.getBoundingClientRect().top - 40);
     chat.style.maxHeight = Math.max(220, avail) + 'px';
   }
 

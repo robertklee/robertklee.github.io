@@ -235,9 +235,30 @@ h1, h2, h3, p, a, .time-text, .tech-text {
   pointer-events: none;
 }
 
+/* In conversation mode the chat fills the hero, so instead of hiding the cue
+   (which left no hint that the page scrolls to the rest of the site) shrink it
+   to a compact chevron pill pinned to the reserved bottom band and drop the
+   "Scroll" label. It still fades once the visitor scrolls and click-scrolls to
+   the Introduction. */
 body.convo-active .scroll-cue {
-  opacity: 0;
-  pointer-events: none;
+  bottom: 8px;
+  gap: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(13, 18, 30, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+body.convo-active .scroll-cue-label {
+  display: none;
+}
+
+body.convo-active .scroll-cue svg {
+  width: 18px;
+  height: 18px;
 }
 
 @keyframes scroll-cue-bounce {
@@ -751,7 +772,7 @@ body.convo-active .scroll-cue {
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
-  background: rgba(13, 18, 30, 0.55);
+  background: rgba(13, 18, 30, 0.5);
   border-color: rgba(255, 255, 255, 0.1);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
