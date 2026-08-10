@@ -21,9 +21,9 @@ window.HeroChat = (function () {
   var FALLBACK_THOUGHT_RANGE_SECS = 4; // Random range when no thought is given.
   var STATIC_THOUGHT_JITTER_SECS = 1; // Variance for reduced-motion labels.
 
-  var STREAM_BASE_MS = 48; // Default minimum delay between output tokens.
-  var STREAM_JITTER_MS = 46; // Maximum random delay added to each token.
-  var STREAM_PUNCTUATION_MS = 120; // Extra pause after punctuation.
+  var STREAM_BASE_MS = 35; // Default minimum delay between output tokens.
+  var STREAM_JITTER_MS = 42; // Maximum random delay added to each token.
+  var STREAM_PUNCTUATION_MS = 90; // Extra pause after punctuation.
   var STREAM_LEAD_JITTER_RATIO = 0.7; // Up to 70% variance on first-token delay.
   var STREAM_HITCH_CHANCE = 0.04; // Per-token chance of a brief cadence stall.
   var STREAM_HITCH_MIN_MS = 30; // Minimum extra delay during a cadence stall.
