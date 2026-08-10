@@ -270,9 +270,9 @@ body.convo-active .scroll-cue {
      deepens this same panel (darker fill, a faint border + lifted shadow, more
      blur) alongside the #hero-dim fade -- keeping identical padding/radius here
      means that hand-off has no layout jump. */
-  background: rgba(13, 18, 30, 0.28);
-  -webkit-backdrop-filter: blur(2.5px);
-  backdrop-filter: blur(2.5px);
+  background: rgba(13, 18, 30, 0.1);
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
   transition: background 0.6s ease, border-color 0.6s ease,
     box-shadow 0.6s ease, -webkit-backdrop-filter 0.6s ease,
     backdrop-filter 0.6s ease;
