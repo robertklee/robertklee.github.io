@@ -711,24 +711,26 @@ var app = document.getElementById('app');
     if (convoMode && stickBottom) chat.scrollTop = chat.scrollHeight;
   }
 
-  // When suggestions/CTA appear, don't yank the panel to the very bottom (which
-  // buries the answer above the fold on small screens). If the whole turn plus
-  // its suggestions fit, reveal them; otherwise pin the turn's top so the answer
-  // reads from its first line. Parks the visitor off-bottom, disengaging auto-
-  // follow until they scroll back down or start a new turn.
+  // When suggestions/CTA appear, always keep the whole suggestion row (chips +
+  // CTA) in view so it's never buried below the fold. If the turn also fits, we
+  // additionally pin its top so the answer reads from its first line; when the
+  // answer is too tall to do both, showing the row wins and the answer's tail
+  // stays visible above it (scroll up for the rest). Parks the visitor off-
+  // bottom, disengaging auto-follow until they scroll back down or start a turn.
   function revealAnswer(topEl, bottomEl) {
     if (!convoMode) return;
-    if (!topEl || !bottomEl) { scrollChatToBottom(); return; }
+    if (!bottomEl) { scrollChatToBottom(); return; }
     var ctop = chat.getBoundingClientRect().top;
-    var top = topEl.getBoundingClientRect().top - ctop + chat.scrollTop;
-    var bottom = bottomEl.getBoundingClientRect().bottom - ctop + chat.scrollTop;
     var viewH = chat.clientHeight;
     var PAD = 12;
-    if (bottom - top <= viewH - PAD) {
-      chat.scrollTop = Math.max(0, bottom - viewH + PAD);
-    } else {
-      chat.scrollTop = Math.max(0, top - PAD);
+    var bottom = bottomEl.getBoundingClientRect().bottom - ctop + chat.scrollTop;
+    var showRow = bottom - viewH + PAD;      // keep the suggestions/CTA in view
+    var showTop = showRow;
+    if (topEl) {
+      var top = topEl.getBoundingClientRect().top - ctop + chat.scrollTop;
+      showTop = top - PAD;                   // reveal the turn top when it fits
     }
+    chat.scrollTop = Math.max(0, showTop, showRow);
   }
 
   // Size the scroll panel to the room left in the hero below the chat's top.
