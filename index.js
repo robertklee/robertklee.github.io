@@ -425,6 +425,7 @@ var app = document.getElementById('app');
   var convoMode = false; // becomes true once the visitor asks a follow-up
   var stickBottom = true; // auto-follow new output unless the visitor scrolls up
   var activeTurnTop = null; // top element of the current turn (for revealing its answer)
+  var chipScrollKnown = false; // visitor has picked a non-first chip, so they know the row scrolls
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
@@ -1003,7 +1004,7 @@ var app = document.getElementById('app');
     // each fresh, overflowing row gets exactly one visible nudge.
     var hinted = false;
     function hint() {
-      if (hinted || reduceMotion) return;
+      if (hinted || reduceMotion || chipScrollKnown) return;
       var max = chipsWrap.scrollWidth - chipsWrap.clientWidth;
       if (max < 24) return; // nothing beyond the edge to reveal
       hinted = true;
@@ -1030,6 +1031,10 @@ var app = document.getElementById('app');
   // attempt and route it to EASTER_EGG's good-natured refusal (streaming the
   // visitor's own edited text back as the prompt), instead of the canned topic.
   function runChip(chip, topic, phrasing, row) {
+    // Picking any chip past the first means the visitor already found the
+    // horizontally-scrolling row, so we can retire the "more chips" nudge.
+    var chipsParent = chip.parentNode;
+    if (chipsParent && chipsParent.firstElementChild !== chip) chipScrollKnown = true;
     var el = chip.querySelector('.suggest-text');
     var live = el ? el.textContent.trim() : phrasing;
     if (live && live !== phrasing) {
