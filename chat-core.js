@@ -10,8 +10,10 @@ window.HeroChat = (function () {
   // override the token delays; thinking traces derive their pace from length.
   var THINK_BASE_MS = 800; // Fixed time added before length-based thinking.
   var THINK_PER_TOKEN_MS = 50; // Target time added per whitespace token.
-  var THINK_JITTER_MS = 700; // Maximum random variance in the target duration.
-  var THINK_MAX_MS = 6000; // Hard cap for the generated thinking target.
+  var THINK_JITTER_MS = 700; // Maximum random additive variance in the target.
+  var THINK_EFFORT_MIN = 0.55; // Low end of the per-thought "effort" multiplier.
+  var THINK_EFFORT_MAX = 1.7; // High end of the per-thought "effort" multiplier.
+  var THINK_MAX_MS = 7500; // Hard cap for the generated thinking target.
   var THINK_RENDER_OVERHEAD_PER_TOKEN_MS = 9; // Estimated DOM work per token.
   var THINK_LEAD_MS = 350; // Base pause before the first thinking token.
   var THINK_BASE_DELAY_RATIO = 0.6; // Guaranteed share of average token delay.
@@ -89,9 +91,16 @@ window.HeroChat = (function () {
   // `extra` can override any generated stream option for a specific call.
   function thinkPace(text, extra) {
     var n = Math.max(1, tokenize(text, false).length);
+    // Scale the length-based estimate by a per-thought "effort" multiplier so
+    // two traces of similar length still vary widely in duration -- some quick,
+    // some deliberate, the way a real reasoning model does -- then add a little
+    // additive jitter on top.
+    var effort = THINK_EFFORT_MIN +
+      Math.random() * (THINK_EFFORT_MAX - THINK_EFFORT_MIN);
     var targetMs = Math.min(
       THINK_MAX_MS,
-      THINK_BASE_MS + n * THINK_PER_TOKEN_MS + Math.random() * THINK_JITTER_MS
+      (THINK_BASE_MS + n * THINK_PER_TOKEN_MS) * effort +
+        Math.random() * THINK_JITTER_MS
     );
     // DOM insertion and scrolling consume time even with a zero-millisecond
     // timeout, so remove that estimated cost from the requested token delay.
@@ -119,8 +128,10 @@ window.HeroChat = (function () {
         Math.floor(Math.random() * FALLBACK_THOUGHT_RANGE_SECS);
     }
     var n = Math.max(1, tokenize(text, false).length);
+    var effort = THINK_EFFORT_MIN +
+      Math.random() * (THINK_EFFORT_MAX - THINK_EFFORT_MIN);
     var secs = Math.round(
-      (THINK_BASE_MS + n * THINK_PER_TOKEN_MS) / 1000 +
+      (THINK_BASE_MS + n * THINK_PER_TOKEN_MS) * effort / 1000 +
       Math.random() * STATIC_THOUGHT_JITTER_SECS
     );
     return Math.max(THOUGHT_MIN_SECS, Math.min(THOUGHT_MAX_SECS, secs));
