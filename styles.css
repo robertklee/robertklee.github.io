@@ -758,6 +758,12 @@ body.convo-active .scroll-cue {
 
 /* Phone tweaks: keep suggestion chips on one scrollable line (below). */
 @media only screen and (max-width: 550px) {
+  /* Reclaim edge space: the default 5%-a-side margin is wider than it needs to
+     be on a phone, so widen the chat box to a slim fixed gutter as the screen
+     shrinks. Applies to the intro and conversation states alike. */
+  .hero-chat {
+    width: calc(100% - 20px);
+  }
   /* Keep the chips on one line and let them scroll sideways instead of
      stacking, with edge fades + a one-time nudge hinting there's more. */
   .suggest-chips {
