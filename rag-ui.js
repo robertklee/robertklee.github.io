@@ -45,10 +45,10 @@
   // --- Build the static shell ----------------------------------------------
   var widget = el('div', 'rag-widget');
 
-  var sub = el('p', 'rag-sub');
-  sub.innerHTML = 'A genuinely working retrieval demo over my r\u00e9sum\u00e9 &mdash; ' +
-    'no backend, no mock. Ask anything; you\u2019ll see the exact passages it ' +
-    'retrieves (with similarity scores and sources) before a grounded, cited answer.';
+  var sub = el('p', 'rag-sub',
+    'A genuinely working retrieval demo over my r\u00e9sum\u00e9 \u2014 no backend, ' +
+    'no mock. Ask anything; you\u2019ll see the exact passages it retrieves ' +
+    '(with similarity scores and sources) before a grounded, cited answer.');
   widget.appendChild(sub);
 
   // Question form
@@ -351,6 +351,15 @@
       .then(function () {
         if (myToken !== runToken) return;
         if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+        answerPanel.appendChild(citations);
+        ask.disabled = false;
+      })
+      .catch(function () {
+        // Never leave the widget stuck: re-enable input even if streaming
+        // fails, and still show the citations for the retrieved passages.
+        if (myToken !== runToken) return;
+        if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+        if (!txt.textContent) txt.textContent = res.answer.text;
         answerPanel.appendChild(citations);
         ask.disabled = false;
       });

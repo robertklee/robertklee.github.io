@@ -109,7 +109,7 @@ window.ResumeRAG = (function () {
   function loadCorpus() {
     if (corpus) return Promise.resolve(corpus);
     if (corpusPromise) return corpusPromise;
-    corpusPromise = fetch(CORPUS_URL, { cache: 'no-cache' })
+    corpusPromise = fetch(CORPUS_URL)
       .then(function (r) {
         if (!r.ok) throw new Error('Failed to load corpus (' + r.status + ')');
         return r.json();
