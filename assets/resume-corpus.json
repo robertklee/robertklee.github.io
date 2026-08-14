@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "subject": "Robert Lee",
+  "note": "Knowledge base for the client-side 'Ask my résumé' retrieval demo. Each entry is a self-contained chunk grounded in the résumé/site content, with a section label and an in-page anchor used for citation.",
+  "chunks": [
+    {
+      "id": "profile-summary",
+      "section": "Profile",
+      "title": "Who Robert is",
+      "url": "#top",
+      "text": "Robert Lee is a Senior Software Engineer at Microsoft on Azure AI Search. His work sits at the intersection of information retrieval, vector search, and applied machine learning: improving relevance for complex global queries, grounding LLMs and multi-agent workflows in governed enterprise knowledge, and turning research prototypes into production-grade agentic retrieval and RAG capabilities at billion-vector scale."
+    },
+    {
+      "id": "profile-strengths",
+      "section": "Profile",
+      "title": "Engineering strengths and interests",
+      "url": "#top",
+      "text": "Robert cares deeply about performance, correctness, and distributed systems, and is often the engineer who root-causes the gnarliest production incidents. He delivered the core of Azure AI Search's vector engine, including quantization techniques that cut customer costs by 8 to 32 times and latency by up to 20 times, a hybrid-search relevance stack, and an extensible facet-aggregation engine built on formal grammar and parsing. Beyond code he loves building communities and mentoring engineers."
+    },
+    {
+      "id": "exp-senior-swe",
+      "section": "Experience",
+      "title": "Senior Software Engineer, Microsoft Azure AI Search (Mar 2025 - Present)",
+      "url": "#experience",
+      "text": "As a Senior Software Engineer on Azure AI Search (March 2025 to present, Redmond WA), Robert drives a novel vector-search diversity capability end-to-end with no existing blueprint: owning scoping, surfacing engine-level constraints, and refining the design to improve relevance for complex global queries through diversity-aware sampling that broadens retrieved evidence for higher-quality answer synthesis across enterprise indexes holding billions of vectors. He works in C++, C#, Java, and Python across vector search, agentic retrieval, information retrieval, RAG, and distributed systems."
+    },
+    {
+      "id": "exp-senior-swe-agentic",
+      "section": "Experience",
+      "title": "Bridging agentic-retrieval research to production",
+      "url": "#experience",
+      "text": "In his senior role, Robert led a cross-team effort to bridge research and production, defining feature scope, data-driven ship criteria, and validation methodology to move multiple agentic-retrieval quality improvements from prototype to shipped Public Preview features. He integrated Azure AI Search retrieval into agent workflows, grounding LLM agents in governed, indexed enterprise knowledge across tool calling, multi-agent orchestration, and Retrieval Augmented Generation."
+    },
+    {
+      "id": "exp-senior-swe-benchmark",
+      "section": "Experience",
+      "title": "Benchmarking system that enabled a serverless search offering",
+      "url": "#experience",
+      "text": "Robert architected a benchmarking system from scratch to profile highly variable agentic-retrieval workloads across CPU, memory, and throughput, modeling latency distributions, tool-calling iterations, and dependency patterns. It produced the production billing model that enabled a new serverless enterprise search offering to launch, and surfaced and resolved memory optimizations along the way. He also serves as a technical leader at the intersection of information retrieval, vector search, Azure OpenAI, and agent orchestration, mentoring engineers, leading design reviews, and driving deeply technical architecture decisions."
+    },
+    {
+      "id": "exp-swe2-quantization",
+      "section": "Experience",
+      "title": "Software Engineer II - Vector quantization (Jun 2022 - Feb 2025)",
+      "url": "#experience",
+      "text": "As a Software Engineer II on Azure AI Search (June 2022 to February 2025), Robert drove vector storage, quantization, and relevance for the vector retrieval engine spanning billions of embeddings. He drove vector quantization from Public Preview through to General Availability, now widely adopted by customers, delivering 8 to 32 times cost savings and up to 20 times latency reduction through binary vectors, scalar and binary quantization, and SIMD-accelerated distance computation."
+    },
+    {
+      "id": "exp-swe2-relevance",
+      "section": "Experience",
+      "title": "Software Engineer II - Hybrid search relevance and facets",
+      "url": "#experience",
+      "text": "As a Software Engineer II, Robert strengthened the relevance stack by designing hybrid-search subscore fusion and score thresholding to improve result quality across blended vector and keyword retrieval. He owned end-to-end delivery of an extensible facet-aggregation engine from spec, building a custom lexer-parser-evaluator that applies BNF grammar, the shunting-yard algorithm, and Reverse Polish Notation to parse, simplify, and validate expressions, backed by extensive A/B test coverage."
+    },
+    {
+      "id": "exp-swe2-reliability",
+      "section": "Experience",
+      "title": "Software Engineer II - Reliability, quotas, and incident response",
+      "url": "#experience",
+      "text": "Robert designed and shipped a data-driven quota-enforcement mechanism for HNSW indexes tied to physical resource utilization, cutting limit overshoot by 100 times through cross-team design collaboration. He hardened the vector search engine with a new test suite that caught a critical bug in a new quantization algorithm before release, and acted as a subject-matter expert and key reviewer, root-causing deeply technical production incidents across teams to rapidly restore customer service and drive durable fixes."
+    },
+    {
+      "id": "exp-swe-alias",
+      "section": "Experience",
+      "title": "Software Engineer, Azure AI Search (Jul 2021 - May 2022)",
+      "url": "#experience",
+      "text": "As a Software Engineer on Azure AI Search (July 2021 to May 2022), Robert delivered the new index alias feature to Public Preview, letting customers repoint applications to a different underlying index with no code changes or downtime. He modernized a core telemetry-database table through a phased, zero-downtime migration that preserved data integrity and delivered a 50 to 100 times query speedup."
+    },
+    {
+      "id": "exp-intern-cognitive",
+      "section": "Experience",
+      "title": "Software Engineer Intern, Azure Cognitive Search (Sep 2020 - Dec 2020)",
+      "url": "#experience",
+      "text": "As a Software Engineer Intern on Azure Cognitive Search (September to December 2020, remote), Robert designed and shipped the second most requested API and backend feature on the team, written in C# and released under a preview API."
+    },
+    {
+      "id": "exp-intern-aiplatform",
+      "section": "Experience",
+      "title": "Software Engineer Intern, Azure Search AI Platform (Jun 2019 - Aug 2019)",
+      "url": "#experience",
+      "text": "As a Software Engineer Intern on the Azure Search AI Platform team (June to August 2019, Bellevue WA), Robert built a dynamic search-website generator with query suggestions and filtering options in TypeScript, improved the Azure Search portal with a new JSON editor and search-website customization, and partnered with designers, engineers, and program managers to scope the feature set."
+    },
+    {
+      "id": "exp-intern-garage",
+      "section": "Experience",
+      "title": "Software Developer Intern, Microsoft Garage (Jan 2018 - Apr 2018)",
+      "url": "#experience",
+      "text": "As a Software Developer Intern at Microsoft Garage (January to April 2018, Vancouver BC), Robert built a cross-platform mobile app leveraging offline machine learning for chest X-ray classification in C#. He built the image-processing pipeline, DevOps continuous integration, and an iOS share extension, integrated the TensorFlow Android binding library, and served as the team's Git expert."
+    },
+    {
+      "id": "education",
+      "section": "Education",
+      "title": "B.Eng, Electrical & Computer Engineering, University of Victoria",
+      "url": "#education",
+      "text": "Robert graduated from the University of Victoria (September 2016 to April 2021) with a Bachelor of Electrical & Computer Engineering and a 97% cumulative GPA, spanning distributed systems, algorithms, signal processing, embedded design, and machine learning. As a Jamie Cassels Undergraduate Research Award recipient he researched hardware acceleration for machine-learning neural networks, and earned 20+ scholarships and awards worth over $100,000."
+    },
+    {
+      "id": "project-pose",
+      "section": "Projects",
+      "title": "Human Pose Estimation using Deep Neural Networks",
+      "url": "#projects",
+      "text": "Robert was Project and Team Lead for a student team that developed a deep neural network for human pose estimation (HPE) on the COCO-2017 dataset. He architected the cloud training pipeline, model architecture, and data augmentation method, and led model visualization and deployment. The model performs single-person single-image 2D pose estimation using a kinematic model and a heatmap-based approach rather than regressing joint locations, trained from scratch with random weight initialization. Try it on Streamlit."
+    },
+    {
+      "id": "project-roadseg",
+      "section": "Projects",
+      "title": "Semantic Road Segmentation using Convolutional Neural Networks",
+      "url": "#projects",
+      "text": "Robert trained a U-Net convolutional neural network on the KITTI Road dataset using Keras, achieving up to 99.1% F1 score and 91% in the worst case. He designed the full training pipeline including data generator, training and testing scripts, custom loss functions, and cloud training on Google Colab, tuned hyperparameters, used data augmentation, and handled edge cases like shadows, occlusions, and road artifacts."
+    },
+    {
+      "id": "project-depth",
+      "section": "Projects",
+      "title": "Monocular Depth Estimation (Computer Vision)",
+      "url": "#projects",
+      "text": "Robert implemented a limited version of Monodepth2, a self-supervised monocular depth estimation algorithm, in TensorFlow, adapting it to the large-scale DrivingStereo dataset (~136k training image pairs). He designed a fully convolutional U-Net with a ResNet-18 encoder for stereo inputs at 640x192, used stereo photometric reconstruction and edge-aware smoothness loss without ground-truth depth, and added multi-scale loss, auto-masking for static pixels, and per-pixel minimum reprojection."
+    },
+    {
+      "id": "project-battlesnake",
+      "section": "Projects",
+      "title": "Battlesnake Reinforcement Learning AI",
+      "url": "#projects",
+      "text": "Robert designed a reinforcement-learning AI for Battlesnake, a real-time variant of the classic snake game with up to 7 opponent snakes where collisions with longer snakes or starvation cause death. He trained a keras-rl reinforcement learning model with a combination of self-play and publicly available snakes, with the goal of surviving the longest."
+    },
+    {
+      "id": "project-dct",
+      "section": "Projects",
+      "title": "Discrete Cosine Transform Optimization in C & Assembly",
+      "url": "#projects",
+      "text": "Robert achieved a 10 times speedup over a naive implementation of the Discrete Cosine Transform using C and assembly-level optimizations. He configured CMake for platform-agnostic compilation, profiled hotspots with Valgrind, and hand-wrote a custom assembly operator for the critical path."
+    },
+    {
+      "id": "leadership-seniors",
+      "section": "Leadership",
+      "title": "Founder & Program Leader, Senior's Program",
+      "url": "#leadership",
+      "text": "Robert founded a series of technology and computer-literacy workshops for seniors in the community (July 2015 to October 2021) and supervised a team of 180 volunteers to reach 650+ attendees across 30 workshops."
+    },
+    {
+      "id": "leadership-ieee",
+      "section": "Leadership",
+      "title": "Chair & Vice-Chair, IEEE Student Branch",
+      "url": "#leadership",
+      "text": "As Chair and Vice-Chair of the IEEE Student Branch (September 2019 to January 2021), Robert co-delivered 14 skill-development workshops on Git, machine learning, integrated circuits, breadboards, soldering, and circuit design, reaching 350+ engineering students, and secured $1,000 in funding."
+    },
+    {
+      "id": "leadership-conference",
+      "section": "Leadership",
+      "title": "Conference Organizer Lead",
+      "url": "#leadership",
+      "text": "As Conference Organizer Lead (August to November 2019), Robert assembled and orchestrated the organizing committee, established the conference vision, and spearheaded all aspects to bring a 200+ attendee conference on the fusion of technology and business strategy to life."
+    },
+    {
+      "id": "awards",
+      "section": "Awards",
+      "title": "Scholarships and awards",
+      "url": "#awards",
+      "text": "Robert has earned 20+ scholarships and awards valued at over $100,000, including the Schulich Leader Scholarship (2016), an $80,000 full-ride awarded to one of 50 recipients nationally; National Champion of the Michael Smith Science Challenge (2014) with a national-record 97.5%; the Governor General's Academic Medal (Bronze, 2016); the Jamie Cassels Undergraduate Research Award (2019); 1st Place at the Western Engineering Competition Senior Design (2020); and 1st Place three times at the UVEC Engineering Competition Senior Design (2017, 2018, 2019)."
+    },
+    {
+      "id": "skills",
+      "section": "Skills",
+      "title": "Technical skills",
+      "url": "#top",
+      "text": "Robert's core skills include vector search, vector quantization, information retrieval, search relevance and ranking, hybrid search, reciprocal rank fusion, agentic retrieval, Retrieval Augmented Generation (RAG), HNSW and approximate nearest neighbor search, distributed systems, and performance optimization. He programs in C++, C#, Java, Python, and TypeScript, and has built deep learning and computer vision systems with TensorFlow and Keras."
+    },
+    {
+      "id": "contact",
+      "section": "Contact",
+      "title": "How to reach Robert",
+      "url": "#top",
+      "text": "You can reach Robert by email at hello@robertkl.com, connect with him on LinkedIn at linkedin.com/in/robert-k-lee, or see his code on GitHub at github.com/robertklee."
+    }
+  ]
+}
