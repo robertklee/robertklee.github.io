@@ -331,9 +331,23 @@ window.ResumeRAG = (function () {
   }
 
   // --- Grounded, extractive answer -----------------------------------------
-  // Honest by design: with no LLM in the loop, the "answer" is assembled from
-  // the retrieved passages themselves, with citations. This showcases the
-  // retrieval + grounding half of RAG without fabricating generation.
+  // Honest by design: with no LLM in the loop, the "answer" is drawn from the
+  // retrieved passages themselves, with citations. This showcases the retrieval
+  // + grounding half of RAG without fabricating generation. The full passages
+  // are already visible as cards, so the answer condenses the single best match
+  // (a couple of sentences) rather than repeating every chunk verbatim.
+  function firstSentences(text, maxChars) {
+    var sentences = String(text).match(/[^.!?]+[.!?]+/g) || [text];
+    var out = '';
+    for (var i = 0; i < sentences.length; i++) {
+      var candidate = (out + sentences[i]).trim();
+      if (out && candidate.length > maxChars) break;
+      out = candidate;
+      if (out.length >= maxChars) break;
+    }
+    return out || String(text).slice(0, maxChars).trim();
+  }
+
   function buildGroundedAnswer(query, results) {
     if (!results || !results.length) {
       return {
@@ -343,15 +357,12 @@ window.ResumeRAG = (function () {
         citations: []
       };
     }
-    var top = results.slice(0, 3);
-    var lead = 'Here\u2019s what Robert\u2019s r\u00e9sum\u00e9 says, grounded in the ' +
-      'passages retrieved above:';
-    var body = top.map(function (r) {
-      return '\u2022 ' + r.chunk.text + ' [' + r.chunk.section + ']';
-    }).join('\n\n');
+    var best = results[0];
+    var lead = 'Grounded in the top passage retrieved above:';
+    var summary = firstSentences(best.chunk.text, 320);
     return {
-      text: lead + '\n\n' + body,
-      citations: top.map(function (r) {
+      text: lead + '\n\n' + summary,
+      citations: results.slice(0, 3).map(function (r) {
         return { title: r.chunk.title, section: r.chunk.section, url: r.chunk.url };
       })
     };

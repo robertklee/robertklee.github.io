@@ -1355,6 +1355,7 @@ ul {
   padding: 16px;
   border: 1px solid var(--muted);
   border-radius: 12px;
+  background: rgba(127, 127, 127, 0.06);
   background: color-mix(in srgb, var(--bg) 92%, var(--muted));
 }
 
@@ -1482,6 +1483,7 @@ ul {
   border-radius: 12px;
   padding: 12px 14px;
   margin-bottom: 10px;
+  background: rgba(127, 127, 127, 0.05);
   background: color-mix(in srgb, var(--bg) 94%, var(--muted));
 }
 
@@ -1523,6 +1525,7 @@ ul {
   flex: 0 1 120px;
   height: 6px;
   border-radius: 999px;
+  background: rgba(127, 127, 127, 0.25);
   background: color-mix(in srgb, var(--muted) 40%, transparent);
   overflow: hidden;
 }
@@ -1567,6 +1570,7 @@ ul {
 .rag-answer {
   margin-top: 18px;
   padding-top: 16px;
+  border-top: 1px solid rgba(127, 127, 127, 0.35);
   border-top: 1px solid color-mix(in srgb, var(--muted) 45%, transparent);
 }
 

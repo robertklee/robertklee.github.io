@@ -325,8 +325,7 @@
 
     var head = el('div', 'rag-answer-head');
     head.appendChild(el('span', 'rag-answer-label', 'Grounded answer'));
-    head.appendChild(el('span', 'rag-answer-tag',
-      RAG.hasApiKey() ? 'extractive \u00b7 cited' : 'extractive \u00b7 cited'));
+    head.appendChild(el('span', 'rag-answer-tag', 'extractive \u00b7 cited'));
     answerPanel.appendChild(head);
 
     var body = el('div', 'rag-answer-body');
