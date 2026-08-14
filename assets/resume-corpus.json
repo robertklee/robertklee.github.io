@@ -7,14 +7,14 @@
       "id": "profile-summary",
       "section": "Profile",
       "title": "Who Robert is",
-      "url": "#top",
+      "url": "#about",
       "text": "Robert Lee is a Senior Software Engineer at Microsoft on Azure AI Search. His work sits at the intersection of information retrieval, vector search, and applied machine learning: improving relevance for complex global queries, grounding LLMs and multi-agent workflows in governed enterprise knowledge, and turning research prototypes into production-grade agentic retrieval and RAG capabilities at billion-vector scale."
     },
     {
       "id": "profile-strengths",
       "section": "Profile",
       "title": "Engineering strengths and interests",
-      "url": "#top",
+      "url": "#about",
       "text": "Robert cares deeply about performance, correctness, and distributed systems, and is often the engineer who root-causes the gnarliest production incidents. He delivered the core of Azure AI Search's vector engine, including quantization techniques that cut customer costs by 8 to 32 times and latency by up to 20 times, a hybrid-search relevance stack, and an extensible facet-aggregation engine built on formal grammar and parsing. Beyond code he loves building communities and mentoring engineers."
     },
     {
@@ -161,14 +161,14 @@
       "id": "skills",
       "section": "Skills",
       "title": "Technical skills",
-      "url": "#top",
+      "url": "#about",
       "text": "Robert's core skills include vector search, vector quantization, information retrieval, search relevance and ranking, hybrid search, reciprocal rank fusion, agentic retrieval, Retrieval Augmented Generation (RAG), HNSW and approximate nearest neighbor search, distributed systems, and performance optimization. He programs in C++, C#, Java, Python, and TypeScript, and has built deep learning and computer vision systems with TensorFlow and Keras."
     },
     {
       "id": "contact",
       "section": "Contact",
       "title": "How to reach Robert",
-      "url": "#top",
+      "url": "#contact",
       "text": "You can reach Robert by email at hello@robertkl.com, connect with him on LinkedIn at linkedin.com/in/robert-k-lee, or see his code on GitHub at github.com/robertklee."
     }
   ]

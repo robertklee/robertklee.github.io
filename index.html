@@ -80,7 +80,11 @@
           </button>
         </div>
 
-        <h1 style="padding-bottom: 10px; padding-top: 10px;">Introduction</h1>
+        <!-- Ask my résumé — real client-side RAG demo (retrieval mounted by rag-ui.js) -->
+        <h1 id="ask" style="padding-bottom: 6px; padding-top: 20px;">Ask my r&eacute;sum&eacute;</h1>
+        <div id="resume-rag" class="rag-section"></div>
+
+        <h1 id="about" style="padding-bottom: 10px; padding-top: 10px;">Introduction</h1>
 
         <!-- Introduction -->
         <div class="flex-container-reverse" style="padding-bottom: 50px; padding-top: 20px;">
@@ -101,7 +105,7 @@
           </div>
         </div>
 
-        <h1 style="padding-bottom: 20px">Work Experience</h1>
+        <h1 id="experience" style="padding-bottom: 20px">Work Experience</h1>
 
         <!-- Work Experience #1 -->
         <div class="flex-container-reverse" style="padding-bottom: 50px; padding-top: 40px;">
@@ -211,7 +215,7 @@
         </div>
 
         <!-- education -->
-        <h1 style="padding-bottom: 20px; padding-top: 20px;">Education</h1>
+        <h1 id="education" style="padding-bottom: 20px; padding-top: 20px;">Education</h1>
 
         <div class="text-block" style="padding-bottom: 60px; padding-top: 20px;">
           <h3>Bachelor of Electrical &amp; Computer Engineering</h3>
@@ -223,7 +227,7 @@
         </div>
 
         <!-- projects -->
-        <h1 style="padding-bottom: 20px">Projects</h1>
+        <h1 id="projects" style="padding-bottom: 20px">Projects</h1>
 
         <!-- Project #1 -->
         <div class="flex-container" style="padding-bottom: 100px; padding-top: 50px;">
@@ -322,7 +326,7 @@
         </div>
 
         <!-- leadership -->
-        <h1 style="padding-bottom: 20px; padding-top: 20px;">Leadership</h1>
+        <h1 id="leadership" style="padding-bottom: 20px; padding-top: 20px;">Leadership</h1>
 
         <div class="text-block" style="padding-bottom: 40px; padding-top: 20px;">
           <div style="padding-bottom: 30px;">
@@ -349,7 +353,7 @@
         </div>
 
         <!-- awards -->
-        <h1 style="padding-bottom: 20px; padding-top: 40px;">Awards &amp; Achievements</h1>
+        <h1 id="awards" style="padding-bottom: 20px; padding-top: 40px;">Awards &amp; Achievements</h1>
 
         <div class="text-block" style="padding-bottom: 40px; padding-top: 20px;">
           <p style="padding-bottom: 10px;">20+ scholarships and awards valued at over $100,000, including:</p>
@@ -365,7 +369,7 @@
 
 
         <!-- Contact me / ending section -->
-        <h2 style="padding-bottom: 20px; padding-top: 80px;">Contact Me</h2>
+        <h2 id="contact" style="padding-bottom: 20px; padding-top: 80px;">Contact Me</h2>
 
         <picture>
           <source srcset="assets/airplane.webp" type="image/webp">
@@ -396,5 +400,7 @@
 
     <script src="chat-core.js" charset="utf-8"></script>
     <script src="index.js" charset="utf-8"></script>
+    <script src="rag-core.js" charset="utf-8"></script>
+    <script src="rag-ui.js" charset="utf-8"></script>
   </body>
 </html>
