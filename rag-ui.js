@@ -109,8 +109,9 @@
   function updateMethodLine() {
     var cfg = RAG.getConfig();
     if (RAG.hasApiKey()) {
+      var label = cfg.provider === 'azure' ? cfg.azureDeployment : cfg.model;
       methodInfo.innerHTML = 'Retrieval: <strong>semantic vector search</strong> ' +
-        '<span class="rag-model">' + escapeText(cfg.model) + '</span>';
+        '<span class="rag-model">' + escapeText(label) + '</span>';
       settingsToggle.textContent = 'Embeddings settings';
     } else {
       methodInfo.innerHTML = 'Retrieval: <strong>keyword (BM25)</strong> ' +
@@ -125,34 +126,72 @@
 
     var intro = el('p', 'rag-settings-intro');
     intro.innerHTML = 'Bring your own <strong>embeddings</strong> key to switch ' +
-      'from keyword matching to real semantic vector search. Your key stays in ' +
-      'this browser tab\u2019s memory only &mdash; it is never stored and never sent ' +
-      'anywhere except the endpoint below. Only the resulting r\u00e9sum\u00e9 ' +
-      'vectors (not your key) are cached locally.';
+      'from keyword matching to real semantic vector search &mdash; via ' +
+      '<strong>OpenAI</strong> or <strong>Azure OpenAI</strong>. Your key stays in ' +
+      'this browser tab\u2019s memory only; it is never stored and never sent ' +
+      'anywhere except your chosen embeddings endpoint. Only the resulting ' +
+      'r\u00e9sum\u00e9 vectors (not your key) are cached locally.';
     wrap.appendChild(intro);
 
     var cfg = RAG.getConfig();
 
     var keyRow = field('API key', 'rag-key');
     keyRow.input.type = 'password';
-    keyRow.input.placeholder = 'sk-\u2026 (kept in memory only)';
+    keyRow.input.placeholder = 'kept in memory only';
     keyRow.input.setAttribute('autocomplete', 'off');
     wrap.appendChild(keyRow.row);
 
+    // Provider ----------------------------------------------------------------
+    var providerRow = el('div', 'rag-field');
+    var providerLabel = el('label', 'rag-field-label', 'Provider');
+    var providerSelect = el('select', 'rag-field-input');
+    [['openai', 'OpenAI-compatible'], ['azure', 'Azure OpenAI']]
+      .forEach(function (o) {
+        var opt = el('option', null, o[1]);
+        opt.value = o[0];
+        if (o[0] === cfg.provider) opt.selected = true;
+        providerSelect.appendChild(opt);
+      });
+    providerRow.appendChild(providerLabel);
+    providerRow.appendChild(providerSelect);
+    wrap.appendChild(providerRow);
+
+    // OpenAI-compatible fields ------------------------------------------------
     var endpointRow = field('Endpoint', 'rag-endpoint');
     endpointRow.input.type = 'text';
     endpointRow.input.value = cfg.endpoint;
+    endpointRow.input.placeholder = 'https://api.openai.com/v1/embeddings';
     wrap.appendChild(endpointRow.row);
 
     var modelRow = field('Model', 'rag-model-input');
     modelRow.input.type = 'text';
     modelRow.input.value = cfg.model;
+    modelRow.input.placeholder = 'text-embedding-3-small';
     wrap.appendChild(modelRow.row);
+
+    // Azure OpenAI fields -----------------------------------------------------
+    var resourceRow = field('Azure resource', 'rag-azure-resource');
+    resourceRow.input.type = 'text';
+    resourceRow.input.value = cfg.azureResource;
+    resourceRow.input.placeholder = 'my-resource (or full https URL)';
+    wrap.appendChild(resourceRow.row);
+
+    var deploymentRow = field('Deployment', 'rag-azure-deployment');
+    deploymentRow.input.type = 'text';
+    deploymentRow.input.value = cfg.azureDeployment;
+    deploymentRow.input.placeholder = 'embedding deployment name';
+    wrap.appendChild(deploymentRow.row);
+
+    var apiVersionRow = field('API version', 'rag-azure-apiversion');
+    apiVersionRow.input.type = 'text';
+    apiVersionRow.input.value = cfg.azureApiVersion;
+    apiVersionRow.input.placeholder = '2024-02-01';
+    wrap.appendChild(apiVersionRow.row);
 
     var authRow = el('div', 'rag-field');
     var authLabel = el('label', 'rag-field-label', 'Auth header');
     var authSelect = el('select', 'rag-field-input');
-    [['bearer', 'Authorization: ******'], ['api-key', 'api-key (Azure OpenAI)']]
+    [['bearer', 'Authorization: Bearer (OpenAI / Entra ID)'], ['api-key', 'api-key (Azure key)']]
       .forEach(function (o) {
         var opt = el('option', null, o[1]);
         opt.value = o[0];
@@ -162,6 +201,22 @@
     authRow.appendChild(authLabel);
     authRow.appendChild(authSelect);
     wrap.appendChild(authRow);
+
+    // Show only the fields that apply to the selected provider.
+    function syncProviderFields() {
+      var azure = providerSelect.value === 'azure';
+      endpointRow.row.hidden = azure;
+      modelRow.row.hidden = azure;
+      resourceRow.row.hidden = !azure;
+      deploymentRow.row.hidden = !azure;
+      apiVersionRow.row.hidden = !azure;
+    }
+    providerSelect.addEventListener('change', function () {
+      // Sensible default auth per provider; still user-overridable below.
+      authSelect.value = providerSelect.value === 'azure' ? 'api-key' : 'bearer';
+      syncProviderFields();
+    });
+    syncProviderFields();
 
     var actions = el('div', 'rag-settings-actions');
     var enable = el('button', 'btn btn-outline-success rag-enable', 'Enable vector search');
@@ -177,10 +232,19 @@
     enable.addEventListener('click', function () {
       var key = keyRow.input.value.trim();
       RAG.setConfig({
+        provider: providerSelect.value,
         endpoint: endpointRow.input.value,
         model: modelRow.input.value,
+        azureResource: resourceRow.input.value,
+        azureDeployment: deploymentRow.input.value,
+        azureApiVersion: apiVersionRow.input.value,
         authHeader: authSelect.value
       });
+      if (providerSelect.value === 'azure' && !resourceRow.input.value.trim()) {
+        status.textContent = 'Enter your Azure resource (or full URL) to continue.';
+        status.className = 'rag-settings-status warn';
+        return;
+      }
       if (!key) {
         status.textContent = 'Enter a key to enable vector search.';
         status.className = 'rag-settings-status warn';

@@ -1374,6 +1374,10 @@ ul {
   margin-bottom: 10px;
 }
 
+.rag-field[hidden] {
+  display: none;
+}
+
 .rag-field-label {
   flex: 0 0 96px;
   font-size: 0.85rem;

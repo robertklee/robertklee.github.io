@@ -19,13 +19,23 @@ window.ResumeRAG = (function () {
 
   var CORPUS_URL = 'assets/resume-corpus.json';
 
-  // OpenAI-compatible embeddings defaults. The endpoint and model are
-  // configurable so the same client works against OpenAI, Azure OpenAI, or any
-  // compatible gateway/proxy (useful when browser CORS needs a shim).
+  // Embeddings defaults. Two providers are supported first-class:
+  //   * 'openai' -- OpenAI or any OpenAI-compatible gateway/proxy. The request
+  //                 goes to `endpoint` and the model is named in the body.
+  //   * 'azure'  -- Azure OpenAI. The request URL is composed from the resource,
+  //                 the embedding *deployment*, and an api-version; the model is
+  //                 implied by the deployment and is never sent in the body.
   var DEFAULT_CONFIG = {
+    provider: 'openai',                        // 'openai' | 'azure'
+    // OpenAI-compatible
     endpoint: 'https://api.openai.com/v1/embeddings',
     model: 'text-embedding-3-small',
-    authHeader: 'bearer' // 'bearer' (OpenAI) or 'api-key' (Azure OpenAI)
+    // Azure OpenAI (used when provider === 'azure')
+    azureResource: '',                         // 'my-resource' or a full https URL
+    azureDeployment: 'text-embedding-3-small', // AOAI embedding deployment name
+    azureApiVersion: '2024-02-01',
+    // Key auth style: 'bearer' (OpenAI / Entra ID) or 'api-key' (Azure key)
+    authHeader: 'bearer'
   };
   var CONFIG_STORE_KEY = 'rag:config';   // endpoint + model only (never the key)
   var EMB_STORE_PREFIX = 'rag:emb:';     // cached corpus vectors, per model+version
@@ -77,8 +87,12 @@ window.ResumeRAG = (function () {
 
   function loadConfig() {
     var cfg = {
+      provider: DEFAULT_CONFIG.provider,
       endpoint: DEFAULT_CONFIG.endpoint,
       model: DEFAULT_CONFIG.model,
+      azureResource: DEFAULT_CONFIG.azureResource,
+      azureDeployment: DEFAULT_CONFIG.azureDeployment,
+      azureApiVersion: DEFAULT_CONFIG.azureApiVersion,
       authHeader: DEFAULT_CONFIG.authHeader
     };
     try {
@@ -86,8 +100,12 @@ window.ResumeRAG = (function () {
       if (raw) {
         var saved = JSON.parse(raw);
         if (saved && typeof saved === 'object') {
+          if (saved.provider === 'azure' || saved.provider === 'openai') cfg.provider = saved.provider;
           if (saved.endpoint) cfg.endpoint = String(saved.endpoint);
           if (saved.model) cfg.model = String(saved.model);
+          if (saved.azureResource) cfg.azureResource = String(saved.azureResource);
+          if (saved.azureDeployment) cfg.azureDeployment = String(saved.azureDeployment);
+          if (saved.azureApiVersion) cfg.azureApiVersion = String(saved.azureApiVersion);
           if (saved.authHeader) cfg.authHeader = String(saved.authHeader);
         }
       }
@@ -98,8 +116,12 @@ window.ResumeRAG = (function () {
   function persistConfig() {
     try {
       localStorage.setItem(CONFIG_STORE_KEY, JSON.stringify({
+        provider: config.provider,
         endpoint: config.endpoint,
         model: config.model,
+        azureResource: config.azureResource,
+        azureDeployment: config.azureDeployment,
+        azureApiVersion: config.azureApiVersion,
         authHeader: config.authHeader
       }));
     } catch (e) { /* storage may be unavailable; that's fine */ }
@@ -217,15 +239,47 @@ window.ResumeRAG = (function () {
   }
 
   // --- Embeddings client (bring-your-own key) ------------------------------
+
+  // Compose the request URL for the active provider. OpenAI posts to a fixed
+  // endpoint; Azure OpenAI builds the URL from the resource, the embedding
+  // deployment, and an api-version query parameter.
+  function embeddingsUrl() {
+    if (config.provider === 'azure') {
+      var base = String(config.azureResource || '').trim().replace(/\/+$/, '');
+      if (!base) return '';
+      if (!/^https?:\/\//i.test(base)) base = 'https://' + base + '.openai.azure.com';
+      return base + '/openai/deployments/' +
+        encodeURIComponent(config.azureDeployment) +
+        '/embeddings?api-version=' + encodeURIComponent(config.azureApiVersion);
+    }
+    return config.endpoint;
+  }
+
+  // Identity a set of corpus vectors depends on: the OpenAI model, or the Azure
+  // deployment (which pins the model). Used for cache keys and cache validity.
+  function modelId() {
+    return config.provider === 'azure' ? 'azure:' + config.azureDeployment : config.model;
+  }
+  // Human-friendly name of the active embedding model, for the UI.
+  function modelLabel() {
+    return config.provider === 'azure' ? config.azureDeployment : config.model;
+  }
+
   function embedTexts(texts) {
     if (!apiKey) return Promise.reject(new Error('No embeddings API key set'));
+    var url = embeddingsUrl();
+    if (!url) return Promise.reject(new Error('Set your Azure OpenAI resource to enable vector search'));
     var headers = { 'Content-Type': 'application/json' };
     if (config.authHeader === 'api-key') headers['api-key'] = apiKey;
     else headers['Authorization'] = 'Bearer ' + apiKey;
-    return fetch(config.endpoint, {
+    // Azure implies the model via the deployment; OpenAI names it in the body.
+    var body = config.provider === 'azure'
+      ? { input: texts }
+      : { model: config.model, input: texts };
+    return fetch(url, {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify({ model: config.model, input: texts })
+      body: JSON.stringify(body)
     }).then(function (r) {
       if (!r.ok) {
         return r.text().then(function (body) {
@@ -253,7 +307,7 @@ window.ResumeRAG = (function () {
   }
 
   function corpusCacheKey() {
-    return EMB_STORE_PREFIX + config.model + ':v' + (corpus.version || 0) +
+    return EMB_STORE_PREFIX + modelId() + ':v' + (corpus.version || 0) +
       ':n' + corpus.chunks.length;
   }
 
@@ -276,12 +330,12 @@ window.ResumeRAG = (function () {
   // Embed every corpus chunk once (or restore from cache). onProgress(done,
   // total) reports batch progress so the UI can show "embedding corpus...".
   function ensureCorpusEmbeddings(onProgress) {
-    if (corpusVectors && corpusVectors.model === config.model) {
+    if (corpusVectors && corpusVectors.model === modelId()) {
       return Promise.resolve(corpusVectors.vectors);
     }
     var cached = readCachedCorpusVectors();
     if (cached) {
-      corpusVectors = { model: config.model, vectors: cached };
+      corpusVectors = { model: modelId(), vectors: cached };
       if (onProgress) onProgress(cached.length, cached.length);
       return Promise.resolve(cached);
     }
@@ -291,7 +345,7 @@ window.ResumeRAG = (function () {
     var idx = 0;
     function nextBatch() {
       if (idx >= chunks.length) {
-        corpusVectors = { model: config.model, vectors: vectors };
+        corpusVectors = { model: modelId(), vectors: vectors };
         writeCachedCorpusVectors(vectors);
         return vectors;
       }
@@ -391,7 +445,7 @@ window.ResumeRAG = (function () {
       return vectorSearch(q, k, opts.onProgress).then(function (results) {
         return {
           method: 'vector',
-          model: config.model,
+          model: modelLabel(),
           results: results,
           answer: buildGroundedAnswer(q, results),
           note: null
@@ -412,17 +466,29 @@ window.ResumeRAG = (function () {
   function clearApiKey() { apiKey = ''; }
 
   function getConfig() {
-    return { endpoint: config.endpoint, model: config.model, authHeader: config.authHeader };
+    return {
+      provider: config.provider,
+      endpoint: config.endpoint,
+      model: config.model,
+      azureResource: config.azureResource,
+      azureDeployment: config.azureDeployment,
+      azureApiVersion: config.azureApiVersion,
+      authHeader: config.authHeader
+    };
   }
 
   function setConfig(next) {
     next = next || {};
+    if (next.provider === 'azure' || next.provider === 'openai') config.provider = next.provider;
     if (next.endpoint != null) config.endpoint = String(next.endpoint).trim() || DEFAULT_CONFIG.endpoint;
     if (next.model != null) config.model = String(next.model).trim() || DEFAULT_CONFIG.model;
+    if (next.azureResource != null) config.azureResource = String(next.azureResource).trim();
+    if (next.azureDeployment != null) config.azureDeployment = String(next.azureDeployment).trim() || DEFAULT_CONFIG.azureDeployment;
+    if (next.azureApiVersion != null) config.azureApiVersion = String(next.azureApiVersion).trim() || DEFAULT_CONFIG.azureApiVersion;
     if (next.authHeader === 'bearer' || next.authHeader === 'api-key') config.authHeader = next.authHeader;
     persistConfig();
-    // Changing the model invalidates the in-memory corpus vectors; the cache is
-    // keyed by model so a prior model's vectors remain available if reselected.
+    // Any config change may invalidate the in-memory corpus vectors; the cache
+    // is keyed by model/deployment so a prior selection's vectors are reusable.
     corpusVectors = null;
   }
 
