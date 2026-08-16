@@ -988,6 +988,12 @@ picture {
   height: auto;
 }
 
+/* Company/brand logos read better a little smaller than photos. */
+.title-image.logo-light-bg {
+  width: 60%;
+  max-width: 180px;
+}
+
 /* Logos that are transparent PNGs (e.g. the Microsoft logo) need an
    opaque light backing in dark mode so their dark artwork stays legible. */
 :root[data-theme="dark"] .logo-light-bg {
@@ -1034,6 +1040,27 @@ picture {
 ul {
   list-style-position: inside;
   list-style-type: square;
+}
+
+/* Dot bullets with a hanging indent so wrapped lines align with the text
+   rather than the marker. */
+.bullet-list {
+  list-style-type: disc;
+  list-style-position: outside;
+  margin: 0;
+  padding-left: 1.4em;
+  font-family: 'Rubik', sans-serif;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.bullet-list li {
+  padding-bottom: 10px;
+  line-height: 1.5;
+}
+
+.bullet-list li:last-child {
+  padding-bottom: 0;
 }
 
 .flex-container {
@@ -1094,6 +1121,12 @@ ul {
   color: var(--text);
   padding-bottom: 10px;
   line-height: 1.5;
+}
+
+/* Keep the dot bullets' hanging indent when nested in a text block, whose
+   generic `ul` rule would otherwise strip the left padding. */
+.text-block .bullet-list {
+  padding-left: 1.4em;
 }
 
 /* Buttons (replaces Bootstrap .btn / .btn-outline-success) */
@@ -1223,5 +1256,10 @@ ul {
 
   .small-container-left {
     text-align: center;
+  }
+
+  .title-image.logo-light-bg {
+    width: 40%;
+    max-width: 140px;
   }
 }
