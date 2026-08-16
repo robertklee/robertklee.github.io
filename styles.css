@@ -990,8 +990,26 @@ picture {
 
 /* Company/brand logos read better a little smaller than photos. */
 .title-image.logo-light-bg {
-  width: 60%;
-  max-width: 180px;
+  width: 80%;
+  max-width: 240px;
+}
+
+/* Desktop only: place the company logo on the left, sized a bit larger, with
+   its top aligned to the position title. Scoped with :has() to work-experience
+   rows (those with a company logo) so the intro portrait layout is unchanged. */
+@media (min-width: 551px) {
+  .flex-container-reverse:has(img.logo-light-bg) {
+    flex-direction: row-reverse;
+    align-items: flex-start;
+  }
+
+  .flex-container-reverse:has(img.logo-light-bg) .small-container-right {
+    text-align: left;
+  }
+
+  .flex-container-reverse:has(img.logo-light-bg) .big-container-left h3 {
+    margin-top: 0;
+  }
 }
 
 /* Logos that are transparent PNGs (e.g. the Microsoft logo) need an
