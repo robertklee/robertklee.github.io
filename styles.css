@@ -1243,7 +1243,8 @@ ul {
   }
   
   .big-container-left, .small-container-right {
-    flex: 100%;
+    flex: 0 0 auto;
+    width: 100%;
   }
 
   .small-container-right {
@@ -1251,7 +1252,8 @@ ul {
   }
 
   .big-container-right, .small-container-left {
-    flex: 100%;
+    flex: 0 0 auto;
+    width: 100%;
   }
 
   .small-container-left {
