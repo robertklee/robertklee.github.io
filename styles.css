@@ -1068,6 +1068,9 @@ ul {
   flex-wrap: wrap;
   font-size: 30px;
   text-align: center;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .flex-container-reverse {
@@ -1075,6 +1078,9 @@ ul {
   flex-wrap: wrap;
   font-size: 30px;
   text-align: center;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .big-container-left {
