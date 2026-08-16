@@ -101,6 +101,7 @@ var app = document.getElementById('app');
   var TOPICS = [
     {
       id: 'search',
+      category: 'technical',
       prompts: [
         "What does Robert work on at Azure AI Search?",
         "What's Robert building right now?",
@@ -128,6 +129,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'relevance',
+      category: 'technical',
       prompts: [
         "How does Robert improve search relevance?",
         "What does Robert know about ranking?",
@@ -155,6 +157,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'distributed',
+      category: 'technical',
       prompts: [
         "What's Robert's distributed systems experience?",
         "How does Robert handle scale?",
@@ -182,6 +185,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'performance',
+      category: 'technical',
       prompts: [
         "How does Robert make search fast?",
         "What's Robert's performance work?",
@@ -209,6 +213,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'rag',
+      category: 'technical',
       prompts: [
         "What does Robert know about RAG?",
         "How does Robert work with LLMs and agents?",
@@ -236,6 +241,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'experience',
+      category: 'less-technical',
       prompts: [
         "What's Robert's work experience?",
         "Tell me about his career so far.",
@@ -259,6 +265,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'projects',
+      category: 'technical',
       prompts: [
         "What has Robert built?",
         "What are his notable projects?",
@@ -286,6 +293,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'leadership',
+      category: 'less-technical',
       prompts: [
         "How has Robert shown leadership?",
         "Tell me about his leadership experience.",
@@ -309,6 +317,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'awards',
+      category: 'less-technical',
       prompts: [
         "What awards has Robert won?",
         "Any notable recognition?",
@@ -332,6 +341,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'skills',
+      category: 'technical',
       prompts: [
         "What are Robert's technical skills?",
         "What's in his tech stack?",
@@ -726,6 +736,11 @@ var app = document.getElementById('app');
   var CTA_AFTER = 3;
   var CHIPS_UNTIL = 10;
   var EGG_MIN_TURN = 3; // the easter egg never appears before this many turns
+  // For the first few suggestion rows, always include at least one recruiter-
+  // friendly ("less-technical") chip so a non-engineer visitor always has an
+  // approachable question to click. Past this many turns the mix is fully
+  // random again.
+  var ENFORCE_ACCESSIBLE_UNTIL = 3;
 
   function scrollChatToBottom() {
     if (convoMode && stickBottom) chat.scrollTop = chat.scrollHeight;
@@ -901,13 +916,27 @@ var app = document.getElementById('app');
     t.meta.classList.add('line-enter');
   }
 
-  function pickTopics(excludeId, n) {
+  // A topic is "accessible" when its chip question reads for a recruiter or
+  // general visitor (career, leadership, recognition) rather than deep
+  // engineering. Drives the early-turn guarantee in pickTopics.
+  function isAccessible(topic) { return topic.category === 'less-technical'; }
+
+  function pickTopics(excludeId, n, requireAccessible) {
     var pool = TOPICS.filter(function (t) { return t.id !== excludeId; });
     for (var i = pool.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
       var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
     }
-    return pool.slice(0, n);
+    var picks = pool.slice(0, n);
+    // Guarantee at least one recruiter-friendly chip in the early turns. If the
+    // random draw came back all-technical, swap a less-technical topic into the
+    // last slot (still drawn from the shuffled remainder, so it stays random).
+    if (requireAccessible && n > 0 && !picks.some(isAccessible)) {
+      for (var k = n; k < pool.length; k++) {
+        if (isAccessible(pool[k])) { picks[picks.length - 1] = pool[k]; break; }
+      }
+    }
+    return picks;
   }
 
   function pickDifferentVariantIdx(topic, currentIdx) {
@@ -966,7 +995,7 @@ var app = document.getElementById('app');
     if (turnCount < CHIPS_UNTIL) {
       chipsWrap = document.createElement('div');
       chipsWrap.className = 'suggest-chips';
-      pickTopics(excludeId, 3).forEach(function (topic) {
+      pickTopics(excludeId, 3, turnCount < ENFORCE_ACCESSIBLE_UNTIL).forEach(function (topic) {
         var phrasing = topic.prompts[pickUnusedIdx(usedPrompts, topic.id, topic.prompts.length)];
         var chip = document.createElement('button');
         chip.type = 'button';
