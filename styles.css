@@ -1221,6 +1221,15 @@ ul {
   background: #171515;
 }
 
+/* Row of intro call-to-action buttons (Resumé + contact icons). */
+.intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+}
+
 /* Styling for the progress bars */
 
 .progressbar {
