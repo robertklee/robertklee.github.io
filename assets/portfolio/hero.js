@@ -24,12 +24,29 @@
   let wallpaper;
   let wallpaperLoaded = false;
 
+  function resizeWallpaper() {
+    if (!wallpaperLoaded) return;
+    wallpaper.setSizeAttributes();
+    const { width, height } = wallpaperCanvas;
+    const { naturalWidth, naturalHeight } = wallpaper.imageNode;
+    // Granim stretches each axis independently; match the CSS fallback's centered cover instead.
+    const scale = Math.max(width / naturalWidth, height / naturalHeight);
+    Object.assign(wallpaper.imagePosition, {
+      x: (width - naturalWidth * scale) / 2,
+      y: (height - naturalHeight * scale) / 2,
+      width: naturalWidth * scale,
+      height: naturalHeight * scale
+    });
+    if (reducedMotion.matches) wallpaper.clear();
+    else wallpaper.makeGradient();
+  }
+
   function updateWallpaperMotion() {
     const selected = document.body.dataset.study === 'hero-editorial';
     if (reducedMotion.matches) {
       if (wallpaper) {
         wallpaper.pause();
-        if (!wallpaper.isCleared) wallpaper.clear();
+        wallpaper.clear();
       }
       wallpaperCanvas.dataset.motion = 'reduced';
       return;
@@ -50,7 +67,7 @@
         image: {
           source: new URL('../snow.jpg', scriptURL).href,
           position: ['center', 'center'],
-          stretchMode: ['stretch-if-smaller', 'stretch-if-smaller'],
+          stretchMode: ['none', 'none'],
           blendingMode: 'multiply'
         },
         states: {
@@ -64,12 +81,15 @@
           }
         }
       });
+      // Observe the laid-out canvas, including WebKit's deferred initial sizing.
+      wallpaper.onResize('removeListeners');
       wallpaper.pause();
       wallpaperCanvas.dataset.motion = 'loading';
       // Granim schedules its first frame again when the photograph finishes loading.
       wallpaper.imageNode.addEventListener('load', () => {
         wallpaperLoaded = true;
         wallpaper.pause();
+        resizeWallpaper();
         updateWallpaperMotion();
       }, { once: true });
       return;
@@ -230,10 +250,12 @@
     if (entries.some(entry => entry.target === previewBar)) {
       root.style.setProperty('--preview-height', `${previewBar.getBoundingClientRect().height}px`);
     }
+    if (entries.some(entry => entry.target === wallpaperCanvas)) resizeWallpaper();
     updateScroll();
   });
   resizeObserver.observe(previewBar);
   resizeObserver.observe(root);
+  resizeObserver.observe(wallpaperCanvas);
 
   function updateStudy() {
     const selected = document.body.dataset.study === 'hero-editorial';
