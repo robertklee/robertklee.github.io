@@ -224,16 +224,12 @@ var app = document.getElementById('app');
           answer: "I drove vector quantization on Azure AI Search from Public Preview to GA, using binary vectors, scalar and binary quantization, and SIMD-accelerated distance computation. The work delivered reported customer cost savings of 8\u201332\u00d7 and latency reductions of up to 20\u00d7. Those gains depend on the workload and configuration, rather than being a guarantee for every query."
         },
         {
-          thought: "For the systems-minded, I should go a level deeper. The speedups come from living close to the metal \u2014 SIMD-accelerated distance math, compact quantized representations, and careful memory optimization. This is where information retrieval meets real performance engineering, and I want to show the low-level craft.",
-          answer: "The speed comes from living close to the metal: SIMD-accelerated distance computation, compact binary and scalar-quantized vector representations, and careful memory optimization. Squeezing correctness and speed out of billion-vector search is exactly the kind of low-level performance work I love."
+          thought: "For the systems-minded, the vector distance kernel is a concrete example. Robert optimized it with SIMD operations, loop unrolling, multiple independent accumulators, and fused multiply-add (FMA). SIMD processes several dimensions at once; unrolling and independent accumulators expose more work in parallel and reduce dependency bottlenecks. I'll explain that craft alongside quantization without attributing the entire feature's speedup to one kernel.",
+          answer: "I optimized the vector distance kernel on Azure AI Search using SIMD operations, loop unrolling, multiple independent accumulators, and fused multiply-add (FMA). SIMD handles multiple dimensions per instruction; unrolling and independent accumulators help keep the execution units busy instead of waiting on one accumulation chain. Alongside compact quantized representations, that's the low-level performance work behind more efficient vector retrieval."
         },
         {
           thought: "The product impact isn't only an isolated benchmark. Quantization reached GA and became widely adopted, so the performance work reached customers. I'll connect compact representations and faster distance computation to that delivery, without inventing a customer's particular application or budget.",
           answer: "What matters to me is carrying performance work all the way to customers. The quantization capability I drove reached GA and is widely adopted: compact vector representations and SIMD-accelerated distance computation translated into substantial customer cost and latency reductions. It connects low-level engineering directly to the economics of running search."
-        },
-        {
-          thought: "The low-level performance interest connects two career stages: SIMD-accelerated vector distance computation at Microsoft, and an earlier 10\u00d7 discrete cosine transform speedup in C and assembly. I'll pair them to show the progression from profiling a critical path to optimizing production retrieval.",
-          answer: "On Azure AI Search, my quantization work includes SIMD-accelerated distance computation over compact vectors. That low-level interest goes back to a C and assembly project where I sped up a discrete cosine transform by 10\u00d7 over a naive implementation, using Valgrind to profile hotspots and a custom assembly operator on the critical path."
         }
       ]
     },
@@ -326,10 +322,6 @@ var app = document.getElementById('app');
         {
           thought: "The pose project is a strong example of hands-on ML ownership: a heatmap-based network on COCO-2017 trained from random initialization. Robert also led the architecture, cloud pipeline, augmentation, visualization, and deployment. I'll make the end-to-end model-building work the focus, rather than just naming the network.",
           answer: "One project I'm proud of is human pose estimation on COCO-2017. I led a student team to train a heatmap-based neural network from random initialization, architecting the model, cloud training pipeline, and data augmentation, then leading visualization and deployment. We built much of the plumbing ourselves \u2014 a full model-building project, not just a pretrained-model demo."
-        },
-        {
-          thought: "The discrete cosine transform project shows systems depth outside the current search role. Profiling with Valgrind identified the hotspots, and C and assembly-level optimization produced a 10\u00d7 speedup over a naive implementation. I'll explain the measurement-to-optimization workflow and the supporting CMake setup.",
-          answer: "I optimized a discrete cosine transform in C and assembly, achieving a 10\u00d7 speedup over a naive implementation. I profiled hotspots with Valgrind, wrote a custom assembly operator for the critical path, and used CMake for platform-agnostic compilation. It's an earlier example of the performance engineering I now bring to search systems."
         },
         {
           thought: "For a build I'm genuinely proud of on the systems side, the facet-aggregation engine stands out \u2014 and it isn't covered elsewhere. I owned it end-to-end, writing a custom lexer, parser, and evaluator that apply BNF grammar, the shunting-yard algorithm, and Reverse Polish Notation to parse, simplify, and validate customer expressions. It's a compilers-flavored problem living inside a search engine, so it shows CS depth and range. I'll keep it concrete and short.",
@@ -428,8 +420,8 @@ var app = document.getElementById('app');
           answer: "My core languages are C++, C#, Java, and Python, with experience across distributed systems, vector search, search relevance, graph databases, and agentic retrieval. The hands-on range runs from SIMD-accelerated quantization to filter-generation design and workload benchmarking \u2014 plus the production debugging and review work that keeps those systems reliable."
         },
         {
-          thought: "For a distributed-systems audience I'll highlight the low-level side. SIMD-accelerated math, binary and scalar quantization, memory and latency optimization, plus an embedded background in ARM assembly and VHDL. Depth close to the hardware is the differentiator here.",
-          answer: "I'm comfortable close to the hardware: SIMD-accelerated vector math, binary and scalar quantization, and memory and latency optimization \u2014 with an embedded-systems background in ARM assembly, VHDL, and hardware design underneath it all."
+          thought: "The low-level skills are clearest through the vector-kernel work: SIMD, loop unrolling, independent accumulators, and FMA, alongside scalar and binary quantization. I'll connect those techniques to Robert's embedded-systems background and keep the answer focused on practical engineering depth.",
+          answer: "I'm comfortable close to the hardware: optimizing vector kernels with SIMD, loop unrolling, multiple accumulators, and fused multiply-add (FMA), alongside scalar and binary quantization and memory optimization. Underneath that is an embedded-systems background in ARM assembly, VHDL, and hardware design."
         },
         {
           thought: "Robert's 10+ years of coding span academic projects, internships, and professional work. The useful story is the range across systems languages, search tooling, and hands-on neural-network training. I'll describe that foundation and how the systems and ML sides connect.",
