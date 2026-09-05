@@ -54,11 +54,11 @@
     <header class="preview-bar">
       <a class="preview-brand" href="#hero-editorial" aria-label="Robert Lee, back to the introduction"><span class="brand-mark">rl.</span><span>Robert Lee<small>Search, systems &amp; AI</small></span></a>
       <nav class="site-nav" aria-label="Main navigation">
+        <a href="#profile-about">About</a>
         <a href="#hero-editorial-stories">Selected work</a>
         <a href="#profile-work">Experience</a>
         <a href="#profile-projects">Projects</a>
         <a href="#profile-leadership">Leadership</a>
-        <a href="#profile-about">About</a>
       </nav>
       <div class="preview-actions">
         <button id="theme-toggle" class="original-theme-toggle" type="button" aria-label="Dark mode" aria-pressed="false" title="Toggle light/dark mode" hidden>
@@ -69,7 +69,7 @@
       </div>
     </header>
     <main>
-      <section id="hero-editorial" class="original-hero-editorial" aria-label="Robert Lee: an interactive introduction">
+      <section id="hero-editorial" class="original-hero-editorial" aria-label="Robert Lee: an interactive introduction" data-next-section="profile-about">
         <iframe id="original-hero-frame" class="original-hero-frame" title="Meet Robert Lee through an interactive introduction"></iframe>
         <div id="original-hero-loading" class="original-hero-status" role="status">Preparing the introduction...</div>
         <div id="original-hero-error" class="original-hero-status" role="alert" hidden>
@@ -82,12 +82,32 @@
           <div class="static-introduction"><p class="eyebrow">Senior Software Engineer / Microsoft Azure AI Search</p><h1>Robert Lee</h1><p>I build the retrieval systems that help enterprise AI find the right evidence.</p><a href="#profile-work">Explore my experience &#8595;</a></div>
         </noscript>
       </section>
-      <nav class="breadth-nav" aria-label="Explore my work">
-        <a href="#profile-work"><span class="eyebrow">Search &amp; systems</span><strong>A career in production AI</strong><span><b data-profile-count="work">6</b> roles, including internships <i aria-hidden="true">&#8599;</i></span></a>
-        <a href="#profile-projects"><span class="eyebrow">Models &amp; experiments</span><strong>From pixels to predictions</strong><span><b data-profile-count="projects">4</b> ML &amp; systems projects <i aria-hidden="true">&#8599;</i></span></a>
-        <a href="#profile-leadership"><span class="eyebrow">People &amp; community</span><strong>Building beyond the code</strong><span><b data-profile-count="leadership">5</b> leadership &amp; mentoring roles <i aria-hidden="true">&#8599;</i></span></a>
-        <a href="#profile-education"><span class="eyebrow">Academic foundation</span><strong>Engineering, from first principles</strong><span>Education &amp; selected awards <i aria-hidden="true">&#8599;</i></span></a>
-      </nav>
+      <section class="cv-section cv-section-about" id="profile-about" aria-labelledby="profile-about-title">
+        <header class="cv-section-heading">
+          <p class="eyebrow">Beyond the conversation</p>
+          <h2 id="profile-about-title">A little more about Robert</h2>
+        </header>
+        <div class="cv-about">
+          <img src="/assets/me.webp" alt="Portrait of Robert Lee" loading="lazy" decoding="async" width="500" height="500" class="cv-portrait">
+          <div class="cv-about-copy">
+            <p><strong>Senior Software Engineer @ Microsoft, Azure AI Search</strong> — building the retrieval that grounds enterprise AI in the right knowledge at billion-vector scale.</p>
+            <p>My work sits at the intersection of <strong>information retrieval</strong>, <strong>vector search</strong>, and <strong>applied machine learning</strong> — improving relevance for complex global queries, grounding LLMs and multi-agent workflows in governed enterprise knowledge, and turning research prototypes into production-grade <strong>agentic retrieval</strong> and <strong>RAG</strong> capabilities.</p>
+            <p>Earlier, as a <strong>Software Engineer II</strong>, I delivered the core of our vector engine — including <strong>quantization</strong> techniques that cut customer costs by <strong>8–32×</strong> and latency by up to <strong>20×</strong>, a hybrid-search relevance stack, and an extensible facet-aggregation engine built on formal grammar and parsing. I care deeply about <strong>performance, correctness, and distributed systems</strong>, and I'm often the engineer who root-causes the gnarliest production incidents.</p>
+            <p>Beyond shipping code, I love building communities. I graduated with a <strong>B.Eng in Electrical &amp; Computer Engineering</strong> (97% CGPA, 20+ awards worth over $100K), drove a <strong>200+ person conference</strong> from vision to reality, and grew a <strong>Senior's Program</strong> to 180+ volunteers and 650+ participants while delivering technical talks to <strong>250+ engineering students</strong>. I also led a student team to train a deep neural network for <strong>human pose estimation</strong> from randomly initialized weights — check it out <a href="https://share.streamlit.io/robertklee/coco-human-pose/main/human_pose_app.py" target="_blank" rel="noopener noreferrer">on Streamlit.</a></p>
+            <p>Please reach out if you'd like to connect!</p>
+            <div class="cv-contact-links">
+              <button type="button" data-profile-resume="">Resume ↗</button>
+              <a href="mailto:hello@robertkl.com">Email ↗</a>
+              <a href="https://www.linkedin.com/in/robert-k-lee/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+              <a href="https://github.com/robertklee" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </div>
+          </div>
+        </div>
+        <div class="introduction-next">
+          <p>That background shapes how I build. Here are a few of the engineering problems behind the work.</p>
+          <a href="#hero-editorial-stories">Explore selected engineering <span aria-hidden="true">&#8595;</span></a>
+        </div>
+      </section>
       <section id="hero-editorial-content" class="study editorial" aria-labelledby="hero-editorial-work-title" data-study="hero-editorial">
         <div class="section-meta" id="hero-editorial-stories">
 <span>Robert Lee / Selected engineering</span>
@@ -216,6 +236,12 @@
 </div>
 
       </section>
+      <nav class="breadth-nav" aria-label="Explore my work">
+        <a href="#profile-work"><span class="eyebrow">Search &amp; systems</span><strong>A career in production AI</strong><span><b data-profile-count="work">6</b> roles, including internships <i aria-hidden="true">&#8599;</i></span></a>
+        <a href="#profile-projects"><span class="eyebrow">Models &amp; experiments</span><strong>From pixels to predictions</strong><span><b data-profile-count="projects">4</b> ML &amp; systems projects <i aria-hidden="true">&#8599;</i></span></a>
+        <a href="#profile-leadership"><span class="eyebrow">People &amp; community</span><strong>Building beyond the code</strong><span><b data-profile-count="leadership">5</b> leadership &amp; mentoring roles <i aria-hidden="true">&#8599;</i></span></a>
+        <a href="#profile-education"><span class="eyebrow">Academic foundation</span><strong>Engineering, from first principles</strong><span>Education &amp; selected awards <i aria-hidden="true">&#8599;</i></span></a>
+      </nav>
       <section id="profile" class="full-profile" aria-labelledby="profile-title">
         <header class="profile-heading">
           <div><p class="eyebrow">The complete picture / Not just the highlights</p><h2 id="profile-title">An engineer.<br>A model builder.<br><em>A community builder.</em></h2></div>
@@ -228,7 +254,7 @@
             <a href="#profile-leadership"><span>03</span> Leadership <b data-profile-count="leadership">5</b></a>
             <a href="#profile-education"><span>04</span> Education</a>
             <a href="#profile-awards"><span>05</span> Awards</a>
-            <a href="#profile-about"><span>06</span> About &amp; contact</a>
+            <a href="#profile-about"><span aria-hidden="true">&#8593;</span> About &amp; contact</a>
           </nav>
           <div id="profile-content">
             <p id="profile-loading" role="status" hidden>Loading the complete profile...</p>
@@ -762,30 +788,6 @@
             <li>
 <strong>1st Place (3×), UVEC Engineering Competition — Senior Design</strong> (2017, 2018, 2019).</li>
           </ul>
-</div>
-</section>
-<section class="cv-section cv-section-about" id="profile-about" aria-labelledby="profile-about-title">
-<header class="cv-section-heading">
-<p class="eyebrow">06 / Introduction</p>
-<h3 id="profile-about-title">A little more about Robert</h3>
-</header>
-<div class="cv-about">
-<img src="/assets/me.webp" alt="Portrait of Robert Lee" loading="lazy" decoding="async" width="500" height="500" class="cv-portrait">
-<div class="cv-about-copy">
-<p>
-<strong>Senior Software Engineer @ Microsoft, Azure AI Search</strong> — building the retrieval that grounds enterprise AI in the right knowledge at billion-vector scale.</p>
-<p>My work sits at the intersection of <strong>information retrieval</strong>, <strong>vector search</strong>, and <strong>applied machine learning</strong> — improving relevance for complex global queries, grounding LLMs and multi-agent workflows in governed enterprise knowledge, and turning research prototypes into production-grade <strong>agentic retrieval</strong> and <strong>RAG</strong> capabilities.</p>
-<p>Earlier, as a <strong>Software Engineer II</strong>, I delivered the core of our vector engine — including <strong>quantization</strong> techniques that cut customer costs by <strong>8–32×</strong> and latency by up to <strong>20×</strong>, a hybrid-search relevance stack, and an extensible facet-aggregation engine built on formal grammar and parsing. I care deeply about <strong>performance, correctness, and distributed systems</strong>, and I'm often the engineer who root-causes the gnarliest production incidents.</p>
-<p>Beyond shipping code, I love building communities. I graduated with a <strong>B.Eng in Electrical &amp; Computer Engineering</strong> (97% CGPA, 20+ awards worth over $100K), drove a <strong>200+ person conference</strong> from vision to reality, and grew a <strong>Senior's Program</strong> to 180+ volunteers and 650+ participants while delivering technical talks to <strong>250+ engineering students</strong>. I also led a student team to train a deep neural network for <strong>human pose estimation</strong> from randomly initialized weights — check it out <a href="https://share.streamlit.io/robertklee/coco-human-pose/main/human_pose_app.py" target="_blank" rel="noopener noreferrer">on Streamlit.</a>
-</p>
-<p>Please reach out if you'd like to connect!</p>
-<div class="cv-contact-links">
-<button type="button" data-profile-resume="">Resume ↗</button>
-<a href="mailto:hello@robertkl.com">Email ↗</a>
-<a href="https://www.linkedin.com/in/robert-k-lee/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-<a href="https://github.com/robertklee" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-</div>
-</div>
 </div>
 </section>
           </div>

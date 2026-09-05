@@ -4,7 +4,7 @@ The homepage is the royal-blue editorial design, with the original chip-driven i
 
 ## Content and presentation
 
-- **`index.html`** is the canonical, directly editable source for the selected stories and complete CV. The experience summaries separate the role from the company and team.
+- **`index.html`** is the canonical, directly editable source for the selected stories and complete CV. The page flows from the interactive hero to the personal introduction, selected engineering, and full experience. The experience summaries separate the role from the company and team.
 - **`assets/portfolio/`** contains the shared theme, hero presentation, navigation, and profile interactions. The homepage does not fetch its own content; the design studies import its CV sections.
 - **`profile-source.html`** preserves the previous homepage as a `noindex` reference and isolated host for the original hero. Its `index.js`, `chat-core.js`, and `styles.css` dependencies remain unchanged.
 - **`design-spikes/`** retains all nine internal design studies. They are separate from and not linked by the production homepage.

@@ -48,7 +48,7 @@ body:is([data-study="editorial"], [data-study="editorial-chat"], [data-study="he
 .cv-section { scroll-margin-top: 115px; margin-bottom: 58px; }
 .cv-section:last-child { margin-bottom: 0; }
 .cv-section-heading { margin-bottom: 26px; }
-.cv-section-heading h3 { font-size: 28px; line-height: 1.2; letter-spacing: -.035em; font-weight: 500; margin-top: 10px; }
+.cv-section-heading :is(h2, h3) { font-size: 28px; line-height: 1.2; letter-spacing: -.035em; font-weight: 500; margin-top: 10px; }
 .cv-section-description { font-size: 13px; color: var(--muted); max-width: 630px; margin-top: 13px; }
 .cv-records { display: grid; gap: 12px; }
 .cv-record { border: 1px solid var(--line); background: var(--profile-surface); }
@@ -165,7 +165,7 @@ body:is([data-study="editorial"], [data-study="editorial-chat"], [data-study="he
   .profile-nav a { font-size: 10px; padding: 9px; }
   .profile-nav a > span { display: none; }
   .cv-section { margin-bottom: 43px; }
-  .cv-section-heading h3 { font-size: 27px; }
+  .cv-section-heading :is(h2, h3) { font-size: 27px; }
   .cv-section-description { font-size: 12px; }
   .cv-details > summary { padding: 20px; gap: 12px; }
   .cv-record-title { font-size: 16px; }

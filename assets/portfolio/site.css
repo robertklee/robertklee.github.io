@@ -21,6 +21,19 @@ p { line-height: 1.65; }
 .site-nav a:hover, .site-nav a[aria-current] { color: var(--accent); background: var(--profile-soft); }
 .profile-jump { background: var(--profile-surface); white-space: nowrap; cursor: pointer; }
 .study { max-width: 1380px; padding: 35px 64px 0; margin: auto; scroll-margin-top: 110px; }
+main > .cv-section-about { max-width: 1380px; margin: 0 auto; padding: clamp(48px, 7vw, 96px) 64px 32px; scroll-margin-top: var(--preview-height, 92px); }
+main > .cv-section-about .cv-section-heading { margin-bottom: 36px; }
+main > .cv-section-about .cv-section-heading h2 { max-width: 760px; margin-top: 14px; font: 400 clamp(32px, 3.8vw, 48px)/1.15 Georgia, "Times New Roman", serif; letter-spacing: -.04em; }
+main > .cv-section-about .cv-about { grid-template-columns: minmax(160px, 240px) minmax(0, 720px); gap: clamp(28px, 5vw, 72px); }
+main > .cv-section-about .cv-portrait { border-radius: 16px; }
+main > .cv-section-about .cv-about-copy { font-size: 15px; line-height: 1.8; }
+main > .cv-section-about .cv-about-copy > p:first-child { font-size: 18px; line-height: 1.65; }
+.introduction-next { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--line); }
+.introduction-next p { max-width: 580px; font-size: 14px; color: var(--muted); }
+.introduction-next a { flex-shrink: 0; padding-block: 10px; font-size: 12px; color: var(--accent); text-decoration: none; }
+.introduction-next a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.introduction-next a span { margin-left: 8px; }
+main > .breadth-nav { margin-top: 32px; }
 .section-meta { display: flex; justify-content: space-between; gap: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--line); font: 10px/1.6 var(--mono); text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
 .eyebrow { font: 10px/1.7 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
 .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 7px; vertical-align: middle; }
@@ -139,5 +152,19 @@ h1 { font-size: clamp(42px, 5.2vw, 70px); line-height: 1.07; letter-spacing: -.0
   .editorial-footer { flex-direction: column; gap: 10px; }
   .site-footer { flex-direction: column; margin-inline: 21px; gap: 15px; }
 }
-@media (max-width: 370px) { .study { padding-inline: 16px; } .editorial h1 { font-size: 35px; } .site-footer { margin-inline: 16px; } }
+@media (max-width: 1100px) { main > .cv-section-about { padding-inline: 38px; } }
+@media (max-width: 900px) {
+  main > .cv-section-about { padding-inline: 30px; }
+  main > .cv-section-about .cv-about { grid-template-columns: 160px minmax(0, 1fr); gap: 28px; }
+  .introduction-next { align-items: flex-start; flex-direction: column; gap: 12px; }
+}
+@media (max-width: 650px) {
+  main > .cv-section-about { padding-inline: 21px; }
+  main > .cv-section-about .cv-about { grid-template-columns: 1fr; gap: 26px; }
+  main > .cv-section-about .cv-portrait { max-width: 180px; }
+  main > .cv-section-about .cv-about-copy { font-size: 14px; }
+  main > .cv-section-about .cv-about-copy > p:first-child { font-size: 17px; }
+  .introduction-next { margin-top: 32px; }
+}
+@media (max-width: 370px) { .study, main > .cv-section-about { padding-inline: 16px; } .editorial h1 { font-size: 35px; } .site-footer { margin-inline: 16px; } }
 @media (prefers-reduced-motion: reduce) { .story-details summary > span { transition: none; } }

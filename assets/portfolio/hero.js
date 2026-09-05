@@ -206,13 +206,15 @@
     // Keep the original app isolated; its theme and exit scroll belong to the surrounding page.
     cue = content.querySelector('.scroll-cue');
     fade = content.querySelector('.hero-scroll-fade');
-    cue.setAttribute('aria-label', 'Explore the editorial stories below');
+    const nextSection = root.dataset.nextSection || 'hero-editorial-stories';
+    const cueLabel = nextSection === 'profile-about' ? 'A little more about Robert' : 'Explore the work';
+    cue.setAttribute('aria-label', cueLabel);
     cue.addEventListener('click', event => {
       event.preventDefault();
       event.stopImmediatePropagation();
-      window.location.hash = 'hero-editorial-stories';
+      window.location.hash = nextSection;
     }, true);
-    content.querySelector('.scroll-cue-label').textContent = 'Explore the work';
+    content.querySelector('.scroll-cue-label').textContent = cueLabel;
     cue.querySelector('path').setAttribute('d', 'M12 5v14m-5-5 5 5 5-5');
     frame.contentWindow.granimInstance.pause();
     frame.contentWindow.dispatchEvent(new Event('resize'));
@@ -249,7 +251,7 @@
   reducedMotion.addEventListener('change', updateWallpaperMotion);
   const resizeObserver = new ResizeObserver(entries => {
     if (entries.some(entry => entry.target === previewBar)) {
-      root.style.setProperty('--preview-height', `${previewBar.getBoundingClientRect().height}px`);
+      document.body.style.setProperty('--preview-height', `${previewBar.getBoundingClientRect().height}px`);
     }
     if (entries.some(entry => entry.target === wallpaperCanvas)) resizeWallpaper();
     updateScroll();

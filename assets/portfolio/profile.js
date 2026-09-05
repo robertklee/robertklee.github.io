@@ -37,11 +37,14 @@
     const response = await fetch(sourceURL);
     if (!response.ok) throw new Error(`Profile request failed: HTTP ${response.status}.`);
     const source = new DOMParser().parseFromString(await response.text(), 'text/html');
-    const sections = [...source.querySelectorAll('#profile-content > .cv-section')];
-    if (sections.length !== 6) throw new Error('The complete profile could not be found.');
+    const sections = ['work', 'projects', 'leadership', 'education', 'awards', 'about']
+      .map(section => source.getElementById(`profile-${section}`));
+    if (sections.some(section => !section?.classList.contains('cv-section'))) throw new Error('The complete profile could not be found.');
     const fragment = document.createDocumentFragment();
     sections.forEach(section => {
       const copy = document.importNode(section, true);
+      // The studies keep their original full-profile layout, without the homepage's onward link.
+      copy.querySelector('.introduction-next')?.remove();
       copy.querySelectorAll('[src], [href]').forEach(node => {
         for (const attribute of ['src', 'href']) {
           const value = node.getAttribute(attribute);
