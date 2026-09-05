@@ -46,45 +46,47 @@ var app = document.getElementById('app');
   ];
   var PROMPT = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
 
+  // Current work follows the canonical CV in index.html; earlier career and
+  // project details also draw on the linked resume. These are scripted traces.
   // Real language models are non-deterministic: the same prompt yields a
   // different chain-of-thought and answer each time. To echo that, we keep a
   // set of {thought, answer} pairs and pick one at random on every page load.
   var VARIANTS = [
     {
-      thought: "The visitor wants a quick intro, so let me pull together what matters. Robert's a senior engineer at Microsoft Azure AI Search, working across information retrieval, search relevance, and ranking \u2014 from classic keyword search to vector search, hybrid retrieval, and agentic retrieval, plus the RAG infrastructure behind enterprise AI. He's shipped work like vector quantization for major cost and latency wins, and cares about surfacing the right results fast at scale. I'll keep the reply to one sharp, welcoming line.",
-      answer: "Welcome! I'm Robert, a senior engineer on Azure AI Search \u2014 I build the vector, hybrid, and agentic retrieval that grounds enterprise AI at billion-vector scale."
+      thought: "The current role is Senior Software Engineer at Microsoft Azure AI Search. The newest work connects vector-search diversity, agentic-retrieval filter and boost generation, and the benchmarking and billing behind a serverless search offering. The common thread is taking retrieval ideas into production. I'll introduce that work without turning a welcome into a feature list.",
+      answer: "Welcome! I'm Robert, a Senior Software Engineer at Microsoft Azure AI Search \u2014 I build vector, semantic, and agentic retrieval that helps enterprise AI find the right evidence."
     },
     {
-      thought: "Let me think about what makes Robert's work stand out. On Azure AI Search he drove vector quantization from public preview all the way to GA \u2014 compression that cut customers' memory and cost by up to 8\u201332\u00d7 and latency by as much as 20\u00d7. So a recurring theme is making billion-scale vector search dramatically cheaper and faster without giving up relevance. I'll lead with that efficiency angle in a single line.",
-      answer: "Hey, I'm Robert. I make billion-scale vector search dramatically cheaper and faster, so enterprise AI finds the right answer in milliseconds."
+      thought: "A concrete shipped result is vector quantization: Robert drove it from Public Preview to GA, with reported customer cost savings of 8\u201332\u00d7 and latency reductions of up to 20\u00d7. Those are workload-dependent results, not a promise for every query. I'll lead with making retrieval more efficient.",
+      answer: "Hey, I'm Robert. I turn low-level vector-search engineering into lower costs and faster retrieval \u2014 including quantization shipped from Public Preview to GA."
     },
     {
-      thought: "The most interesting part of Robert's work is relevance. He worked on a hybrid-search stack on Azure AI Search that blends keyword and vector results with Reciprocal Rank Fusion (RRF), and he tunes ranking for messy, complex, global queries. The through-line is getting the right results to the top \u2014 not just returning matches. Let me capture that in one line.",
-      answer: "I'm Robert \u2014 I blend keyword and vector search with RRF (reciprocal rank fusion) into ranking that puts the right result first, even for the world's messiest queries."
+      thought: "The newest relevance problem is evidence coverage. Nearest-neighbor retrieval can return redundant results for questions that span a corpus, so finding more similar items isn't always enough. Robert is leading a diversity capability that adapts Microsoft Research work to production constraints and billions-of-vectors scale. I'll introduce that shift from individual hits to a useful evidence set.",
+      answer: "I'm Robert \u2014 I work on retrieval that finds a broader set of useful evidence, not just more near-duplicates, so AI can tackle questions that span an entire corpus."
     },
     {
-      thought: "What's most current in Robert's work? Agentic retrieval \u2014 turning research prototypes into production systems that ground LLMs and multi-agent workflows in governed enterprise knowledge. The goal is giving AI agents trustworthy, permission-aware access to the right information. I'll frame the intro around grounding AI, in one sentence.",
-      answer: "Nice to meet you \u2014 I'm Robert, and I build the agentic retrieval that grounds LLMs and AI agents in governed, enterprise-grade knowledge."
+      thought: "A recent research-to-production example is agentic-retrieval filter and boost generation. Robert narrowed an unbounded synthesis problem into a bounded, verifiable operator set, used production usage analysis to build agreement across research and product, and implemented the translation. Multiple improvements shipped to Public Preview. I'll keep the introduction focused on making research useful in production.",
+      answer: "Nice to meet you \u2014 I'm Robert. I turn retrieval research into production capabilities that ground LLMs and agents in governed enterprise knowledge."
     },
     {
-      thought: "Let me focus on the systems side. Robert works on a distributed search engine where billions of vectors are partitioned across replicated nodes and every query fans out in parallel, so performance and correctness are everything \u2014 and he's often the engineer who debugs the hardest production incidents at scale. The story here is reliability at massive scale. One confident line should do it.",
-      answer: "Robert here. I build distributed retrieval that fans out across sharded, replicated nodes to stay fast and correct across billions of vectors."
+      thought: "The systems story is about keeping search fast and dependable as it grows. HNSW quota enforcement, vector-engine tests, production incident investigations, and a zero-downtime telemetry migration all fit that theme. I'll introduce Robert through that combination of performance and reliability.",
+      answer: "Robert here. I build and harden large-scale search systems \u2014 from vector-index resource limits to the production fixes that keep customer services healthy."
     },
     {
       thought: "Zooming out, Robert's field is information retrieval: search relevance and ranking for complex, global queries. His day-to-day sits right where classic information retrieval meets modern vector search and applied machine learning. I want the intro to signal genuine depth in search, phrased warmly in a single line.",
       answer: "Hi \u2014 I'm Robert, and I work where information retrieval, vector search, and applied ML meet, helping people find exactly what they need."
     },
     {
-      thought: "A lot of people care about RAG right now, so let me connect Robert to that. He doesn't just wire up pipelines \u2014 he builds the retrieval infrastructure underneath RAG: the vector and hybrid search, indexing, and ranking that decide what an LLM actually gets to read. I'll make the intro about being the foundation for RAG, in one line.",
-      answer: "That's me \u2014 I'm Robert, and I build the retrieval infrastructure beneath enterprise RAG that decides what your AI actually gets to read."
+      thought: "Robert's agent work includes integrating Azure AI Search retrieval into tool calling, multi-agent orchestration, and RAG. That connects search-engine work to the systems consuming its results. I'll make the introduction about grounding agents, without suggesting he trained a foundation model.",
+      answer: "That's me \u2014 I'm Robert. I connect enterprise search with LLM agents, tool calling, and RAG, helping AI work from useful, grounded evidence."
     },
     {
       thought: "One thing that really defines Robert is shipping. He takes ambitious retrieval research and turns it into production-grade features that reach general availability and get adopted widely \u2014 vector quantization is a good example. The theme is carrying big ideas all the way to customers at scale. Let me say that simply.",
       answer: "I'm Robert. I take ambitious retrieval research all the way to production, shipping features that reach billion-vector scale."
     },
     {
-      thought: "Let me pick something a little less obvious. Robert built the benchmarking infrastructure that made a new serverless search offering possible, alongside quantization work that slashed cost and latency. So part of his impact is the measurement and infra that let big bets ship safely. I'll keep the intro about enabling what ships, in one line.",
-      answer: "Great to meet you \u2014 I'm Robert, and I build the benchmarks and infrastructure that let ambitious search features ship with confidence at scale."
+      thought: "The latest benchmarking work is more specific than performance measurement alone. Robert built a system for variable agentic workloads, modeled CPU, memory, throughput, latency distributions, tool iterations, and dependencies, then proposed and shipped the production billing model for agentic retrieval during a serverless search launch. I'll connect systems measurement to a real product decision.",
+      answer: "Great to meet you \u2014 I'm Robert. I build the benchmarks, performance improvements, and production billing foundations that help agentic search reach customers."
     },
     {
       thought: "Maybe I should show some range. Beyond the retrieval engine at Azure AI Search, Robert has trained deep neural networks from scratch and loves building communities and mentoring engineers. But the core is the same: a builder who cares about getting the right information to people. Let me give a warm, human one-liner that still nods to the work.",
@@ -103,27 +105,27 @@ var app = document.getElementById('app');
       id: 'search',
       category: 'technical',
       prompts: [
-        "What does Robert work on at Azure AI Search?",
-        "What's Robert building right now?",
-        "Tell me about his day-to-day work.",
-        "What kind of search does Robert work on?"
+        "What's Robert building at Azure AI Search?",
+        "What's new in Robert's work?",
+        "What does his current role involve?",
+        "How does Robert help enterprise AI find answers?"
       ],
       variants: [
         {
-          thought: "They want the current core of my work, so I should reach for the most recent and technically impressive thread. On Azure AI Search's vector engine I've been a key contributor to major features like multi-vector and multi-modal search \u2014 letting one item carry several embeddings and letting text and image signals retrieve together. That's frontier retrieval and exactly what an AI-search role cares about. I'll lead with multi-modal and tie it to grounding enterprise AI at scale.",
-          answer: "Right now I'm a core contributor to Azure AI Search's vector engine, working on major features like multi-vector and multi-modal search \u2014 so a single item can carry several embeddings, and text and image signals retrieve together. It's the retrieval layer that grounds enterprise AI at billion-vector scale."
+          thought: "The current-role answer should cover the newest work rather than only the older multi-vector feature set. The three distinct threads are retrieval diversity, agentic filter and boost generation, and workload benchmarking and billing. I'll name them, then give the shared engineering goal.",
+          answer: "My current work spans vector-search diversity, agentic-retrieval filter and boost generation, and the benchmarking and billing behind agentic retrieval. The common problem is taking ambitious retrieval ideas and making them work within real production constraints \u2014 from evidence quality to resource usage."
         },
         {
-          thought: "A genuinely net-new project is the vector-search diversity capability I'm driving end-to-end. There's no existing blueprint, so the real work is defining the problem itself \u2014 owning the scoping, surfacing engine-level constraints, and refining the design against them. The crux is a coverage-versus-precision tradeoff: broaden the evidence without giving up top-result relevance. I'll frame it as defining an ambiguous problem from first principles and anchoring it in downstream answer quality.",
-          answer: "I'm driving a novel vector-search diversity capability end-to-end \u2014 no existing blueprint, so I'm defining the problem itself: owning scoping, surfacing engine-level constraints, and refining the design. The goal is diversity-aware sampling that broadens the evidence we retrieve without giving up top-result relevance \u2014 that coverage-versus-precision tradeoff is the crux, and I anchor it in whether downstream answer synthesis measurably improves at billion-vector scale."
+          thought: "The interesting part of the diversity effort is the gap between a research idea and an implementable engine design. Robert identified production constraints and adapted Microsoft Research work around them, owning the engineering from scope through implementation and refinement. I'll focus on that research-to-production responsibility.",
+          answer: "I'm the engineering lead for a new vector-search diversity capability. Standard nearest-neighbor retrieval can return redundant evidence for corpus-spanning questions, so I'm adapting Microsoft Research work into a design that broadens the evidence set at billions-of-vectors scale \u2014 owning scoping, design, implementation, and refinements."
         },
         {
-          thought: "Some visitors care about how search actually finds the right thing, so I'll describe breadth. I work across the whole retrieval spectrum \u2014 keyword, vector, and hybrid search that blends both with Reciprocal Rank Fusion \u2014 plus the relevance and ranking that decide what surfaces first. I want to center relevance for hard, global queries rather than just listing features.",
-          answer: "My work spans the full retrieval spectrum on Azure AI Search \u2014 keyword, vector, and hybrid search that blends both with Reciprocal Rank Fusion (RRF) \u2014 plus the relevance and ranking that decide what surfaces first. I focus on getting the right result to the top even for the world's messiest, most global queries."
+          thought: "Another current thread is the link between search and agent workflows. The CV specifically names tool calling, multi-agent orchestration, governed indexed knowledge, and RAG. I'll connect that integration to Robert's background in vector and hybrid relevance without claiming he built the entire orchestration platform.",
+          answer: "I connect Azure AI Search retrieval with LLM agents through tool calling, multi-agent workflows, and RAG. That builds on my vector and hybrid-search relevance work: the agent needs useful enterprise evidence, and the retrieval layer determines what it can actually read."
         },
         {
-          thought: "Let me emphasize the distributed reality behind the search. Billions of embeddings are partitioned into shards across many nodes; a query fans out to every partition in parallel and the partial results are merged into one ranked list, while each shard is built from immutable segments merged in the background so indexing never blocks reads. Both latency and correctness are non-negotiable here, and I'm often the one who root-causes the hardest incidents. I'll make the point that it's search and serious distributed systems at once.",
-          answer: "Under the hood it's a distributed engine: billions of embeddings partitioned into shards across many nodes, queries fanning out in parallel and merging back together. Both latency and correctness are non-negotiable at that scale \u2014 I build and harden that engine, and I'm usually the one who root-causes the toughest incidents when something breaks."
+          thought: "The current role includes technical leadership, not just features. The CV names mentoring, onboarding, design reviews, and architecture decisions across information retrieval, vector search, Azure OpenAI, and agent orchestration. I'll explain those responsibilities alongside hands-on implementation.",
+          answer: "Alongside implementation, I mentor and onboard engineers, lead design reviews, and help drive architecture decisions across information retrieval, vector search, Azure OpenAI, and agent orchestration. I also bring a production-reliability background: root-causing difficult incidents and reviewing distributed-systems and vector-algorithm changes."
         }
       ]
     },
@@ -131,27 +133,51 @@ var app = document.getElementById('app');
       id: 'relevance',
       category: 'technical',
       prompts: [
-        "How does Robert improve search relevance?",
-        "What does Robert know about ranking?",
-        "How does he make results better?",
-        "Tell me about his relevance work."
+        "How does Robert improve retrieval quality?",
+        "What has he built for search relevance?",
+        "How does he get better evidence to an LLM?",
+        "How does relevance work support enterprise AI?"
       ],
       variants: [
         {
-          thought: "The clearest hybrid-relevance contribution I have is Reciprocal Rank Fusion. The sharp insight is that vector-similarity and keyword scores live on different, incomparable scales, so fusing them by raw score lets one signal swamp the other \u2014 RRF sidesteps that entirely by combining results on rank instead of score. On top of RRF I added subscores and thresholds so customers can see each retriever's contribution and filter weak matches. I'll lead with RRF and keep those as the control layer.",
-          answer: "I worked on Azure AI Search's hybrid retrieval using Reciprocal Rank Fusion (RRF), which blends keyword and vector results by rank rather than raw score \u2014 so the two combine cleanly without having to reconcile their incompatible score scales. On top of RRF I added subscores and score thresholds, giving customers visibility into each retriever's contribution to the fused ranking and finer control to filter out weak matches."
+          thought: "Hybrid retrieval combines different signals, so useful controls over those signals matter. Robert designed subscore fusion and score thresholding to improve results across blended vector and keyword retrieval. I'll explain the contribution in terms of what customers can control.",
+          answer: "I designed hybrid-search subscore fusion and score thresholding for Azure AI Search. The goal was better result quality when blending vector and keyword retrieval \u2014 giving customers more control over how retrieval signals contribute and which weak matches make it into the result set."
         },
         {
-          thought: "Relevance now has a new stakeholder: the LLM. Better ranking directly improves what a model gets to read, so I should frame relevance as grounding GenAI \u2014 retrieval quality sets a ceiling on answer quality. Connecting relevance to reducing hallucination makes the impact concrete.",
-          answer: "Relevance is the ceiling on any RAG or agent system \u2014 the model can only reason over what retrieval hands it. So I treat improving relevance as grounding GenAI: better ranking of vector, keyword, and semantic results means LLMs and agents read the right evidence and hallucinate less."
+          thought: "Search relevance now affects the evidence available to an LLM, not just the ordering of a results page. Robert's vector, hybrid, and semantic retrieval work sits at that boundary. I'll connect relevance to useful grounding while keeping the distinction between retrieving evidence and generating a correct answer.",
+          answer: "For RAG and agents, relevance determines which evidence reaches the model. My work on vector, hybrid, and semantic retrieval is about improving that grounding \u2014 selecting useful results for answer synthesis, not simply returning something that looks similar. Better retrieval helps, but it doesn't by itself guarantee a correct generated answer."
         },
         {
-          thought: "A more novel relevance angle is the diversity work. Instead of returning ten near-duplicate vector hits, diversity-aware sampling broadens the evidence set so a model can answer global questions that require synthesis across diverse topics. That's relevance beyond naive top-k \u2014 optimizing the whole result set, not just each individual score.",
-          answer: "Beyond classic ranking, I'm building diversity-aware retrieval: instead of ten near-duplicate results, we sample a broader, more complete evidence set. For complex questions that require synthesis across diverse topics, that's a big relevance win \u2014 the model sees the full picture, not ten copies of the same fact."
+          thought: "The relevance story spans hybrid controls and the newer diversity capability. Those solve different problems: controlling blended signals versus broadening a redundant evidence set. I'll connect them and keep the diversity outcome framed as the design goal.",
+          answer: "My earlier work improved hybrid retrieval through subscore fusion and score thresholds. I'm now also leading vector-search diversity for questions that span a corpus: the goal is to retrieve a broader evidence set rather than a cluster of near-duplicates. It's a shift from judging individual hits to considering what the whole set lets an LLM answer."
         },
         {
-          thought: "Relevance claims are only trustworthy if they're measured, so this answer should be about evaluation. I back relevance changes with offline metrics like NDCG and recall@k on labeled query sets, plus data-driven ship criteria and online A/B tests \u2014 and expanded test coverage that has caught real defects. The point is that relevance is shipped on evidence, not intuition.",
-          answer: "I ship relevance changes on evidence, not intuition \u2014 offline evaluation with metrics like NDCG and recall@k over labeled query sets, data-driven ship criteria, and online A/B tests. That discipline matters: expanded test coverage I added once caught a critical bug in a new quantization algorithm before it ever reached customers."
+          thought: "A concrete example is the production usage analysis for agentic filter and boost generation. A smaller operator set only helps if it still covers the requests customers actually make. Robert produced the analysis that established that coverage and helped both teams agree on the design. I'll make that evidence-backed decision the story.",
+          answer: "I try to make relevance decisions concrete. For agentic filter and boost generation, I analyzed production usage to show that a bounded operator set covered real customer workloads. That evidence helped research and product teams agree on a design we could verify and translate into production, with multiple improvements reaching Public Preview."
+        }
+      ]
+    },
+    {
+      id: 'diversity',
+      category: 'technical',
+      prompts: [
+        "Why does vector search need diversity?",
+        "What's Robert's retrieval-diversity work?",
+        "How do you retrieve more than near-duplicates?",
+        "How is he broadening the evidence for AI?"
+      ],
+      variants: [
+        {
+          thought: "Start with the problem rather than the algorithm. Nearest-neighbor hits can be individually relevant yet redundant as a set, especially for questions spanning a corpus. Robert leads a capability intended to broaden that evidence. I'll explain why the goal differs from finding more similar items.",
+          answer: "Nearest-neighbor search can return many individually relevant results that all say much the same thing. For a question spanning an entire corpus, that leaves gaps. I'm leading a vector-search diversity capability that aims to broaden the retrieved evidence for better answer synthesis, rather than simply returning more of the same."
+        },
+        {
+          thought: "The distinctive engineering work is adapting research to production constraints. Robert owns scoping, design, implementation, and refinements, building on Microsoft Research work. I'll explain how broadening the evidence set becomes a different challenge when the engine must operate at billions-of-vectors scale.",
+          answer: "I'm adapting Microsoft Research work on retrieval diversity into a production-oriented design at billions-of-vectors scale. I own the engineering end to end: defining scope, identifying engine constraints, implementing the design, and refining it. The goal is broader evidence for complex questions, with a design that fits the realities of a large search service."
+        },
+        {
+          thought: "A useful explanation connects result-set diversity to answer synthesis. More results alone don't resolve redundant evidence: a larger set of similar hits can still leave parts of a question unanswered. I'll distinguish the objective from simply increasing top-k, then connect it to Robert's work at scale.",
+          answer: "The question isn't only 'How relevant is each hit?' It's also 'What can the model answer from this set of hits?' My diversity work targets corpus-spanning queries where redundant nearest neighbors leave parts of the question uncovered. Broadening that evidence set is the goal; making the approach operate at billions-of-vectors scale is the engineering challenge."
         }
       ]
     },
@@ -161,7 +187,7 @@ var app = document.getElementById('app');
       prompts: [
         "What's Robert's distributed systems experience?",
         "How does Robert handle scale?",
-        "How is the search engine architected?",
+        "How does he keep production systems reliable?",
         "What's the hardest distributed-systems problem he's solved?"
       ],
       variants: [
@@ -170,16 +196,16 @@ var app = document.getElementById('app');
           answer: "A good example is running HNSW vector indexes at scale. They're excellent for fast approximate nearest-neighbor search, but they're resource-hungry, and without careful limits a heavy index can starve a service at peak workloads. I designed a quota-enforcement mechanism that dynamically probed live resource utilization to cut limit overshoot by 100x \u2014 the kind of capacity and reliability work that keeps a large multi-tenant search service healthy."
         },
         {
-          thought: "This is a chance to describe how large-scale search is architected, but I'll stay at the level of well-understood distributed-systems patterns. Data is partitioned across many nodes and replicated for availability; a query fans out across partitions in parallel and the results merge into one ranked answer. I'll keep it conceptual and note that I build vector features on top of that foundation.",
-          answer: "At a high level, search at this scale is a classic distributed-systems problem: the data is partitioned across many nodes and replicated for availability and throughput, and a query fans out across those partitions in parallel before the results merge into one ranked answer. I'm a core contributor to that engine, mostly building the vector-search features \u2014 like multi-vector and multi-modal search \u2014 on top of that distributed foundation."
+          thought: "An earlier role has a concrete systems example: a phased telemetry-database migration. The challenge was improving query performance without interrupting a live service or losing data integrity. It delivered a 50\u2013100\u00d7 speedup with zero downtime. I'll use that example to show the systems experience behind the newer retrieval work.",
+          answer: "One example is modernizing a core telemetry-database table through a phased, zero-downtime migration. The migration preserved data integrity and delivered a 50\u2013100\u00d7 query speedup. It's the kind of systems problem I enjoy: improving performance while keeping a live service correct throughout the transition."
         },
         {
-          thought: "The genuinely hard part is worth naming, but conceptually. When a query touches every partition, the slowest one shapes how fast the whole thing feels, so consistency of latency \u2014 not just the average \u2014 is what you engineer for as the index grows into the billions, all while staying available through node failures. I'll frame the tension between speed, scale, and reliability without going into internals.",
-          answer: "The hard part of search at scale is that everything is a tradeoff between speed, freshness, and reliability. When a single query fans out across many partitions, the slowest one shapes the whole response, so you engineer for consistent latency even at the tail as the index grows into the billions \u2014 all while staying available through node failures and rebalancing. Living in that tension between performance and reliability at scale is the distributed-systems work I enjoy most."
+          thought: "Another reliability contribution is the index alias feature. The CV states that Robert delivered it to Public Preview so applications could be repointed without code changes or downtime. I'll make the operational benefit clear rather than speculate about internal replication behavior.",
+          answer: "I delivered index aliases to Public Preview on Azure AI Search, letting customers repoint applications to a different underlying index without code changes or downtime. Alongside resource limits and engine hardening, that's an important part of reliability: giving customers a way to evolve a running system without disrupting the applications depending on it."
         },
         {
-          thought: "I can speak to reliability without going too deep. A change to a distributed search engine can be subtle \u2014 correct on one node, wrong once it's sharded and replicated across a fleet. I lean on my distributed-systems background in design and code review to catch those cases, and I've hardened the engine with tests that caught a real bug before it shipped. I'll frame it as keeping a large service correct and trustworthy.",
-          answer: "A lot of distributed-systems work is keeping a large service correct, not just fast. A change that looks right on one node can behave differently once it's sharded and replicated across a fleet \u2014 eventual consistency \u2014 so I lean on my distributed-systems background in design and code review to catch those cases early. I also invested in stronger testing for the vector engine \u2014 one new suite caught a critical bug before it ever reached customers. Reliability at scale is quiet work, but it's what earns trust."
+          thought: "The reliability story has two documented sides: preventing defects through reviews and tests, and root-causing cross-team production incidents. The new quantization test suite caught a critical bug before release. I'll pair that result with the incident work without disclosing internal incident details.",
+          answer: "I review distributed-systems and vector-algorithm changes, and I coordinate investigations into difficult production incidents to restore service and drive durable fixes. I also expanded the vector engine's test coverage with a suite that caught a critical quantization bug before release. Reliability means both recovering well and preventing the next incident."
         }
       ]
     },
@@ -187,27 +213,27 @@ var app = document.getElementById('app');
       id: 'performance',
       category: 'technical',
       prompts: [
-        "How does Robert make search fast?",
-        "What's Robert's performance work?",
-        "Tell me about vector quantization.",
-        "What has Robert done for cost and latency?"
+        "How has Robert reduced search cost and latency?",
+        "What's behind his vector-search speedups?",
+        "What did he ship with vector quantization?",
+        "Tell me about his performance engineering."
       ],
       variants: [
         {
-          thought: "The headline performance result is vector quantization, and it's quantified \u2014 but the complete answer also names the hard tradeoff, not just the wins. Aggressive compression risks recall, so we recover it by oversampling candidates from the compressed index and reranking with full-precision vectors, keeping relevance essentially flat while cost and latency drop. I drove it from Public Preview to GA, now widely adopted: 8-32x cost savings and up to 20x lower latency. I'll pair the numbers with how we protect quality.",
-          answer: "My headline performance work is vector quantization on Azure AI Search \u2014 I drove it from Public Preview to GA, now widely adopted, delivering 8-32x cost savings and up to 20x lower latency. The subtle part is protecting quality: aggressive compression costs recall, so we oversample candidates from the compressed index and rerank them with full-precision vectors \u2014 keeping relevance essentially flat while cost and latency drop."
+          thought: "The strongest performance example is quantization from Public Preview to GA: binary vectors, scalar and binary quantization, and SIMD-accelerated distance computation. It connects compact representations and faster distance math to reported customer cost savings of 8\u201332\u00d7 and latency reductions of up to 20\u00d7. I'll give both the engineering and the workload-dependent results.",
+          answer: "I drove vector quantization on Azure AI Search from Public Preview to GA, using binary vectors, scalar and binary quantization, and SIMD-accelerated distance computation. The work delivered reported customer cost savings of 8\u201332\u00d7 and latency reductions of up to 20\u00d7. Those gains depend on the workload and configuration, rather than being a guarantee for every query."
         },
         {
           thought: "For the systems-minded, I should go a level deeper. The speedups come from living close to the metal \u2014 SIMD-accelerated distance math, compact quantized representations, and careful memory optimization. This is where information retrieval meets real performance engineering, and I want to show the low-level craft.",
           answer: "The speed comes from living close to the metal: SIMD-accelerated distance computation, compact binary and scalar-quantized vector representations, and careful memory optimization. Squeezing correctness and speed out of billion-vector search is exactly the kind of low-level performance work I love."
         },
         {
-          thought: "Cost is strategic, not just technical. Making vector search 8-32x cheaper changes what customers can afford to build, so I'll frame quantization as unlocking scale that was previously too expensive \u2014 connecting the performance work to real product impact.",
-          answer: "Cutting vector-search cost by 8-32x isn't just a benchmark \u2014 it changes what customers can afford to build. Quantization let people run far larger indexes and richer AI applications on the same budget, so the performance work directly expanded what's possible on the platform."
+          thought: "The product impact isn't only an isolated benchmark. Quantization reached GA and became widely adopted, so the performance work reached customers. I'll connect compact representations and faster distance computation to that delivery, without inventing a customer's particular application or budget.",
+          answer: "What matters to me is carrying performance work all the way to customers. The quantization capability I drove reached GA and is widely adopted: compact vector representations and SIMD-accelerated distance computation translated into substantial customer cost and latency reductions. It connects low-level engineering directly to the economics of running search."
         },
         {
-          thought: "The most concrete performance angle is the similarity kernel itself \u2014 the inner loop that dominates query cost. I hand-tuned it with SIMD, vectorizing dot-product, cosine, and Euclidean math to process many dimensions per instruction, unrolling the loop and using multiple independent accumulators so pipelined FMA units stay busy instead of stalling on a data dependency chain, plus bit-parallel Hamming distance with hardware popcount for binary-quantized vectors. I'll keep it concrete without drowning the reader in micro-architecture detail.",
-          answer: "The hot path in vector search is the distance kernel \u2014 the inner loop that dominates every query's cost. I accelerated it with hand-tuned SIMD, vectorizing dot-product, cosine, and Euclidean distance to process many dimensions per instruction, plus bit-parallel Hamming distance with hardware popcount for binary-quantized vectors. That low-level kernel is where most of the latency win actually comes from."
+          thought: "The low-level performance interest connects two career stages: SIMD-accelerated vector distance computation at Microsoft, and an earlier 10\u00d7 discrete cosine transform speedup in C and assembly. I'll pair them to show the progression from profiling a critical path to optimizing production retrieval.",
+          answer: "On Azure AI Search, my quantization work includes SIMD-accelerated distance computation over compact vectors. That low-level interest goes back to a C and assembly project where I sped up a discrete cosine transform by 10\u00d7 over a naive implementation, using Valgrind to profile hotspots and a custom assembly operator on the critical path."
         }
       ]
     },
@@ -215,10 +241,10 @@ var app = document.getElementById('app');
       id: 'rag',
       category: 'technical',
       prompts: [
-        "What does Robert know about RAG?",
-        "How does Robert work with LLMs and agents?",
-        "Tell me about his agentic retrieval work.",
-        "How does his work connect to GenAI?"
+        "What has Robert built for agentic retrieval?",
+        "How does his search work connect to LLM agents?",
+        "How has he taken retrieval research into production?",
+        "What's his experience grounding enterprise AI?"
       ],
       variants: [
         {
@@ -226,16 +252,40 @@ var app = document.getElementById('app');
           answer: "I build the retrieval layer beneath RAG \u2014 the vector, hybrid, and semantic search on Azure AI Search that decides what an LLM actually gets to read. Generation is only as good as its grounding, and grounding is exactly what I work on: getting the right enterprise knowledge in front of the model."
         },
         {
-          thought: "The most current thread is agentic retrieval, so I'll go deep on the orchestration and the judgment behind it. Rather than a single top-k call, an agent plans and decomposes a query into sub-questions, issues multiple retrievals, and reasons over the results across several steps, with search exposed as a tool. The point I most want to land is the tradeoff: every extra step buys completeness at the cost of latency and tokens, so knowing how far to decompose is the real skill. I led a cross-team effort to move those improvements from prototype to shipped Public Preview.",
-          answer: "My most current work is agentic retrieval \u2014 going beyond a single top-k lookup. An agent decomposes a complex query into sub-questions, runs multiple retrievals, and synthesizes across the results, with search exposed as a tool it can call iteratively. The real skill is knowing how far to decompose: every extra step buys completeness at the cost of latency and tokens. I led a cross-team effort to take those improvements from research prototype to shipped Public Preview, grounding tool-calling and multi-agent workflows in governed, permission-aware enterprise knowledge."
+          thought: "The strongest recent example is filter and boost generation. An unbounded synthesis problem is difficult to translate into something verifiable; Robert's key move was a bounded operator set over specific filter categories. He set the technical direction and implemented the production translation. I'll make that design decision the center of the answer.",
+          answer: "I led research-to-production delivery for agentic-retrieval filter and boost generation. The key design move was turning an unbounded filter-synthesis problem into a bounded, verifiable set of operators over specific filter categories. I set the technical direction across research and product teams and implemented the production translation; multiple improvements shipped to Public Preview."
         },
         {
-          thought: "Enterprises care about trust, not just recall, so I'll highlight governance. A real differentiator in my work is governed, permission-aware retrieval \u2014 agents reach exactly the right information and nothing they shouldn't see. That's what makes RAG safe to deploy inside a real company.",
-          answer: "For enterprise AI, trust matters as much as recall. I focus on governed, permission-aware retrieval \u2014 grounding LLMs and multi-agent workflows so they reach exactly the right information and nothing they shouldn't. That's what makes RAG safe to deploy inside a real company."
+          thought: "A second angle on filter and boost generation is how the design reached agreement. Production usage analysis showed that the reduced operator set covered real workloads, bringing research and product teams to consensus. I'll highlight how that evidence connected a simpler design to a practical production path.",
+          answer: "A big part of productionizing agentic retrieval was proving a simpler design still covered real needs. For filter and boost generation, I produced the production usage analysis showing that our bounded operator set covered customer workloads. That brought research and product teams to consensus and gave us a verifiable design to ship, with multiple improvements reaching Public Preview."
         },
         {
-          thought: "A concrete RAG question deserves the mechanics of good grounding, not a slogan. What an LLM reads is decided upstream of generation: how documents are chunked, how they're embedded, and how hybrid retrieval and ranking pick the top evidence \u2014 with citations so answers stay verifiable. It helps that I've trained models from scratch, so I understand both the retrieval and the models consuming it. I'll ground the answer in those mechanics.",
-          answer: "Good RAG lives or dies on what the model actually reads, and that's decided upstream of generation: how documents are chunked, how they're embedded, and how hybrid retrieval plus ranking select the top evidence \u2014 with citations so answers stay verifiable. That's exactly the layer I build on Azure AI Search. It also helps that I've trained deep neural networks from scratch, so I genuinely understand both the retrieval and the models consuming it."
+          thought: "The integration work connects Azure AI Search to tool calling, multi-agent orchestration, and RAG. The key idea is that an agent can use governed, indexed enterprise knowledge as part of its workflow. I'll explain that connection between the search engine and the systems consuming its results.",
+          answer: "I've integrated Azure AI Search retrieval into agent workflows, grounding LLM agents in governed, indexed enterprise knowledge through tool calling, multi-agent orchestration, and RAG. My work connects the search layer with the agents consuming its results \u2014 so retrieval is part of the workflow, not just a standalone search box."
+        }
+      ]
+    },
+    {
+      id: 'benchmarking',
+      category: 'technical',
+      prompts: [
+        "How does Robert benchmark agentic retrieval?",
+        "How did he turn workload measurements into billing?",
+        "What's his work on serverless search economics?",
+        "How does he measure the cost of agentic search?"
+      ],
+      variants: [
+        {
+          thought: "The benchmarking system was built from scratch for highly variable agentic workloads. The CV names CPU, memory, throughput, latency distributions, tool-calling iterations, and dependencies, then connects that work to a shipped billing model. I'll explain why a single average wouldn't describe the workload.",
+          answer: "I architected a benchmarking system for agentic retrieval from scratch, profiling CPU, memory, and throughput while modeling latency distributions, tool-calling iterations, and dependency patterns. Agentic workloads vary substantially, so the point was to understand that variation. I used the work to propose and ship the production billing model for agentic retrieval during a new serverless search launch."
+        },
+        {
+          thought: "Lead with the product decision, then explain its measurement foundation. Robert proposed and shipped the agentic-retrieval billing model during the launch of a serverless enterprise search offering. The CV doesn't specify the pricing formula or meters, so those should stay out.",
+          answer: "I proposed and shipped the production billing model for agentic retrieval as part of a new serverless enterprise search launch. Behind it was a benchmarking system I built to characterize variable workloads across CPU, memory, throughput, latency, and tool/dependency patterns. That connected systems measurements to a concrete product decision, not just a performance dashboard."
+        },
+        {
+          thought: "Benchmarking also surfaced memory improvements that Robert resolved. That is a useful engineering angle, but the answer still needs the billing connection so it fits every chip in this topic. No numerical savings are reported for those memory optimizations.",
+          answer: "The benchmarking work served two purposes: understanding the resource demands behind agentic-retrieval billing and finding ways to improve the implementation. While profiling variable workloads, I identified and resolved memory optimizations. The same measurement effort supported the production billing model I proposed and shipped for agentic retrieval."
         }
       ]
     },
@@ -250,12 +300,12 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "I've concentrated on a focused set of genuinely hard problems in search \u2014 vector search, quantization, and relevance \u2014 and taken each from idea to production at scale. That portable expertise is the real answer, so I'll center the problems I've owned.",
-          answer: "My focus has been a handful of genuinely hard problems in search \u2014 vector search, quantization, and search relevance \u2014 taking each from prototype to production at billion-scale. That's the retrieval and systems expertise I've built, and I'd like to tackle problems in information retrieval, vector search, and GenAI / machine learning \u2014 wherever it takes me."
+          thought: "A career question should include the earlier chapters. The timeline starts with the Microsoft Garage internship in 2018, followed by Search internships in 2019 and 2020, full-time Azure AI Search in 2021, and the senior role in March 2025. I'll show that progression without calling all coding experience full-time production work.",
+          answer: "My Microsoft experience began with a Garage internship in 2018, building a mobile app with offline ML for chest X-ray classification. I then interned on Search in 2019 and 2020, joined Azure AI Search full-time in 2021, and became a Senior Software Engineer in March 2025. The work has grown from search tooling and service features into vector engines, relevance, and agentic retrieval."
         },
         {
-          thought: "Leading with the present is usually strongest. As a Senior Engineer since March 2025 I drive net-new capabilities like vector-search diversity and agentic-retrieval improvements, and I act as a technical leader across information retrieval, vector search, Azure OpenAI, and agent orchestration. I'll center the current role and its breadth.",
-          answer: "I'm a Senior Software Engineer on Azure AI Search, driving net-new capabilities \u2014 a novel vector-search diversity feature and agentic-retrieval improvements from prototype to Public Preview \u2014 while serving as a technical leader across information retrieval, vector search, Azure OpenAI, and agent orchestration."
+          thought: "The newest senior-role content has three distinct ownership stories: diversity, filter and boost generation, and benchmarking with production billing. I'll show those together and include mentoring and design leadership rather than only listing technologies.",
+          answer: "As a Senior Software Engineer on Azure AI Search since March 2025, I lead vector-search diversity engineering, research-to-production filter and boost generation, and agentic workload benchmarking with a shipped production billing model. I also mentor engineers and drive design reviews across retrieval, Azure OpenAI, and agent orchestration."
         },
         {
           thought: "One era carries the densest shipped impact, so it deserves its own answer: as a Software Engineer II I owned vector storage, quantization, and relevance across billions of embeddings \u2014 quantization to GA, the hybrid relevance stack, HNSW quota enforcement, and the facet engine. I'll summarize that body of delivered work rather than the calendar.",
@@ -274,12 +324,12 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "When someone asks what I'm most proud of building, two things stand out \u2014 one from research, one shipped in production. From scratch I led a stacked-hourglass human-pose network on COCO-2017: 17 keypoints via a heatmap approach, trained from random initialization to performance comparable with the late-2016 COCO leaderboard, and it's live on Streamlit. And at work, the vector-quantization engine on Azure AI Search \u2014 SIMD-accelerated distance computation over binary and scalar quantized vectors for 8-32x cost savings and up to 20x lower latency. I'll pair them: deep ML and low-level systems performance.",
-          answer: "Two builds I'm proudest of. First, human pose estimation \u2014 I led a student team to build a stacked-hourglass network from scratch on COCO-2017, predicting 17 keypoints with a heatmap approach and training from random initialization to performance comparable with the late-2016 COCO leaderboard (it's live on Streamlit, so you can try it on your own photos). Second, the vector-quantization engine on Azure AI Search \u2014 SIMD-accelerated distance computation over binary and scalar quantized vectors, delivering 8-32x cost savings and up to 20x lower latency at billion-scale. One deep-ML, one low-level systems: together they're the range I'm most proud of."
+          thought: "The pose project is a strong example of hands-on ML ownership: a heatmap-based network on COCO-2017 trained from random initialization. Robert also led the architecture, cloud pipeline, augmentation, visualization, and deployment. I'll make the end-to-end model-building work the focus, rather than just naming the network.",
+          answer: "One project I'm proud of is human pose estimation on COCO-2017. I led a student team to train a heatmap-based neural network from random initialization, architecting the model, cloud training pipeline, and data augmentation, then leading visualization and deployment. We built much of the plumbing ourselves \u2014 a full model-building project, not just a pretrained-model demo."
         },
         {
-          thought: "For computer vision I should lead with my flagship, the COCO human-pose project, and treat the rest as supporting range. I was team lead building a stacked-hourglass network from scratch on COCO-2017 \u2014 17 keypoints via heatmaps, trained from random initialization to performance comparable with the late-2016 COCO leaderboard, and it's live on Streamlit. I've done other CV too \u2014 a KITTI road-segmentation U-Net and self-supervised monocular depth on DrivingStereo \u2014 but pose is the one I went deepest on, so it leads.",
-          answer: "My deepest computer-vision project is human pose estimation \u2014 I led a student team to build a stacked-hourglass network from scratch on COCO-2017, predicting 17 keypoints with a heatmap approach and training from random initialization to performance comparable with the late-2016 COCO leaderboard (it's live on Streamlit, so you can try it on your own photos). I've built more CV besides \u2014 a U-Net for KITTI road segmentation at up to 99.1% F1 and a self-supervised monocular depth model on DrivingStereo \u2014 but pose estimation is where I went furthest."
+          thought: "The discrete cosine transform project shows systems depth outside the current search role. Profiling with Valgrind identified the hotspots, and C and assembly-level optimization produced a 10\u00d7 speedup over a naive implementation. I'll explain the measurement-to-optimization workflow and the supporting CMake setup.",
+          answer: "I optimized a discrete cosine transform in C and assembly, achieving a 10\u00d7 speedup over a naive implementation. I profiled hotspots with Valgrind, wrote a custom assembly operator for the critical path, and used CMake for platform-agnostic compilation. It's an earlier example of the performance engineering I now bring to search systems."
         },
         {
           thought: "For a build I'm genuinely proud of on the systems side, the facet-aggregation engine stands out \u2014 and it isn't covered elsewhere. I owned it end-to-end, writing a custom lexer, parser, and evaluator that apply BNF grammar, the shunting-yard algorithm, and Reverse Polish Notation to parse, simplify, and validate customer expressions. It's a compilers-flavored problem living inside a search engine, so it shows CS depth and range. I'll keep it concrete and short.",
@@ -288,6 +338,30 @@ var app = document.getElementById('app');
         {
           thought: "A fun one shows range and initiative: a reinforcement-learning Battlesnake controller trained with keras-rl using a mix of self-play and public opponents, to survive longest in a real-time multi-snake arena. It signals I'll reach for RL when a problem fits, so I'll mention it lightly.",
           answer: "For fun I trained a reinforcement-learning Battlesnake agent with keras-rl, blending self-play and public opponents to survive as long as possible in a real-time, multi-snake arena. It's a small project, but I like that it shows I'll reach for RL when the problem calls for it."
+        }
+      ]
+    },
+    {
+      id: 'vision',
+      category: 'technical',
+      prompts: [
+        "What computer-vision models has Robert trained?",
+        "What's his hands-on deep-learning experience?",
+        "What did he build before working on LLM retrieval?",
+        "Tell me about his model-training projects."
+      ],
+      variants: [
+        {
+          thought: "The strongest model-training example is human pose estimation from random initialization. Include the training pipeline and the project's actual limitations: single-person inputs, centered subjects, and difficult occlusions. That gives a more useful picture than an unqualified performance claim.",
+          answer: "I led a team training a human-pose network from scratch on COCO-2017, using heatmaps to predict joints. I owned the architecture, cloud pipeline, and augmentation, and led visualization and deployment. We deliberately scoped it to single-person images with relatively centered subjects; heavily occluded joints and overlapping people remained difficult. I've also trained models for road segmentation and monocular depth."
+        },
+        {
+          thought: "Road segmentation shows ownership across the whole training workflow. The website CV gives both the high F1 result and the worst case, so report them together rather than presenting the best score as an overall average.",
+          answer: "For semantic road segmentation, I trained a U-Net on KITTI Road using Keras and Python, with reported F1 scores up to 99.1% and 91% in the worst case. I built the data generator, training and testing scripts, loss functions, and cloud setup, then worked through architecture bugs, augmentation, and edge cases such as shadows and occlusions."
+        },
+        {
+          thought: "Monocular depth adds self-supervised learning to the story. The CV describes a limited Monodepth2 adaptation in TensorFlow on DrivingStereo, with a U-Net and ResNet-18 encoder, stereo photometric reconstruction, and edge-aware smoothness. Keep the explanation readable and preserve the limited-scope qualifier.",
+          answer: "I implemented a limited version of Monodepth2 in TensorFlow and adapted it to DrivingStereo, training a U-Net with a ResNet-18 encoder. The learning signal came from stereo photometric reconstruction and edge-aware smoothness rather than ground-truth depth labels. I also worked on multi-scale losses, auto-masking, and minimum reprojection to handle occlusions and motion boundaries."
         }
       ]
     },
@@ -302,8 +376,8 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "At Microsoft my leadership is technical, which fits the target role best. I mentor and onboard engineers, lead design reviews, and drive deeply technical architecture decisions across IR, vector search, and agent orchestration, and I led a cross-team effort bridging research to production. I'll lead with technical leadership.",
-          answer: "At Microsoft I lead technically \u2014 mentoring and onboarding engineers, running design reviews, and driving architecture decisions across information retrieval, vector search, and agent orchestration. I also led a cross-team effort to bridge research and production, moving agentic-retrieval improvements from prototype to shipped Public Preview."
+          thought: "The newer CV gives a concrete leadership decision, not just a role label: reformulating filter synthesis and using production evidence to align research and product. I'll pair that with the ongoing mentoring and review responsibilities.",
+          answer: "At Microsoft, I mentor and onboard engineers and lead design reviews. One concrete example was agentic filter and boost generation: I set a bounded, verifiable technical direction, used production usage analysis to align research and product teams, and implemented the translation into production. Multiple improvements shipped to Public Preview \u2014 leadership through both the design decision and its delivery."
         },
         {
           thought: "My community leadership is unusually large-scale, so the numbers do the talking. I founded a Senior's Program and grew it to 180+ volunteers reaching 650+ attendees across 30 workshops, and I led logistics for a 200+ person conference. I'll surface that scale.",
@@ -330,8 +404,8 @@ var app = document.getElementById('app');
           answer: "The one I'm proudest of is the Schulich Leader Scholarship \u2014 an $80,000 full-ride awarded to just 50 students nationally, chosen from ~1,500 nominees (one per Canadian high school) out of 300,000 graduating students, for excellence in STEM combined with leadership. It's the recognition I hold above all the rest."
         },
         {
-          thought: "This angle should be about the academic record itself. I graduated with a 97% cumulative average in Electrical & Computer Engineering, earned the Governor General's Academic Medal, and won the Jamie Cassels Undergraduate Research Award to research hardware acceleration for machine-learning neural networks. That's the through-line \u2014 consistent academic excellence plus real research \u2014 so I'll center that, then close with a quick nod to the $80,000 Schulich Leader Scholarship that anchored it.",
-          answer: "Academically, I graduated with a 97% cumulative average in Electrical & Computer Engineering, earned the Governor General's Academic Medal, and won the Jamie Cassels Undergraduate Research Award \u2014 to study hardware acceleration for machine-learning neural networks. It's all anchored by the $80,000 Schulich Leader Scholarship, a national full-ride for STEM excellence and leadership \u2014 a record of consistent excellence paired with hands-on research."
+          thought: "Keep the academic chronology clear. Robert graduated from the University of Victoria in 2021 with a 97% cumulative average; the Governor General's Academic Medal was the Bronze award in 2016, not an undergraduate graduation medal. The Jamie Cassels award supported neural-network hardware-acceleration research.",
+          answer: "I graduated from the University of Victoria in 2021 with a 97% cumulative average in Electrical & Computer Engineering. My awards include the $80,000 Schulich Leader Scholarship, the Governor General's Academic Medal (Bronze, 2016), and the Jamie Cassels Undergraduate Research Award for work on hardware acceleration for neural networks."
         },
         {
           thought: "For variety I'll lead with the competition wins, which show applied engineering under pressure rather than grades. I was national champion at the Michael Smith Science Challenge with a record 97.5% among 1,700+ candidates, took 1st at the Western Engineering Competition building a robot to collect Martian artifacts, and won UVEC senior design three years running. These sit inside 20+ awards worth over $100,000, headlined by the $80,000 Schulich Leader Scholarship. I'll make hands-on wins the story but still name the Schulich.",
@@ -350,16 +424,16 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "They want the toolkit, so I'll name languages but center the systems depth. I work mostly in C++, C#, Java, and Python, but the real strength is distributed systems: sharded, replicated retrieval with query fan-out, vector storage and quantization, SIMD-level performance, and relevance and ranking at scale.",
-          answer: "I work day-to-day in C++, C#, Java, and Python \u2014 but my real strength is distributed systems: sharded, replicated retrieval with parallel query fan-out and background segment merges, vector storage and quantization, SIMD-level performance, and search relevance and ranking at billion-vector scale."
+          thought: "Use the languages and domains explicitly listed in the CV. The newest work adds agentic workload measurement and research-to-production design to the established vector-engine experience. The skills list also includes graph databases, but doesn't establish ownership of a particular knowledge-graph feature.",
+          answer: "My core languages are C++, C#, Java, and Python, with experience across distributed systems, vector search, search relevance, graph databases, and agentic retrieval. The hands-on range runs from SIMD-accelerated quantization to filter-generation design and workload benchmarking \u2014 plus the production debugging and review work that keeps those systems reliable."
         },
         {
           thought: "For a distributed-systems audience I'll highlight the low-level side. SIMD-accelerated math, binary and scalar quantization, memory and latency optimization, plus an embedded background in ARM assembly and VHDL. Depth close to the hardware is the differentiator here.",
           answer: "I'm comfortable close to the hardware: SIMD-accelerated vector math, binary and scalar quantization, and memory and latency optimization \u2014 with an embedded-systems background in ARM assembly, VHDL, and hardware design underneath it all."
         },
         {
-          thought: "I should show the span from systems to ML. Ten-plus years across C, C++, C#, Python, Java, and TypeScript, plus training deep neural nets from scratch for computer vision and applying ML to relevance. Both ends of the stack is the story.",
-          answer: "My toolkit spans both ends of the stack: 10+ years of production systems engineering across C++, C#, Java, and Python \u2014 distributed search, quantization, performance \u2014 and applied ML, including deep neural networks I've trained from scratch for computer vision."
+          thought: "Robert's 10+ years of coding span academic projects, internships, and professional work. The useful story is the range across systems languages, search tooling, and hands-on neural-network training. I'll describe that foundation and how the systems and ML sides connect.",
+          answer: "I have 10+ years of coding experience across C, C++, C#, Python, Java, and TypeScript, spanning academic projects, internships, and professional work. My strengths bridge systems engineering and applied ML: distributed search and low-level optimization on one side, and computer-vision models and training pipelines built from scratch on the other."
         }
       ]
     }
@@ -1363,4 +1437,3 @@ HeroChat.initThemeToggle(granimInstance);
     console.log('%cCurious how real retrieval systems work? That\u2019s Robert\u2019s day job \u2192 https://github.com/robertklee', body);
   } catch (e) {}
 })();
-
