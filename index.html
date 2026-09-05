@@ -104,16 +104,14 @@
           </div>
         </div>
         <div class="introduction-next">
-          <p>That background shapes how I build. Here are a few of the engineering problems behind the work.</p>
-          <a href="#hero-editorial-stories">Explore selected engineering <span aria-hidden="true">&#8595;</span></a>
+          <a href="#hero-editorial-stories">
+            <span class="introduction-next-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14m-6-6 6 6 6-6"/></svg></span>
+            Selected engineering
+          </a>
         </div>
       </section>
       <section id="hero-editorial-content" class="study editorial" aria-labelledby="hero-editorial-work-title" data-study="hero-editorial">
-        <div class="section-meta" id="hero-editorial-stories">
-<span>Robert Lee / Selected engineering</span>
-<span>Microsoft Azure AI Search</span>
-</div>
-        <div class="editorial-heading">
+        <div class="editorial-heading" id="hero-editorial-stories">
           <div>
             <p class="eyebrow">
 <span class="status-dot">
@@ -121,7 +119,7 @@
             <h1 id="hero-editorial-work-title">Good answers start<br>with <em>better retrieval.</em>
 </h1>
           </div>
-          <p class="heading-aside">I build the systems that help AI find what matters. A few problems I've worked on, and the engineering behind them.</p>
+          <p class="heading-aside">Three engineering challenges: making vector search more efficient, broadening evidence, and turning intent into reliable retrieval.</p>
         </div>
 
         <article class="editorial-feature">
@@ -282,7 +280,7 @@
 <span class="cv-date">Mar. 2025 - Present | Redmond, WA</span>
 <span class="cv-employer-team" aria-hidden="true">Azure AI Search</span>
 </span>
-<span class="cv-teaser">Engineering lead for a first-of-its-kind vector-search diversity capability, owning end-to-end scoping, design, implementation, and refinements. k-nearest-neighbour vector retrieval...</span>
+<span class="cv-teaser">Engineering lead for a first-of-its-kind <strong>vector-search diversity capability</strong>, owning end-to-end scoping, design, implementation, and refinements. k-nearest-neighbour vector retrieval...</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -293,10 +291,10 @@
 <div class="cv-record-body">
 <p class="cv-technologies">C++, C#, Java, Python | Vector Search, Agentic Retrieval, Information Retrieval, RAG, Distributed Systems, Graph Databases, Authentication, Durable Systems</p>
 <ul>
-              <li>Engineering lead for a first-of-its-kind vector-search diversity capability, owning end-to-end scoping, design, implementation, and refinements. k-nearest-neighbour vector retrieval returns redundant evidence for complex, corpus-spanning queries; I identified key production constraints and adapted state-of-the-art Microsoft Research work into a design that broadens retrieved evidence for higher-quality answer synthesis and operates at billions-of-vectors scale.</li>
-              <li>Led research-to-production delivery for agentic-retrieval filter and boost generation. Set the technical direction across research and product teams by reformulating an unbounded filter-synthesis problem into a bounded, verifiable operator set over specific filter categories — then produced the production usage analysis that proved the reduction covered real customer workloads and brought both teams to consensus. Implemented the production translation; multiple improvements shipped to Public Preview.</li>
+              <li>Engineering lead for a first-of-its-kind <strong>vector-search diversity capability</strong>, owning end-to-end scoping, design, implementation, and refinements. k-nearest-neighbour vector retrieval returns redundant evidence for complex, corpus-spanning queries; I identified key production constraints and adapted state-of-the-art Microsoft Research work into a design that broadens retrieved evidence for higher-quality answer synthesis and operates at <strong class="cv-impact">billions-of-vectors scale</strong>.</li>
+              <li>Led research-to-production delivery for <strong>agentic-retrieval filter and boost generation</strong>. Set the technical direction across research and product teams by reformulating an unbounded filter-synthesis problem into a <strong>bounded, verifiable operator set</strong> over specific filter categories — then produced the production usage analysis that proved the reduction covered real customer workloads and brought both teams to consensus. Implemented the production translation; multiple improvements shipped to Public Preview.</li>
               <li>Integrated Azure AI Search retrieval into agent workflows - grounding LLM agents in governed, indexed enterprise knowledge across tool calling, multi-agent orchestration, and Retrieval Augmented Generation.</li>
-              <li>Architected a benchmarking system from scratch to profile highly variable agentic-retrieval workloads across CPU, memory, and throughput - modeling latency distributions, tool-calling iterations, and dependency patterns; proposed and shipped the production billing model for agentic retrieval during launch of a new serverless enterprise search offering; identified and resolved memory optimizations during benchmarking.</li>
+              <li>Architected a <strong>benchmarking system from scratch</strong> to profile highly variable agentic-retrieval workloads across CPU, memory, and throughput - modeling latency distributions, tool-calling iterations, and dependency patterns; proposed and shipped the <strong>production billing model</strong> for agentic retrieval during launch of a new serverless enterprise search offering; identified and resolved memory optimizations during benchmarking.</li>
               <li>Serve as a technical leader at the intersection of information retrieval, vector search, Azure OpenAI, and agent orchestration - mentoring and onboarding engineers, leading design reviews, and driving deeply technical architecture decisions.</li>
             </ul>
 </div>
@@ -318,7 +316,7 @@
 <span class="cv-date">Jun. 2022 - Feb. 2025 | Redmond, WA</span>
 <span class="cv-employer-team" aria-hidden="true">Azure AI Search</span>
 </span>
-<span class="cv-teaser">Drove vector quantization from Public Preview through to GA - now widely adopted by customers - delivering 8-32x cost savings and up to 20x latency reduction through binary vectors,...</span>
+<span class="cv-teaser">Drove <strong>vector quantization</strong> from Public Preview through to GA - now widely adopted by customers - delivering <strong class="cv-impact">8-32x cost savings</strong> and <strong class="cv-impact">up to 20x latency reduction</strong> through binary vectors,...</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -332,10 +330,10 @@
               Drove vector storage, quantization, and relevance for Azure AI Search's vector retrieval engine, spanning billions of embeddings.
             </p>
 <ul>
-              <li>Drove vector quantization from Public Preview through to GA - now widely adopted by customers - delivering 8-32x cost savings and up to 20x latency reduction through binary vectors, scalar and binary quantization, and SIMD-accelerated distance computation.</li>
-              <li>Strengthened the relevance stack by designing hybrid-search subscore fusion and score thresholding to improve result quality across blended vector and keyword retrieval.</li>
-              <li>Designed and shipped a data-driven quota-enforcement mechanism for HNSW indexes tied to physical resource utilization, cutting limit overshoot by 100x through cross-team design collaboration.</li>
-              <li>Owned end-to-end delivery of an extensible facet-aggregation engine from spec, building a custom lexer-parser-evaluator that applies BNF grammar, the shunting-yard algorithm, and Reverse Polish Notation to parse, simplify, and validate expressions - backed by extensive A/B test coverage.</li>
+              <li>Drove <strong>vector quantization from Public Preview through to GA</strong> - now widely adopted by customers - delivering <strong class="cv-impact">8-32x cost savings</strong> and <strong class="cv-impact">up to 20x latency reduction</strong> through binary vectors, scalar and binary quantization, and SIMD-accelerated distance computation.</li>
+              <li>Strengthened the relevance stack by designing <strong>hybrid-search subscore fusion and score thresholding</strong> to improve result quality across blended vector and keyword retrieval.</li>
+              <li>Designed and shipped a data-driven quota-enforcement mechanism for HNSW indexes tied to physical resource utilization, <strong class="cv-impact">cutting limit overshoot by 100x</strong> through cross-team design collaboration.</li>
+              <li>Owned end-to-end delivery of an <strong>extensible facet-aggregation engine</strong> from spec, building a custom lexer-parser-evaluator that applies BNF grammar, the shunting-yard algorithm, and Reverse Polish Notation to parse, simplify, and validate expressions - backed by extensive A/B test coverage.</li>
               <li>Hardened the vector search engine with a new test suite that caught a critical bug in a new quantization algorithm before release.</li>
               <li>Acted as a subject-matter expert and key reviewer - root-causing deeply technical production incidents across teams to rapidly restore customer service and drive durable fixes, while raising reliability through rigorous review of distributed-systems and vector-algorithm changes.</li>
             </ul>
@@ -358,7 +356,7 @@
 <span class="cv-date">Jul. 2021 - May 2022 | Redmond, WA</span>
 <span class="cv-employer-team" aria-hidden="true">Azure AI Search</span>
 </span>
-<span class="cv-teaser">Delivered the new index alias feature to Public Preview, letting customers repoint applications to a different underlying index with no code changes or downtime.</span>
+<span class="cv-teaser">Delivered the new <strong>index alias feature</strong> to Public Preview, letting customers repoint applications to a different underlying index with <strong>no code changes or downtime</strong>.</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -368,8 +366,8 @@
 </summary>
 <div class="cv-record-body">
 <ul>
-              <li>Delivered the new index alias feature to Public Preview, letting customers repoint applications to a different underlying index with no code changes or downtime.</li>
-              <li>Modernized a core telemetry-database table through a phased, zero-downtime migration that preserved data integrity and delivered a 50-100x query speedup.</li>
+              <li>Delivered the new <strong>index alias feature</strong> to Public Preview, letting customers repoint applications to a different underlying index with <strong>no code changes or downtime</strong>.</li>
+              <li>Modernized a core telemetry-database table through a phased, zero-downtime migration that preserved data integrity and delivered a <strong class="cv-impact">50-100x query speedup</strong>.</li>
             </ul>
 </div>
 </details>
@@ -390,7 +388,7 @@
 <span class="cv-date">Sep. 2020 - Dec. 2020 | Redmond, WA (Remote)</span>
 <span class="cv-employer-team" aria-hidden="true">Azure Cognitive Search</span>
 </span>
-<span class="cv-teaser">Designed and shipped the second most requested API and backend feature on the Azure Cognitive Search team, written in C# and released under a preview API.</span>
+<span class="cv-teaser">Designed and shipped the <strong>second most requested API and backend feature</strong> on the Azure Cognitive Search team, written in C# and released under a preview API.</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -401,7 +399,7 @@
 <div class="cv-record-body">
 <p class="cv-technologies">C# | Search APIs, Backend Services</p>
 <ul>
-              <li>Designed and shipped the second most requested API and backend feature on the Azure Cognitive Search team, written in C# and released under a preview API.</li>
+              <li>Designed and shipped the <strong>second most requested API and backend feature</strong> on the Azure Cognitive Search team, written in C# and released under a preview API.</li>
             </ul>
 </div>
 </details>
@@ -422,7 +420,7 @@
 <span class="cv-date">Jun. 2019 - Aug. 2019 | Bellevue, WA</span>
 <span class="cv-employer-team" aria-hidden="true">Azure Search (AI Platform)</span>
 </span>
-<span class="cv-teaser">Built a dynamic search-website generator with query suggestions and filtering options in TypeScript.</span>
+<span class="cv-teaser">Built a <strong>dynamic search-website generator</strong> with query suggestions and filtering options in TypeScript.</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -433,7 +431,7 @@
 <div class="cv-record-body">
 <p class="cv-technologies">TypeScript | Search UX, Developer Tooling</p>
 <ul>
-              <li>Built a dynamic search-website generator with query suggestions and filtering options in TypeScript.</li>
+              <li>Built a <strong>dynamic search-website generator</strong> with query suggestions and filtering options in TypeScript.</li>
               <li>Improved the Azure Search portal experience with a new JSON editor and search-website customization.</li>
               <li>Partnered with designers, engineers, and program managers to scope the feature set.</li>
             </ul>
@@ -456,7 +454,7 @@
 <span class="cv-date">Jan. 2018 - Apr. 2018 | Vancouver, BC</span>
 <span class="cv-employer-team" aria-hidden="true">Garage</span>
 </span>
-<span class="cv-teaser">Built a cross-platform mobile app leveraging offline machine learning for chest X-ray classification in C#.</span>
+<span class="cv-teaser">Built a cross-platform mobile app leveraging <strong>offline machine learning for chest X-ray classification</strong> in C#.</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -467,7 +465,7 @@
 <div class="cv-record-body">
 <p class="cv-technologies">C#, TensorFlow | Offline Machine Learning, Mobile</p>
 <ul>
-              <li>Built a cross-platform mobile app leveraging offline machine learning for chest X-ray classification in C#.</li>
+              <li>Built a cross-platform mobile app leveraging <strong>offline machine learning for chest X-ray classification</strong> in C#.</li>
               <li>Built the image-processing pipeline, DevOps continuous integration, and an iOS share extension, and integrated the TensorFlow Android binding library; served as the team's Git expert.</li>
             </ul>
 </div>
@@ -491,7 +489,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Jan. 2021 - May 2021</span>
 <span class="cv-record-title" role="heading" aria-level="4">Human Pose Estimation using Deep Neural Networks</span>
-<span class="cv-teaser">Project and Team Lead for a student team to develop a deep neural network for human pose estimation (HPE) on the COCO-2017 dataset. I architected our cloud training pipeline, model...</span>
+<span class="cv-teaser"><strong>Project and Team Lead</strong> for a student team to develop a deep neural network for human pose estimation (HPE) on the COCO-2017 dataset. I architected our cloud training pipeline, model...</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -504,13 +502,13 @@
               Project and Team Lead for a student team to develop a deep neural network for human pose estimation (HPE) on the COCO-2017 dataset. <br>
 <br>
 
-              I architected our cloud training pipeline, model architecture, and data augmentation method. I led work in model visualization and deployment. <br>
+              I architected our <strong>cloud training pipeline, model architecture, and data augmentation method</strong>. I led work in model visualization and deployment. <br>
 <br>
 
               Our model achieves very good performance on almost all images, provided the person is relatively centered and about 60-95% of the vertical image height (these are limitations we chose due to the tight time constraints of the project). It struggles in some extremely difficult images, typically with highly overlapped people or heavily occluded joints. <br>
 <br>
 
-              The model performs single-person single-image 2D HPE with a kinematic model and a heatmap-based approach for joint prediction rather than a regression on joint locations. The model was trained from scratch with random weight initializations, and our team developed much of the plumbing from scratch as well. 
+              The model performs single-person single-image 2D HPE with a kinematic model and a heatmap-based approach for joint prediction rather than a regression on joint locations. The model was <strong>trained from scratch with random weight initializations</strong>, and our team developed much of the plumbing from scratch as well.
             </p>
 <a class="cv-project-link" href="https://github.com/robertklee/COCO-Human-Pose" target="_blank" rel="noopener noreferrer">View project on GitHub ↗</a>
 </div>
@@ -525,7 +523,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Jul. 2020 - Sep. 2020</span>
 <span class="cv-record-title" role="heading" aria-level="4">Semantic Road Segmentation using Convolutional Neural Networks</span>
-<span class="cv-teaser">Successfully trained a U-Net CNN on the KITTI Road dataset using Keras, achieving up to 99.1% F1 score and 91% in the worst case.</span>
+<span class="cv-teaser">Successfully trained a U-Net CNN on the KITTI Road dataset using Keras, achieving <strong class="cv-impact">up to 99.1% F1 score</strong> and 91% in the worst case.</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -535,8 +533,8 @@
 </summary>
 <div class="cv-record-body">
 <ul>
-              <li>Successfully trained a U-Net CNN on the KITTI Road dataset using Keras, achieving up to 99.1% F1 score and 91% in the worst case.</li>
-              <li>Designed and implemented the full training pipeline, including data generator, training/testing scripts, custom loss functions, and cloud training setup using Google Colab.</li>
+              <li>Successfully trained a U-Net CNN on the KITTI Road dataset using Keras, achieving <strong class="cv-impact">up to 99.1% F1 score</strong> and 91% in the worst case.</li>
+              <li>Designed and implemented the <strong>full training pipeline</strong>, including data generator, training/testing scripts, custom loss functions, and cloud training setup using Google Colab.</li>
               <li>Tuned hyperparameters and used data augmentation to improve model generalization under varied conditions.</li>
               <li>Researched and designed the network architecture by analyzing state-of-the-art computer vision literature.</li>
               <li>Resolved architectural and training bugs in the decoder and segmentation logic to ensure stable performance.</li>
@@ -555,7 +553,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Jan. 2020 - May 2020</span>
 <span class="cv-record-title" role="heading" aria-level="4">Computer Vision Project on Monocular Depth Estimation</span>
-<span class="cv-teaser">Implemented a limited version of Monodepth2, a self-supervised monocular depth estimation algorithm, in TensorFlow 1.13.1, replacing the original PyTorch implementation to improve...</span>
+<span class="cv-teaser">Implemented a limited version of Monodepth2, a <strong>self-supervised monocular depth estimation</strong> algorithm, in TensorFlow 1.13.1, replacing the original PyTorch implementation to improve...</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -568,7 +566,7 @@
               <li>Implemented a limited version of Monodepth2, a self-supervised monocular depth estimation algorithm, in TensorFlow 1.13.1, replacing the original PyTorch implementation to improve project feasibility.</li>
               <li>Adapted the model to the DrivingStereo dataset, a large-scale dataset (~136k training image pairs), to enhance depth prediction generalization compared to the smaller KITTI dataset.</li>
               <li>Designed and trained a fully convolutional U-Net with a ResNet-18 encoder, optimized for stereo image inputs at 640×192 resolution.</li>
-              <li>Integrated self-supervised learning using stereo photometric reconstruction and edge-aware smoothness loss without requiring ground truth depth data.</li>
+              <li>Integrated <strong>self-supervised learning</strong> using stereo photometric reconstruction and edge-aware smoothness loss <strong>without requiring ground truth depth data</strong>.</li>
               <li>Implemented multi-scale training loss, auto-masking for static pixels, and per-pixel minimum reprojection to improve depth estimation near occlusions and motion boundaries.</li>
             </ul>
 <a class="cv-project-link" href="https://github.com/DeclanMcIntosh/monodepthV2tf" target="_blank" rel="noopener noreferrer">View project on GitHub ↗</a>
@@ -595,7 +593,7 @@
 <div class="cv-record-body">
 <ul>
               <li>Challenge: Classic snake game mechanics, but with up to 7 opponent snakes. Collisions with longer snakes or starvation result in death. Design algorithm to control snake in real-time game. Goal: Survive the longest.</li>
-              <li>Trained keras-rl reinforcement learning model with a combination of self-play and publicly available snakes.</li>
+              <li>Trained keras-rl <strong>reinforcement learning model</strong> with a combination of <strong>self-play</strong> and publicly available snakes.</li>
             </ul>
 </div>
 </details>
@@ -615,7 +613,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Aug 2026 - present</span>
 <span class="cv-record-title" role="heading" aria-level="4">Industry Mentor, SENG 321 — Requirements Engineering</span>
-<span class="cv-teaser">Industry mentor for SENG 321 Requirements Engineering, a third-year software engineering course at the University of Victoria.</span>
+<span class="cv-teaser"><strong>Industry mentor</strong> for SENG 321 Requirements Engineering, a third-year software engineering course at the University of Victoria.</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -627,7 +625,7 @@
 <p>University of Victoria</p>
 <ul>
               <li>Industry mentor for SENG 321 Requirements Engineering, a third-year software engineering course at the University of Victoria.</li>
-              <li>Authored an open-ended industry challenge statement drawn from unsolved problems in production AI systems, then coach a student team through requirements elicitation, stakeholder analysis, scoping, and design rationale as they take it from an ambiguous brief to a clickable prototype. Biweekly reviews focused on the quality of their reasoning.</li>
+              <li>Authored an open-ended industry challenge statement drawn from <strong>unsolved problems in production AI systems</strong>, then coach a student team through requirements elicitation, stakeholder analysis, scoping, and design rationale as they take it from an ambiguous brief to a clickable prototype. Biweekly reviews focused on the quality of their reasoning.</li>
             </ul>
 </div>
 </details>
@@ -638,7 +636,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Sep 2024 - Dec 2024 · 4 mos</span>
 <span class="cv-record-title" role="heading" aria-level="4">Industry Mentor, SENG 321 — Requirements Engineering</span>
-<span class="cv-teaser">Industry mentor for SENG 321 (Requirements Engineering), one of 18 mentors providing real-world challenge statements to a 120-student cohort.</span>
+<span class="cv-teaser"><strong>Industry mentor</strong> for SENG 321 (Requirements Engineering), one of 18 mentors providing real-world challenge statements to a 120-student cohort.</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -650,7 +648,7 @@
 <p>University of Victoria</p>
 <ul>
               <li>Industry mentor for SENG 321 (Requirements Engineering), one of 18 mentors providing real-world challenge statements to a 120-student cohort.</li>
-              <li>Authored a challenge on the reliability and safety limitations of LLM-powered chatbots — hallucination mitigation, content moderation, long-context management, integration of real-time and private data, and mathematical reasoning — and served as the client stakeholder that student teams elicited requirements from.</li>
+              <li>Authored a challenge on the <strong>reliability and safety limitations of LLM-powered chatbots</strong> — hallucination mitigation, content moderation, long-context management, integration of real-time and private data, and mathematical reasoning — and served as the client stakeholder that student teams elicited requirements from.</li>
               <li>Met with teams through the term to review requirements artifacts and design iterations, challenging scope decisions, technical assumptions, and evaluation strategy.</li>
             </ul>
 </div>
@@ -662,7 +660,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Jul. 2015 - Oct. 2021 · 6 yrs 3 mos</span>
 <span class="cv-record-title" role="heading" aria-level="4">Founder &amp; Program Director, Senior's Digital Literacy Program, University of Victoria</span>
-<span class="cv-teaser">Founded and directed a seniors' digital literacy program for six years, growing it to 180 volunteers and 650+ seniors served across 30 workshops, and handing it off to successors who...</span>
+<span class="cv-teaser">Founded and directed a seniors' digital literacy program for six years, growing it to <strong class="cv-impact">180 volunteers and 650+ seniors served</strong> across 30 workshops, and handing it off to successors who...</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -673,9 +671,9 @@
 <div class="cv-record-body">
 <p>University of Victoria</p>
 <ul>
-              <li>Founded and directed a seniors' digital literacy program for six years, growing it to 180 volunteers and 650+ seniors served across 30 workshops, and handing it off to successors who sustained it beyond my tenure.</li>
+              <li>Founded and directed a seniors' digital literacy program for six years, growing it to <strong class="cv-impact">180 volunteers and 650+ seniors served</strong> across 30 workshops, and handing it off to successors who sustained it beyond my tenure.</li>
               <li>Secured University of Victoria departmental sponsorship, program funding, dedicated computer lab space, and administrative support to establish and institutionalize the program on campus.</li>
-              <li>Designed a two-stream curriculum running concurrent beginner and advanced sessions — personally instructing one stream while volunteers circulated for one-on-one assistance — with both labs regularly filled to capacity.</li>
+              <li>Designed a <strong>two-stream curriculum</strong> running concurrent beginner and advanced sessions — personally instructing one stream while volunteers circulated for one-on-one assistance — with both labs regularly filled to capacity.</li>
               <li>Built a recurring volunteer pipeline through partnerships with the UVic Computer Science Course Union and two local high schools, recruiting, training, and coordinating new cohorts each term.</li>
               <li>Sustained consistently high participant satisfaction and strong repeat attendance, with past participants emailing years afterward to ask when the next session would run; grew enrollment through local newspaper and community-centre coverage.</li>
             </ul>
@@ -688,7 +686,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Sep. 2019 - Jan. 2021 · 1 yr 4 mos</span>
 <span class="cv-record-title" role="heading" aria-level="4">Chair &amp; Vice-Chair, IEEE Student Branch</span>
-<span class="cv-teaser">Co-led the University of Victoria IEEE Student Branch under a shared leadership model, alternating Chair and Vice-Chair terms with a co-lead, directing a 6-person executive and a...</span>
+<span class="cv-teaser"><strong>Co-led the University of Victoria IEEE Student Branch</strong> under a shared leadership model, alternating Chair and Vice-Chair terms with a co-lead, directing a 6-person executive and a...</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -700,7 +698,7 @@
 <p>University of Victoria</p>
 <ul>
               <li>Co-led the University of Victoria IEEE Student Branch under a shared leadership model, alternating Chair and Vice-Chair terms with a co-lead, directing a 6-person executive and a membership of 70 engineering students.</li>
-              <li>Built and delivered a 14-workshop technical skills series reaching 350+ students — roughly five times the branch's membership — spanning Git and version control, machine learning, circuit design, and hardware prototyping.</li>
+              <li>Built and delivered a <strong class="cv-impact">14-workshop technical skills series reaching 350+ students</strong> — roughly five times the branch's membership — spanning Git and version control, machine learning, circuit design, and hardware prototyping.</li>
               <li>Authored much of the curriculum and personally instructed the Git, machine learning, and circuit design sessions, covering both the software and hardware halves of the program.</li>
               <li>Secured $1,000 in funding and dedicated lab access to supply materials for hands-on sessions, enabling equipment-provided instruction rather than lecture-only delivery.</li>
               <li>Recruited alumni and industry engineers as guest instructors, and established the series as a recurring program that continued after my term.</li>
@@ -714,7 +712,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Aug. 2019 - Nov. 2019 · 3 mos</span>
 <span class="cv-record-title" role="heading" aria-level="4">Founder and Conference Chair, UVic Tech &amp; Business Strategy Conference</span>
-<span class="cv-teaser">Conceptualized and secured university buy-in for a 200+ attendee conference exploring the intersection of technology and business strategy.</span>
+<span class="cv-teaser">Conceptualized and secured university buy-in for a <strong class="cv-impact">200+ attendee conference</strong> exploring the intersection of technology and business strategy.</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -725,7 +723,7 @@
 <div class="cv-record-body">
 <p>University of Victoria</p>
 <ul>
-              <li>Conceptualized and secured university buy-in for a 200+ attendee conference exploring the intersection of technology and business strategy.</li>
+              <li>Conceptualized and secured university buy-in for a <strong class="cv-impact">200+ attendee conference</strong> exploring the intersection of technology and business strategy.</li>
               <li>Built and led the organizing committee, defining the conference mission, delegating responsibilities, and ensuring seamless execution.</li>
               <li>Managed logistics, including venue selection, scheduling, and speaker coordination, balancing stakeholder expectations and budget constraints.</li>
               <li>Recruited and engaged industry-leading speakers, strengthening university-industry relations.</li>
@@ -749,7 +747,7 @@
 <span class="cv-summary-copy">
 <span class="cv-date">Sep. 2016 - Apr. 2021 | University of Victoria, Victoria, BC</span>
 <span class="cv-record-title" role="heading" aria-level="4">Bachelor of Electrical &amp; Computer Engineering</span>
-<span class="cv-teaser">Graduated with a 97% cumulative average in Electrical &amp; Computer Engineering, spanning distributed systems, algorithms, signal processing, embedded design, and machine learning. As a...</span>
+<span class="cv-teaser">Graduated with a <strong class="cv-impact">97% cumulative average</strong> in Electrical &amp; Computer Engineering, spanning distributed systems, algorithms, signal processing, embedded design, and machine learning. As a...</span>
 <span class="cv-disclosure">
 <span class="cv-closed-label">Full details</span>
 <span class="cv-open-label">Less detail</span>
@@ -760,7 +758,7 @@
 <div class="cv-record-body">
 <p class="cv-technologies">Cumulative GPA: 97%</p>
 <p>
-            Graduated with a 97% cumulative average in Electrical &amp; Computer Engineering, spanning distributed systems, algorithms, signal processing, embedded design, and machine learning. As a Jamie Cassels Undergraduate Research Award recipient, I researched hardware acceleration for machine-learning neural networks — and I earned 20+ scholarships and awards worth over $100,000 along the way.
+            Graduated with a <strong class="cv-impact">97% cumulative average</strong> in Electrical &amp; Computer Engineering, spanning distributed systems, algorithms, signal processing, embedded design, and machine learning. As a Jamie Cassels Undergraduate Research Award recipient, I researched <strong>hardware acceleration for machine-learning neural networks</strong> — and I earned 20+ scholarships and awards worth over $100,000 along the way.
           </p>
 </div>
 </details>
@@ -773,7 +771,7 @@
 <h3 id="profile-awards-title">Awards &amp; achievements</h3>
 </header>
 <div class="cv-awards">
-<p>20+ scholarships and awards valued at over $100,000, including:</p>
+<p><strong class="cv-impact">20+ scholarships and awards valued at over $100,000</strong>, including:</p>
 <ul>
             <li>
 <strong>Schulich Leader Scholarship</strong> (2016) — $80,000 full-ride; one of 50 awarded nationally, chosen from ~1,500 nominees (one per Canadian high school) among 300,000 graduating students, for STEM excellence and leadership.</li>
