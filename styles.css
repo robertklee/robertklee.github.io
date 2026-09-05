@@ -368,8 +368,21 @@ body.convo-active .hero-scroll-fade.cue-hidden {
 }
 
 .chat-prompt .chat-prefix {
+  display: inline-flex;
+  vertical-align: middle;
   color: rgba(255, 255, 255, 0.45);
   margin-right: 8px;
+}
+
+.chat-prefix svg,
+.retry-icon svg,
+.retry-caret svg,
+.retry-check svg,
+.suggest-plus svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .chat-think {
@@ -586,7 +599,7 @@ body.convo-active .hero-scroll-fade.cue-hidden {
 }
 
 .retry-check {
-  width: 12px;
+  width: 16px;
   flex: none;
   color: #7ea0c4;
   opacity: 0;

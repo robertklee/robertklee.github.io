@@ -1074,7 +1074,7 @@ var app = document.getElementById('app');
         var chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'suggest-chip';
-        chip.innerHTML = '<span class="suggest-plus" aria-hidden="true">+</span>' +
+        chip.innerHTML = '<span class="suggest-plus" aria-hidden="true">' + H.ICONS.plus + '</span>' +
           '<span class="suggest-text"></span>';
         chip.querySelector('.suggest-text').textContent = phrasing;
         chip.addEventListener('click', function () { runChip(chip, topic, phrasing, row); });

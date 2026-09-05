@@ -38,11 +38,20 @@ window.HeroChat = (function () {
   var SUBWORD_MIN_LEN = 5; // Words longer than this split into fragments.
   var SUBWORD_CHUNK_LEN = 4; // Target characters per streamed fragment.
 
-  // Reused for every collapsible "thinking" trace.
-  var CHEVRON_SVG =
-    '<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-    '<path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.75" ' +
-    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function iconSVG(path) {
+    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" ' +
+      'aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="' + path + '" stroke="currentColor" stroke-width="1.8" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  var ICONS = {
+    chevron: iconSVG('m7 9.5 5 5 5-5'),
+    prompt: iconSVG('M20 15a3 3 0 0 1-3 3H8l-4 3V6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3Z'),
+    refresh: iconSVG('M20 7v5h-5M19.2 8a8 8 0 1 0 .3 7'),
+    plus: iconSVG('M12 5v14M5 12h14'),
+    check: iconSVG('m5 12 4 4L19 6')
+  };
+  var CHEVRON_SVG = ICONS.chevron;
 
   // Model line-up for the "retry with a different model" control, grouped by
   // capability tier (frontier -> balanced -> efficient) and sorted within tier.
@@ -153,7 +162,9 @@ window.HeroChat = (function () {
     if (prefix) {
       var pre = document.createElement('span');
       pre.className = 'chat-prefix';
-      pre.textContent = prefix;
+      pre.setAttribute('aria-hidden', 'true');
+      if (prefix === '\u276F') pre.innerHTML = ICONS.prompt;
+      else pre.textContent = prefix;
       line.appendChild(pre);
     }
     var txt = document.createElement('span');
@@ -281,15 +292,16 @@ window.HeroChat = (function () {
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'retry-btn';
-    btn.setAttribute('aria-haspopup', 'true');
+    btn.setAttribute('aria-haspopup', 'menu');
     btn.setAttribute('aria-expanded', 'false');
     btn.setAttribute('aria-label', 'Retry with a different model');
     btn.innerHTML =
-      '<span class="retry-icon" aria-hidden="true">\u21BB</span>' +
+      '<span class="retry-icon" aria-hidden="true">' + ICONS.refresh + '</span>' +
       '<span class="retry-text">Change model</span>' +
-      '<span class="retry-caret" aria-hidden="true">\u25BE</span>';
+      '<span class="retry-caret" aria-hidden="true">' + ICONS.chevron + '</span>';
     var menu = document.createElement('div');
     menu.className = 'retry-menu';
+    menu.hidden = true;
     menu.setAttribute('role', 'menu');
     menu.setAttribute('aria-label', 'Choose a model to retry with');
     var items = [];
@@ -303,13 +315,15 @@ window.HeroChat = (function () {
       var item = document.createElement('button');
       item.type = 'button';
       item.className = 'retry-item';
+      item.tabIndex = -1;
       item.setAttribute('role', 'menuitemradio');
       item.innerHTML =
-        '<span class="retry-check" aria-hidden="true">\u2713</span>' +
+        '<span class="retry-check" aria-hidden="true">' + ICONS.check + '</span>' +
         '<span class="retry-name"></span>';
       item.querySelector('.retry-name').textContent = name;
       item.addEventListener('click', function () {
         closeMenu();
+        btn.focus({ preventScroll: true });
         opts.onPick(i);
       });
       menu.appendChild(item);
@@ -319,7 +333,16 @@ window.HeroChat = (function () {
     wrap.appendChild(menu);
 
     function onDocClick(e) { if (!wrap.contains(e.target)) closeMenu(); }
-    function onKey(e) { if (e.key === 'Escape') { closeMenu(); btn.focus(); } }
+    function onKey(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMenu();
+        btn.focus({ preventScroll: true });
+      } else if (e.key === 'Tab') {
+        btn.focus({ preventScroll: true });
+        closeMenu();
+      }
+    }
     function updateChecks() {
       var cur = opts.getCurrent();
       items.forEach(function (it, i) {
@@ -327,15 +350,23 @@ window.HeroChat = (function () {
         it.setAttribute('aria-checked', i === cur ? 'true' : 'false');
       });
     }
-    function openMenu() {
+    function focusItem(index) {
+      items.forEach(function (item, i) { item.tabIndex = i === index ? 0 : -1; });
+      items[index].focus({ preventScroll: true });
+      menu.scrollTop = Math.max(0, items[index].offsetTop - (menu.clientHeight - items[index].offsetHeight) / 2);
+    }
+    function openMenu(index) {
       updateChecks();
+      menu.hidden = false;
       menu.classList.add('open');
       btn.setAttribute('aria-expanded', 'true');
+      focusItem(typeof index === 'number' ? index : opts.getCurrent());
       document.addEventListener('click', onDocClick, true);
       document.addEventListener('keydown', onKey, true);
     }
     function closeMenu() {
       menu.classList.remove('open');
+      menu.hidden = true;
       btn.setAttribute('aria-expanded', 'false');
       document.removeEventListener('click', onDocClick, true);
       document.removeEventListener('keydown', onKey, true);
@@ -344,6 +375,21 @@ window.HeroChat = (function () {
       e.stopPropagation();
       if (menu.classList.contains('open')) closeMenu();
       else openMenu();
+    });
+    btn.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+      openMenu(e.key === 'ArrowUp' ? items.length - 1 : 0);
+    });
+    menu.addEventListener('keydown', function (e) {
+      var index = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') index = (index + 1) % items.length;
+      else if (e.key === 'ArrowUp') index = (index - 1 + items.length) % items.length;
+      else if (e.key === 'Home') index = 0;
+      else if (e.key === 'End') index = items.length - 1;
+      else return;
+      e.preventDefault();
+      focusItem(index);
     });
     return {
       wrap: wrap, btn: btn, menu: menu,
@@ -552,6 +598,7 @@ window.HeroChat = (function () {
   return {
     reduceMotion: reduceMotion,
     CHEVRON_SVG: CHEVRON_SVG,
+    ICONS: ICONS,
     MODELS: MODELS,
     MODEL_GROUPS: MODEL_GROUPS,
     MODEL_GROUP_OF: MODEL_GROUP_OF,

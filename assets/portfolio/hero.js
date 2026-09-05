@@ -213,6 +213,7 @@
       window.location.hash = 'hero-editorial-stories';
     }, true);
     content.querySelector('.scroll-cue-label').textContent = 'Explore the work';
+    cue.querySelector('path').setAttribute('d', 'M12 5v14m-5-5 5 5 5-5');
     frame.contentWindow.granimInstance.pause();
     frame.contentWindow.dispatchEvent(new Event('resize'));
     frame.dataset.ready = 'true';
