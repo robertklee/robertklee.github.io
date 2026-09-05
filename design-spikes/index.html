@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#f5f3ed">
+    <title>Design studies / Robert Lee</title>
+    <link rel="icon" href="../assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="studies.css">
+    <link rel="stylesheet" href="../assets/portfolio/profile.css">
+    <link rel="stylesheet" href="guided-editorial.css">
+    <link rel="stylesheet" href="editorial-conversation.css">
+    <link rel="stylesheet" href="editorial-chat-hero.css">
+    <link rel="stylesheet" href="../assets/portfolio/theme.css">
+    <link rel="stylesheet" href="../assets/portfolio/hero.css">
+    <script src="../assets/portfolio/profile.js" defer></script>
+    <script src="studies.js" defer></script>
+    <script src="../chat-core.js" defer></script>
+    <script src="guided-editorial.js" defer></script>
+    <script src="editorial-conversation.js" defer></script>
+    <script src="../granim.min.js" defer></script>
+    <script src="../assets/portfolio/hero.js" defer></script>
+  </head>
+  <body data-study="editorial">
+    <canvas id="editorial-wallpaper" class="editorial-wallpaper" aria-hidden="true"></canvas>
+    <header class="preview-bar">
+      <a class="preview-brand" href="#editorial" aria-label="Robert Lee design studies">
+        <span class="brand-mark">rl.</span><span>Design studies <small>Below the hero</small></span>
+      </a>
+      <nav class="study-nav" aria-label="Choose a design direction">
+        <a href="#editorial" aria-current="page"><span>01</span> Editorial</a>
+        <a href="#atlas"><span>02</span> Systems atlas</a>
+        <a href="#timeline"><span>03</span> Career chapters</a>
+        <a href="#graph"><span>04</span> Connected work</a>
+        <a href="#lab"><span>05</span> Mini lab</a>
+        <a href="#guided"><span>06</span> Editorial + chat</a>
+        <a href="#conversation"><span>07</span> Conversation</a>
+        <a href="#editorial-chat"><span>08</span> Editorial + chips</a>
+        <a href="#hero-editorial"><span>09</span> Original hero + editorial</a>
+      </nav>
+      <div class="preview-actions">
+        <button id="theme-toggle" class="original-theme-toggle" type="button" aria-label="Dark mode" aria-pressed="false" title="Toggle light/dark mode" hidden>
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 13a9 9 0 0 1-10-10A9 9 0 1 0 21 13Z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+        </button>
+        <a class="profile-jump" href="#profile">Full profile <span aria-hidden="true">&#8595;</span></a>
+        <a class="original-link" href="../profile-source.html">Original site <span aria-hidden="true">&#8599;</span></a>
+      </div>
+    </header>
+
+    <main>
+      <section id="editorial-chat" class="editorial-chat-hero" aria-labelledby="editorial-chat-title" hidden>
+        <header class="editorial-chat-heading">
+          <p class="eyebrow">An introduction, in conversation</p>
+          <h1 id="editorial-chat-title">Robert Lee</h1>
+          <p>Senior Software Engineer <span aria-hidden="true">&middot;</span> Microsoft Azure AI Search</p>
+        </header>
+        <div class="editorial-mock-window">
+          <div class="editorial-window-chrome">
+            <span class="editorial-window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>Conversation</span>
+          </div>
+          <div class="conversation-chat-mount"></div>
+        </div>
+        <a class="editorial-chat-scroll" href="#editorial-chat-stories"><span>Explore the work below</span><span aria-hidden="true">&#8595;</span></a>
+      </section>
+      <section id="hero-editorial" class="original-hero-editorial" aria-label="Robert Lee: an interactive introduction" hidden>
+        <iframe id="original-hero-frame" class="original-hero-frame" title="Robert Lee's original interactive hero app"></iframe>
+        <div id="original-hero-loading" class="original-hero-status" role="status">Preparing the introduction...</div>
+        <div id="original-hero-error" class="original-hero-status" role="alert" hidden>
+          <h2>The introduction could not load.</h2>
+          <p>You can still explore the editorial stories and full profile below.</p>
+          <div><button id="original-hero-retry" type="button">Try again</button><a href="../profile-source.html">Open the original site</a><a href="#hero-editorial-stories">Read the work</a></div>
+        </div>
+      </section>
+      <nav class="breadth-nav" aria-label="Explore the full breadth of my experience">
+        <a href="#profile-work"><span class="eyebrow">Search &amp; systems</span><strong>A career in production AI</strong><span><b data-profile-count="work">All</b> roles, including internships <i aria-hidden="true">&#8599;</i></span></a>
+        <a href="#profile-projects"><span class="eyebrow">Models &amp; experiments</span><strong>From pixels to predictions</strong><span><b data-profile-count="projects">All</b> ML &amp; systems projects <i aria-hidden="true">&#8599;</i></span></a>
+        <a href="#profile-leadership"><span class="eyebrow">People &amp; community</span><strong>Building beyond the code</strong><span><b data-profile-count="leadership">All</b> leadership &amp; mentoring roles <i aria-hidden="true">&#8599;</i></span></a>
+        <a href="#profile-education"><span class="eyebrow">Academic foundation</span><strong>Engineering, from first principles</strong><span>Education &amp; selected awards <i aria-hidden="true">&#8599;</i></span></a>
+      </nav>
+      <!-- These are independent below-the-hero concepts, not a combined redesign. -->
+      <section id="editorial" class="study editorial" aria-labelledby="editorial-title">
+        <div class="section-meta"><span>Robert Lee / Selected engineering</span><span>Microsoft Azure AI Search</span></div>
+        <div class="editorial-heading">
+          <div>
+            <p class="eyebrow"><span class="status-dot"></span> From research to production</p>
+            <h1 id="editorial-title">Good answers start<br>with <em>better retrieval.</em></h1>
+          </div>
+          <p class="heading-aside">I build the systems that help AI find what matters. A few problems I've worked on, and the engineering behind them.</p>
+        </div>
+
+        <article class="editorial-feature">
+          <div class="feature-copy">
+            <div class="story-meta"><span>01 / Efficiency</span><span>2022 &ndash; 2025</span></div>
+            <h2>Less memory.<br>More possibility.</h2>
+            <p>Making billion-scale vector search practical through quantization and efficient distance computation.</p>
+            <div class="editorial-metrics">
+              <div><strong>8&ndash;32<span>&times;</span></strong><span>Reported customer cost savings</span></div>
+              <div><strong>20<span>&times;</span></strong><span>Reported latency reduction, up to</span></div>
+            </div>
+            <details class="story-details">
+              <summary>The engineering <span aria-hidden="true">+</span></summary>
+              <p>I drove vector quantization from Public Preview to GA, spanning scalar and binary representations and SIMD-accelerated distance computation. The central tradeoff: reduce the footprint while preserving useful retrieval quality.</p>
+              <p class="fine-print">Figures are drawn from the existing portfolio, not this illustration. Results depend on workload and configuration.</p>
+            </details>
+          </div>
+          <div class="quantization-art" role="img" aria-label="Conceptual illustration of full-precision vectors compressed into smaller representations">
+            <div class="art-topline"><span>Representation / 001</span><span class="tiny-cross">+</span></div>
+            <div class="vector-comparison">
+              <div class="vector-column"><span>Full precision</span><div class="vector-block uncompressed"></div><small>More detail per dimension</small></div>
+              <span class="compression-arrow" aria-hidden="true">&#8594;</span>
+              <div class="vector-column"><span>Quantized</span><div class="vector-block compressed"></div><small>Smaller representation</small></div>
+            </div>
+            <div class="art-baseline"><span>Different representations. Same search problem.</span><span>Conceptual</span></div>
+          </div>
+        </article>
+
+        <div class="editorial-secondary">
+          <article class="editorial-story">
+            <div class="story-meta"><span>02 / Relevance</span><span>Current work</span></div>
+            <div class="evidence-art" aria-hidden="true"><i></i><i></i><i></i><span>&#8594;</span><i></i><i></i><i></i></div>
+            <h2>Evidence, not echoes.</h2>
+            <p>Diversity-aware retrieval that broadens the evidence available for complex, corpus-spanning questions.</p>
+            <details class="story-details">
+              <summary>Beyond nearest neighbors <span aria-hidden="true">+</span></summary>
+              <p>I lead the scoping, design, and implementation of a vector-search diversity capability, adapting research to production constraints at billion-vector scale.</p>
+            </details>
+          </article>
+          <article class="editorial-story">
+            <div class="story-meta"><span>03 / Agentic systems</span><span>Current work</span></div>
+            <div class="operator-art" aria-hidden="true"><span>Intent</span><b>&#8594;</b><span class="operator-focus">{ constraints }</span><b>&#8594;</b><span>Retrieval</span></div>
+            <h2>Open-ended intent.<br>Well-defined execution.</h2>
+            <p>Turning research into bounded, verifiable filter and boost generation for agentic retrieval.</p>
+            <details class="story-details">
+              <summary>Research into production <span aria-hidden="true">+</span></summary>
+              <p>I set technical direction across research and product teams, using production usage analysis to narrow an unbounded synthesis problem into a verifiable operator set.</p>
+            </details>
+          </article>
+        </div>
+        <div class="editorial-footer"><a href="#profile-work">Explore every role &amp; contribution <span aria-hidden="true">&#8594;</span></a><a href="#profile-projects">Explore computer vision &amp; earlier projects <span aria-hidden="true">&#8594;</span></a></div>
+        <aside class="study-note"><b>01 / Editorial</b><p>Selected stories lead into the complete profile below. The highlights introduce the work; they don't replace the CV.</p></aside>
+      </section>
+
+      <section id="atlas" class="study atlas" aria-labelledby="atlas-title" hidden>
+        <div class="section-meta"><span>Robert Lee / A systems atlas</span><span><i class="status-dot"></i> Exploring the retrieval layer</span></div>
+        <div class="atlas-heading">
+          <p class="eyebrow">The engineering beneath the answer</p>
+          <h1 id="atlas-title">Follow the <span>information.</span></h1>
+          <p>From a question to useful evidence. Explore the parts of retrieval I work on.</p>
+        </div>
+        <div class="atlas-workspace">
+          <div class="atlas-map">
+            <div class="map-label"><span>Retrieval landscape</span><span>Conceptual / not product architecture</span></div>
+            <div class="query-chip"><span class="query-symbol" aria-hidden="true">?</span> What knowledge would help answer this?</div>
+            <div class="atlas-connector connector-short" aria-hidden="true"></div>
+            <button class="atlas-node intent-node" type="button" data-atlas="intent" aria-pressed="false" aria-controls="atlas-detail">
+              <span class="node-index">01</span><span><strong>Understand intent</strong><small>Agentic planning &amp; constraints</small></span><span class="node-arrow" aria-hidden="true">&#8599;</span>
+            </button>
+            <div class="atlas-branch" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="retriever-nodes">
+              <button class="atlas-node" type="button" data-atlas="keyword" aria-pressed="false" aria-controls="atlas-detail"><span class="node-glyph" aria-hidden="true">Aa</span><strong>Keyword</strong><small>Exact signals</small></button>
+              <button class="atlas-node active" type="button" data-atlas="vector" aria-pressed="true" aria-controls="atlas-detail"><span class="node-glyph" aria-hidden="true">&#8942;&#8942;&#8942;</span><strong>Vector</strong><small>Semantic neighbors</small></button>
+              <button class="atlas-node" type="button" data-atlas="graph" aria-pressed="false" aria-controls="atlas-detail"><span class="node-glyph" aria-hidden="true">&#9671;</span><strong>Graph</strong><small>Connected knowledge</small></button>
+            </div>
+            <div class="atlas-branch branch-merge" aria-hidden="true"><span></span><span></span><span></span></div>
+            <button class="atlas-node rank-node" type="button" data-atlas="rank" aria-pressed="false" aria-controls="atlas-detail">
+              <span class="node-index">03</span><span><strong>Rank &amp; diversify</strong><small>Useful evidence, not redundant matches</small></span><span class="node-arrow" aria-hidden="true">&#8599;</span>
+            </button>
+            <div class="atlas-connector connector-short" aria-hidden="true"></div>
+            <div class="evidence-output"><span class="status-dot"></span> Evidence for a grounded answer</div>
+          </div>
+          <article id="atlas-detail" class="atlas-detail" aria-live="polite" aria-atomic="true">
+            <div class="detail-kicker"><span id="atlas-category">02 / Candidate retrieval</span><span class="live-label">Selected layer</span></div>
+            <div id="atlas-detail-symbol" class="detail-symbol" aria-hidden="true">&#8942;&#8942;&#8942;</div>
+            <h2 id="atlas-detail-title">Vector retrieval</h2>
+            <p id="atlas-detail-description">Find related information through embedding similarity, with an engine built to make that retrieval practical at scale.</p>
+            <div class="detail-divider"></div>
+            <p class="eyebrow">My work in this layer</p>
+            <h3 id="atlas-work-title">Smaller vectors. Faster search.</h3>
+            <p id="atlas-work-description">Scalar and binary quantization, SIMD-accelerated distance computation, and resource-aware HNSW index quotas.</p>
+            <div id="atlas-tags" class="tag-list"><span>C++</span><span>Quantization</span><span>HNSW</span></div>
+            <p class="atlas-hint">Select another layer to follow the work.</p>
+            <a class="profile-context-link" href="#profile-work">Full experience &amp; technical details <span aria-hidden="true">&#8594;</span></a>
+          </article>
+        </div>
+        <aside class="study-note"><b>02 / Systems atlas</b><p>Experience through architecture. The diagram is the navigation; each layer reveals a concrete contribution or area of focus.</p></aside>
+      </section>
+
+      <section id="timeline" class="study timeline" aria-labelledby="timeline-title" hidden>
+        <div class="section-meta"><span>Robert Lee / Experience</span><span>Research-minded. Production-grounded.</span></div>
+        <div class="timeline-heading">
+          <p class="eyebrow">One company. An expanding set of problems.</p>
+          <h1 id="timeline-title">Building deeper.<br><span>Reaching further.</span></h1>
+          <div class="company-lockup"><span class="microsoft-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span><b>Microsoft</b><small>Azure AI Search / 2021 &ndash; present</small></span></div>
+        </div>
+        <div class="career-layout">
+          <nav class="chapter-nav" aria-label="Career chapters">
+            <a href="#chapter-agents" class="chapter-link active"><span>03</span><div>Grounding agents<small>2025 &ndash; present</small></div><i></i></a>
+            <a href="#chapter-vectors" class="chapter-link"><span>02</span><div>Scaling vectors<small>2022 &ndash; 2025</small></div><i></i></a>
+            <a href="#chapter-foundations" class="chapter-link"><span>01</span><div>Search foundations<small>2021 &ndash; 2022</small></div><i></i></a>
+            <div class="career-aside">The through-line:<br><b>make ambitious ideas<br>work in the real world.</b></div>
+          </nav>
+          <div class="career-chapters">
+            <article id="chapter-agents" class="career-chapter current-chapter">
+              <div class="chapter-topline"><span class="eyebrow">Chapter 03</span><span class="current-pill"><span class="status-dot"></span> Current</span></div>
+              <h2>Grounding intelligent agents.</h2>
+              <p class="role-line">Senior Software Engineer <span>Mar 2025 &ndash; present</span></p>
+              <p class="chapter-intro">The challenge is no longer just finding similar documents. It's finding the right evidence for an AI system to reason with.</p>
+              <div class="chapter-contributions">
+                <div><span>01</span><p><b>Broader evidence</b>Leading a diversity-aware vector retrieval capability from research adaptation to engine design.</p></div>
+                <div><span>02</span><p><b>Verifiable agent behavior</b>Turning filter and boost generation into bounded, production-ready operations.</p></div>
+              </div>
+              <details class="story-details"><summary>More on the scope <span aria-hidden="true">+</span></summary><p>Research and product collaboration, architecture decisions, workload benchmarking, and mentoring engineers at the intersection of retrieval and agent orchestration.</p></details>
+            </article>
+            <article id="chapter-vectors" class="career-chapter">
+              <p class="eyebrow">Chapter 02</p>
+              <h2>Making vector search scale.</h2>
+              <p class="role-line">Software Engineer II <span>Jun 2022 &ndash; Feb 2025</span></p>
+              <p class="chapter-intro">Owned quantization delivery from preview to GA, improved hybrid relevance, and made resource limits reflect real utilization.</p>
+              <div class="chapter-stat"><strong>8&ndash;32&times;</strong><p>Reported customer cost savings<br><span>through vector quantization; workload-dependent</span></p></div>
+              <details class="story-details"><summary>Inside the engine <span aria-hidden="true">+</span></summary><p>Scalar and binary quantization, SIMD distance computation, hybrid-search subscores, HNSW quota enforcement, and an extensible facet-aggregation engine.</p></details>
+            </article>
+            <article id="chapter-foundations" class="career-chapter">
+              <p class="eyebrow">Chapter 01</p>
+              <h2>Getting the foundations right.</h2>
+              <p class="role-line">Software Engineer <span>Jul 2021 &ndash; May 2022</span></p>
+              <p class="chapter-intro">Index aliases that let applications switch indexes without code changes, and a zero-downtime telemetry migration.</p>
+            </article>
+            <div class="early-career"><span class="eyebrow">Before that</span><p>Microsoft internships across search APIs, developer tooling, and offline machine learning. <span>2018 &ndash; 2020</span></p><a class="profile-context-link" href="#profile-work">Every role, including the internships <span aria-hidden="true">&#8594;</span></a></div>
+          </div>
+        </div>
+        <aside class="study-note"><b>03 / Career chapters</b><p>Progression, not repetition. One company identity, a clear growth narrative, and more space for the work that matters now.</p></aside>
+      </section>
+
+      <section id="graph" class="study graph" aria-labelledby="graph-title" hidden>
+        <div class="section-meta"><span>Robert Lee / Connected work</span><span><i class="status-dot"></i> A map, not a list</span></div>
+        <div class="graph-heading"><div><p class="eyebrow">Ideas don't live in isolation</p><h1 id="graph-title">Everything<br><span>connects.</span></h1></div><p>Retrieval, systems, and machine learning.<br>Explore the relationships behind my work.</p></div>
+        <div class="graph-layout">
+          <div class="graph-board">
+            <div class="graph-board-label"><span>Work / capabilities / outcomes</span><span>Select a node</span></div>
+            <svg class="graph-edges" viewBox="0 0 760 500" preserveAspectRatio="none" aria-hidden="true">
+              <path data-edge="retrieval quantization" d="M380 250 L160 130"/>
+              <path data-edge="retrieval agents" d="M380 250 L585 95"/>
+              <path data-edge="retrieval graphs" d="M380 250 L610 275"/>
+              <path data-edge="retrieval systems" d="M380 250 L435 425"/>
+              <path data-edge="retrieval vision" d="M380 250 L150 375"/>
+              <path data-edge="quantization systems" d="M160 130 Q340 80 435 425"/>
+              <path data-edge="vision systems" d="M150 375 Q285 455 435 425"/>
+              <path data-edge="agents graphs" d="M585 95 Q685 170 610 275"/>
+            </svg>
+            <button type="button" class="graph-node graph-center selected" data-node="retrieval" aria-pressed="true" aria-controls="graph-detail"><span class="graph-node-dot"></span><strong>Retrieval</strong><small>The connecting thread</small></button>
+            <button type="button" class="graph-node graph-quantization" data-node="quantization" aria-pressed="false" aria-controls="graph-detail"><span class="graph-node-dot"></span><strong>Quantization</strong><small>Efficiency</small></button>
+            <button type="button" class="graph-node graph-agents" data-node="agents" aria-pressed="false" aria-controls="graph-detail"><span class="graph-node-dot"></span><strong>Agentic systems</strong><small>Grounding</small></button>
+            <button type="button" class="graph-node graph-graphs" data-node="graphs" aria-pressed="false" aria-controls="graph-detail"><span class="graph-node-dot"></span><strong>Knowledge graphs</strong><small>Relationships</small></button>
+            <button type="button" class="graph-node graph-systems" data-node="systems" aria-pressed="false" aria-controls="graph-detail"><span class="graph-node-dot"></span><strong>Distributed systems</strong><small>Production</small></button>
+            <button type="button" class="graph-node graph-vision" data-node="vision" aria-pressed="false" aria-controls="graph-detail"><span class="graph-node-dot"></span><strong>Computer vision</strong><small>Representation learning</small></button>
+            <div class="graph-legend"><span><i></i> Selected</span><span><i></i> Connected</span><span>Fixed layout. No chasing nodes.</span></div>
+          </div>
+          <article class="graph-detail" id="graph-detail" aria-live="polite" aria-atomic="true">
+            <span id="graph-category" class="eyebrow">The connecting thread</span>
+            <h2 id="graph-detail-title">Retrieval</h2>
+            <p id="graph-description">Helping people and AI systems find the right information, from vector similarity to diverse, grounded evidence.</p>
+            <p class="eyebrow graph-related-label">Connected through</p>
+            <ul id="graph-relations" class="graph-relations"><li><span>Quantization</span><small>Making retrieval economical</small></li><li><span>Agentic systems</span><small>Choosing evidence for reasoning</small></li><li><span>Computer vision</span><small>Learning useful representations</small></li></ul>
+            <div class="graph-detail-footer"><span class="status-dot"></span> Select a connection to explore</div>
+            <a id="graph-profile-link" class="profile-context-link" href="#profile-work">Full experience &amp; contributions <span aria-hidden="true">&#8594;</span></a>
+          </article>
+        </div>
+        <aside class="study-note"><b>04 / Connected work</b><p>A signature interaction rooted in your field. On smaller screens, the same nodes become a straightforward, tappable list.</p></aside>
+      </section>
+
+      <section id="lab" class="study lab" aria-labelledby="lab-title" hidden>
+        <div class="section-meta"><span>Robert Lee / Field notes &amp; experiments</span><span class="lab-status"><span class="status-dot"></span> Small demos. Real ideas.</span></div>
+        <div class="lab-heading"><p class="eyebrow">An engineer's workbench</p><h1 id="lab-title">Less telling.<br><span>More trying.</span></h1><p>A few hands-on ways to explore the problems I work on.</p></div>
+        <div class="lab-grid">
+          <article class="retrieval-experiment">
+            <div class="experiment-header"><span class="experiment-number">Experiment 01</span><span class="experiment-badge">Interactive illustration</span></div>
+            <h2>Similar isn't always useful.</h2>
+            <p>When the question is broad, a diverse set of evidence can be more useful than several near-duplicates.</p>
+            <label class="query-label" for="lab-query">Choose a question</label>
+            <select id="lab-query">
+              <option value="search">What makes a production search system good?</option>
+              <option value="agents">What does a reliable AI agent need?</option>
+            </select>
+            <div class="retrieval-controls" role="group" aria-label="Evidence selection method">
+              <button type="button" class="active" data-retrieval="nearest" aria-pressed="true">Nearest neighbors</button>
+              <button type="button" data-retrieval="diverse" aria-pressed="false">Diverse evidence</button>
+            </div>
+            <div class="results-heading"><span>Retrieved evidence</span><span id="coverage-label">1 of 3 topics</span></div>
+            <div id="lab-results" class="lab-results" aria-live="polite" aria-atomic="true">
+              <div class="result-row" data-topic="0"><span class="result-index">01</span><div><b>Improving vector query latency</b><small>Performance / Candidate A</small></div><span class="result-topic">Speed</span></div>
+              <div class="result-row" data-topic="0"><span class="result-index">02</span><div><b>Faster approximate nearest-neighbor search</b><small>Performance / Candidate B</small></div><span class="result-topic">Speed</span></div>
+              <div class="result-row" data-topic="0"><span class="result-index">03</span><div><b>Reducing search response time</b><small>Performance / Candidate C</small></div><span class="result-topic">Speed</span></div>
+            </div>
+            <div class="lab-explanation"><span aria-hidden="true">&#8627;</span><p id="lab-explanation">All three passages cover speed. Useful individually, but the evidence misses relevance and reliability.</p></div>
+            <p class="fine-print">Hand-authored candidate sets illustrate the idea. No live model, embeddings, or production search service.</p>
+          </article>
+          <div class="lab-side">
+            <article class="vision-experiment">
+              <div class="experiment-header"><span class="experiment-number">Experiment 02</span><span class="experiment-badge">Model outputs</span></div>
+              <h2>Learning to see.</h2>
+              <p>Earlier projects, from training pipelines to visual predictions.</p>
+              <div class="vision-tabs" role="group" aria-label="Computer vision project">
+                <button type="button" data-vision="pose" class="active" aria-pressed="true">Pose</button>
+                <button type="button" data-vision="road" aria-pressed="false">Segmentation</button>
+                <button type="button" data-vision="depth" aria-pressed="false">Depth</button>
+              </div>
+              <figure class="vision-output">
+                <img id="vision-image" src="../assets/skateboarder-pred.webp" alt="Human pose model output showing predicted skeleton keypoints on a skateboarder" width="427" height="560">
+                <figcaption><span id="vision-title">Human pose estimation</span><span>Saved output</span></figcaption>
+              </figure>
+              <p id="vision-description" class="vision-description">Trained from random initialization on COCO-2017. Heatmap-based joint prediction, with a cloud training pipeline built by our student team.</p>
+            </article>
+            <div class="lab-connection"><span class="eyebrow">The through-line</span><p>From learning representations<br>to retrieving the right evidence.</p><span>Computer vision <b aria-hidden="true">&#8594;</b> Search <b aria-hidden="true">&#8594;</b> Agents</span><a class="profile-context-link" href="#profile-projects">All projects &amp; engineering details <span aria-hidden="true">&#8594;</span></a></div>
+          </div>
+        </div>
+        <aside class="study-note"><b>05 / Mini lab</b><p>Let visitors experience an idea, then connect it to your work. Deliberately small interactions, not a second full-scale hero app.</p></aside>
+      </section>
+      <section id="guided" class="study guided-editorial" aria-labelledby="guided-title" hidden>
+        <div class="section-meta"><span>Robert Lee / An interactive profile</span><span>Engineering, in conversation</span></div>
+        <header class="guided-heading">
+          <div><p class="eyebrow"><span class="guided-orb" aria-hidden="true"></span> Not a chatbot in a box</p><h1 id="guided-title">The story, shaped<br>by <em>your questions.</em></h1></div>
+          <p>Ask about the work. Follow the evidence.<br> Or simply read on.<br><a href="#profile">The complete career is always here <span aria-hidden="true">&#8595;</span></a></p>
+        </header>
+
+        <div class="guided-question-desk">
+          <form id="guided-form">
+            <label for="guided-question">Ask the portfolio</label>
+            <div class="guided-input-row"><span class="guided-prompt-mark" aria-hidden="true">&#8627;</span><input id="guided-question" type="text" name="question" required maxlength="240" autocomplete="off" value="What connects Robert's work?" aria-describedby="guided-demo-note guided-input-message"><button type="submit">Explore <span aria-hidden="true">&#8599;</span></button></div>
+          </form>
+          <div class="guided-topics" role="group" aria-label="Choose a question about Robert">
+            <button type="button" data-guided-topic="overview" aria-pressed="true">The through-line</button>
+            <button type="button" data-guided-topic="search" aria-pressed="false">Search &amp; agents</button>
+            <button type="button" data-guided-topic="vision" aria-pressed="false">ML &amp; vision</button>
+            <button type="button" data-guided-topic="leadership" aria-pressed="false">Beyond the code</button>
+            <button type="button" data-guided-topic="early" aria-pressed="false">Earlier chapters</button>
+            <button type="button" data-guided-topic="education" aria-pressed="false">Education &amp; awards</button>
+          </div>
+          <p id="guided-demo-note">Scripted prototype. Questions select curated stories; no live model or generated claims.</p>
+          <p id="guided-input-message" role="status"></p>
+        </div>
+
+        <div class="guided-spread">
+          <article class="guided-article" aria-labelledby="guided-story-title">
+            <div class="guided-article-meta"><span id="guided-story-category">01 / The through-line</span><div class="guided-response-controls"><button id="guided-read-now" type="button" hidden>Read instantly</button><button id="guided-replay" type="button"><span aria-hidden="true">&#8635;</span> Replay</button></div></div>
+            <details id="guided-reading-notes" class="guided-reading-notes">
+              <summary><span class="guided-reading-indicator" aria-hidden="true"></span><span id="guided-reading-label">Reading notes</span><span class="guided-reading-chevron" aria-hidden="true">&#8964;</span></summary>
+              <p id="guided-reading-copy">Connect the model-building projects, production retrieval work, and community leadership. Keep the distinctions visible rather than reducing the whole career to one specialty.</p>
+              <small>Authored notes illustrating the selection of CV chapters.</small>
+            </details>
+            <div id="guided-response" aria-busy="false">
+              <h2 id="guided-story-title">A builder, across<br>different kinds of systems.</h2>
+              <div id="guided-answer" class="guided-answer">
+                <p>My work runs from training computer-vision models to building the retrieval infrastructure behind enterprise AI. The common thread is understanding a system deeply enough to build it, measure it, and make it useful. <a href="#profile-projects-entry-1" class="guided-citation" aria-label="Source 1: Human pose estimation">[1]</a></p>
+                <p>At Microsoft, that means vector search, quantization, relevance, and agentic retrieval. Earlier projects meant architecture choices, data augmentation, cloud training pipelines, and models trained from random initialization. <a href="#profile-work-entry-2" class="guided-citation" aria-label="Source 2: Software Engineer II">[2]</a></p>
+                <p>And building isn't only technical: I founded a digital literacy program, led student engineering initiatives, and now mentor student teams through open-ended problems. <a href="#profile-leadership-entry-3" class="guided-citation" aria-label="Source 3: Digital literacy program">[3]</a></p>
+              </div>
+              <div class="guided-pullquote"><span class="eyebrow">The connecting idea</span><p id="guided-takeaway">Learn how it works.<br>Make it work in the world.</p></div>
+            </div>
+            <p id="guided-announcement" class="guided-sr-only" role="status" aria-atomic="true"></p>
+          </article>
+          <aside class="guided-margin" aria-label="CV sources for this story">
+            <div class="guided-margin-heading"><span class="eyebrow">From the CV</span><span id="guided-source-count">3 chapters</span></div>
+            <p class="guided-margin-intro">The story is a starting point.<br> The original detail is one click away.</p>
+            <div id="guided-sources" class="guided-sources">
+              <a href="#profile-projects-entry-1" class="guided-source"><span class="guided-source-meta">01 / Model building</span><strong>Human pose estimation</strong><span>Architecture, training, and deployment from scratch.</span></a>
+              <a href="#profile-work-entry-2" class="guided-source"><span class="guided-source-meta">02 / Production systems</span><strong>Vector search &amp; quantization</strong><span>Software Engineer II / 2022 &ndash; 2025</span></a>
+              <a href="#profile-leadership-entry-3" class="guided-source"><span class="guided-source-meta">03 / Community</span><strong>Digital literacy program</strong><span>Six years of building a program and a volunteer community.</span></a>
+            </div>
+            <div class="guided-followup"><span class="eyebrow">Keep the conversation going</span><button id="guided-followup" type="button">What did he train from scratch? <span aria-hidden="true">&#8599;</span></button></div>
+            <p class="guided-margin-footnote">No infinite transcript.<br> Each question opens a new editorial spread.</p>
+          </aside>
+        </div>
+        <nav class="guided-reading-paths" aria-label="Continue reading the complete profile">
+          <a href="#profile-work"><span class="eyebrow">The full career</span><strong>Every role. Every chapter.</strong><span>Including the internships <i aria-hidden="true">&#8594;</i></span></a>
+          <a href="#profile-projects"><span class="eyebrow">The experiments</span><strong>Models, code &amp; lessons learned.</strong><span>Computer vision, RL, and systems <i aria-hidden="true">&#8594;</i></span></a>
+          <a href="#profile-leadership"><span class="eyebrow">The human side</span><strong>People and programs.</strong><span>Leadership, teaching, and mentorship <i aria-hidden="true">&#8594;</i></span></a>
+        </nav>
+        <aside class="study-note"><b>06 / Editorial + chat</b><p>The hero's conversational idea becomes a reading interface: ask, see the selection notes, read a streamed article, and follow its sources into the complete CV.</p></aside>
+      </section>
+      <section id="conversation" class="study editorial-conversation" aria-labelledby="conversation-title" hidden>
+        <div class="section-meta"><span>Robert Lee / A portfolio in conversation</span><span>07 / Editorial, with a real chat layout</span></div>
+        <div class="conversation-layout">
+          <aside class="conversation-editorial">
+            <p class="eyebrow">Stay curious. Ask another question.</p>
+            <h1 id="conversation-title">Let's talk<br> about <em>the work.</em></h1>
+            <p class="conversation-deck">Search engineer. Model builder.<br> Community builder.</p>
+            <p class="conversation-intro">A conversation can go somewhere a summary can't. Ask a follow-up, change the subject, or follow a source into the full story.</p>
+            <div class="conversation-person"><img src="../assets/me.webp" alt="Robert Lee" width="500" height="500" loading="lazy"><div><strong>Robert Lee</strong><span>Senior Software Engineer<br>Microsoft Azure AI Search</span></div></div>
+            <div class="conversation-topics">
+              <p class="eyebrow">A few places to start</p>
+              <button type="button" data-conversation-topic="search"><span>01</span> Search &amp; AI agents <i aria-hidden="true">&#8599;</i></button>
+              <button type="button" data-conversation-topic="vision"><span>02</span> Training models <i aria-hidden="true">&#8599;</i></button>
+              <button type="button" data-conversation-topic="early"><span>03</span> The earlier chapters <i aria-hidden="true">&#8599;</i></button>
+              <button type="button" data-conversation-topic="leadership"><span>04</span> Leadership &amp; community <i aria-hidden="true">&#8599;</i></button>
+              <button type="button" data-conversation-topic="education"><span>05</span> Education &amp; awards <i aria-hidden="true">&#8599;</i></button>
+            </div>
+            <a href="#profile" class="conversation-cv-link">Prefer to browse? Read the full CV <span aria-hidden="true">&#8594;</span></a>
+            <p class="conversation-coverage"><span data-profile-count="work">All</span> roles &middot; <span data-profile-count="projects">all</span> projects &middot; <span data-profile-count="leadership">all</span> leadership chapters</p>
+          </aside>
+
+          <template id="conversation-template">
+          <div class="conversation-window">
+            <header class="conversation-window-header">
+              <div class="conversation-identity"><span class="conversation-avatar" aria-hidden="true">r.</span><div><h2>Robert's portfolio</h2><p><span class="status-dot"></span> Scripted conversation &middot; No live model</p></div></div>
+              <button id="conversation-reset" type="button">New chat <span aria-hidden="true">+</span></button>
+            </header>
+            <div class="conversation-thread-bar"><span id="conversation-thread-label">Example thread &middot; continue it below</span><span id="conversation-turn-count">2 exchanges</span></div>
+            <div class="conversation-transcript-wrap">
+              <div id="conversation-transcript" class="conversation-transcript" role="log" aria-label="Conversation with Robert's portfolio" aria-live="off" tabindex="0">
+                <p class="conversation-loading">Loading an example conversation...</p>
+              </div>
+              <button id="conversation-latest" type="button" hidden>Latest messages <span aria-hidden="true">&#8595;</span></button>
+            </div>
+            <div class="conversation-compose-area">
+              <div class="conversation-context"><span class="eyebrow">Following this thread</span><span id="conversation-context-label">Earlier career</span></div>
+              <div id="conversation-suggestions" class="conversation-suggestions" role="group" aria-label="Suggested follow-up questions"></div>
+              <form id="conversation-form">
+                <label for="conversation-input" class="conversation-sr-only">Message Robert's portfolio</label>
+                <textarea id="conversation-input" name="message" rows="2" required maxlength="1200" placeholder="Ask a follow-up..." aria-describedby="conversation-composer-help conversation-message"></textarea>
+                <div class="conversation-composer-footer"><span id="conversation-composer-help">Enter to send &middot; Shift + Enter for a new line</span><button id="conversation-stop" type="button" hidden><span aria-hidden="true">&#9632;</span> Stop</button><button id="conversation-send" type="submit" aria-label="Send message"><span aria-hidden="true">&#8593;</span></button></div>
+              </form>
+              <p id="conversation-message" role="status"></p>
+              <p class="conversation-disclosure">Curated answers with simple follow-up context. Your messages stay in this page; nothing is sent to an AI service.</p>
+            </div>
+          </div>
+          <p id="conversation-announcement" class="conversation-sr-only" role="status" aria-atomic="true"></p>
+          </template>
+          <div class="conversation-chat-mount"></div>
+        </div>
+        <aside class="study-note"><b>07 / Conversation</b><p>An actual multi-turn transcript, not a changing article. Questions and answers stay in the thread, the composer stays below it, and each response carries its own links into the complete CV.</p></aside>
+      </section>
+      <section id="profile" class="full-profile" aria-labelledby="profile-title">
+        <header class="profile-heading">
+          <div><p class="eyebrow">The complete picture / Not just the highlights</p><h2 id="profile-title">An engineer.<br>A model builder.<br><em>A community builder.</em></h2></div>
+          <div class="profile-heading-aside"><p>Every role, project, and leadership chapter from my current website. Skim the story, or open the full detail.</p><button type="button" id="profile-expand" aria-controls="profile-content" disabled>Expand all details <span aria-hidden="true">+</span></button></div>
+        </header>
+        <div class="profile-layout">
+          <nav class="profile-nav" aria-label="Full profile sections">
+            <a href="#profile-work"><span>01</span> Experience <b data-profile-count="work"></b></a>
+            <a href="#profile-projects"><span>02</span> Projects <b data-profile-count="projects"></b></a>
+            <a href="#profile-leadership"><span>03</span> Leadership <b data-profile-count="leadership"></b></a>
+            <a href="#profile-education"><span>04</span> Education</a>
+            <a href="#profile-awards"><span>05</span> Awards</a>
+            <a href="#profile-about"><span>06</span> About &amp; contact</a>
+            <p>Same complete profile.<br>Different ways to introduce it.</p>
+          </nav>
+          <div id="profile-content" aria-busy="true">
+            <p id="profile-loading" role="status">Loading the full profile from the current website...</p>
+            <div id="profile-error" role="alert" hidden><p>The full profile could not be loaded.</p><button type="button" id="profile-retry">Try again</button><a href="../">Read the complete website <span aria-hidden="true">&#8599;</span></a></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <noscript><p class="noscript-note">Enable JavaScript to switch between the design studies and load the full profile, or <a href="../">read the complete original website</a>.</p></noscript>
+  </body>
+</html>
