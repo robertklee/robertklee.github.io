@@ -35,14 +35,14 @@ var app = document.getElementById('app');
   var PROMPTS = [
     'Hi! Tell me about Robert.',
     'Who is Robert?',
-    'Can you introduce me to Robert?',
+    'Can you introduce Robert to me?',
     'What should I know about Robert?',
     'Give me the quick rundown on Robert.',
     'What does Robert work on?',
     'Tell me a bit about Robert.',
     'So, who exactly is Robert?',
     "What's Robert all about?",
-    'Hey \u2014 introduce me to Robert.'
+    'Hey \u2014 introduce Robert to me.'
   ];
   var PROMPT = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
 
