@@ -1,0 +1,76 @@
+html:has(body[data-study="hero-editorial"]) { background: var(--editorial-bg); color-scheme: var(--editorial-color-scheme); }
+body[data-study="hero-editorial"] {
+  isolation: isolate;
+  background: var(--editorial-bg);
+  color: var(--editorial-text);
+  --text: var(--editorial-text);
+  --accent: var(--editorial-accent);
+  --muted: var(--editorial-muted);
+  --line: var(--editorial-line);
+  --profile-surface: color-mix(in srgb, var(--editorial-surface-solid) calc(var(--hero-paper-progress, 0) * 100%), var(--editorial-surface));
+  --profile-soft: color-mix(in srgb, var(--editorial-soft-solid) calc(var(--hero-paper-progress, 0) * 100%), var(--editorial-soft));
+  --profile-hover: var(--editorial-hover);
+}
+.editorial-wallpaper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  visibility: hidden;
+}
+body[data-study="hero-editorial"] .editorial-wallpaper {
+  visibility: visible;
+  background: linear-gradient(var(--editorial-gradient-top), var(--editorial-gradient-bottom)), url("../snow.jpg") center / cover no-repeat;
+  background-blend-mode: multiply;
+  filter: blur(2px);
+  opacity: calc((1 - var(--hero-paper-progress, 0)) * var(--editorial-wallpaper-strength));
+}
+body[data-study="hero-editorial"] :is(button, a, summary, select):focus-visible { outline-color: var(--accent); }
+body[data-study="hero-editorial"] .preview-bar { background: color-mix(in srgb, var(--editorial-header-solid) calc(var(--hero-paper-progress, 0) * 100%), var(--editorial-header)); color: var(--editorial-text); border-color: var(--line); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+body[data-study="hero-editorial"] .preview-brand small,
+body[data-study="hero-editorial"] .study-nav a span { color: var(--muted); }
+body[data-study="hero-editorial"] .study-nav a:hover,
+body[data-study="hero-editorial"] .profile-jump:hover { background: var(--editorial-hover); }
+body[data-study="hero-editorial"] .study-nav a[aria-current] { color: var(--editorial-on-accent); background: var(--accent); }
+body[data-study="hero-editorial"] .study-nav a[aria-current] span { color: inherit; }
+body[data-study="hero-editorial"] .profile-jump { border-color: var(--line); }
+body[data-study="hero-editorial"] .editorial-feature { background: var(--profile-surface); }
+body[data-study="hero-editorial"] .quantization-art,
+body[data-study="hero-editorial"] .operator-art .operator-focus { background: var(--profile-soft); border-color: var(--line); }
+body[data-study="hero-editorial"] .art-topline,
+body[data-study="hero-editorial"] .art-baseline,
+body[data-study="hero-editorial"] .vector-column,
+body[data-study="hero-editorial"] .compression-arrow,
+body[data-study="hero-editorial"] .evidence-art span,
+body[data-study="hero-editorial"] .operator-art b { color: var(--muted); }
+body[data-study="hero-editorial"] .vector-block { border-color: var(--editorial-art-fill); box-shadow: 8px 8px 0 var(--profile-soft); }
+body[data-study="hero-editorial"] .uncompressed { background: repeating-linear-gradient(0deg, transparent 0 10px, var(--editorial-art-grid) 10px 13px), repeating-linear-gradient(90deg, var(--editorial-art-fill) 0 10px, var(--editorial-art-grid) 10px 13px); }
+body[data-study="hero-editorial"] .compressed { background: repeating-linear-gradient(0deg, transparent 0 10px, var(--editorial-art-grid) 10px 13px), repeating-linear-gradient(90deg, var(--editorial-art-strong) 0 5px, var(--editorial-art-grid) 5px 8px); }
+body[data-study="hero-editorial"] .evidence-art i { border-color: var(--line); background: var(--editorial-art-grid); }
+body[data-study="hero-editorial"] .evidence-art i:nth-child(5) { background: var(--editorial-art-fill); }
+body[data-study="hero-editorial"] .evidence-art i:nth-child(6) { background: var(--editorial-art-warm); }
+body[data-study="hero-editorial"] .evidence-art i:nth-child(7) { background: var(--editorial-art-cool); }
+body[data-study="hero-editorial"] .editorial-footer b { color: var(--editorial-text); }
+.original-theme-toggle { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; padding: 8px; border: 1px solid var(--line); border-radius: 50%; background: var(--profile-surface); color: var(--accent); }
+.original-theme-toggle:hover { background: var(--profile-hover); }
+.original-theme-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.original-theme-toggle .icon-sun { display: none; }
+:root[data-theme="dark"] .original-theme-toggle .icon-moon { display: none; }
+:root[data-theme="dark"] .original-theme-toggle .icon-sun { display: block; }
+html:has(body[data-study="hero-editorial"])::view-transition-old(root),
+html:has(body[data-study="hero-editorial"])::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+.original-hero-editorial { position: relative; background: transparent; scroll-margin-top: 112px; border-bottom: 1px solid var(--line); }
+.original-hero-frame { display: block; width: 100%; height: calc(100svh - var(--preview-height, 82px)); min-height: 620px; border: 0; visibility: hidden; }
+.original-hero-frame[data-ready="true"] { visibility: visible; }
+.original-hero-status { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 18px; padding: 35px; text-align: center; color: var(--muted); font-size: 13px; }
+.original-hero-status h2 { font: 32px/1.2 Georgia, "Times New Roman", serif; color: var(--text); }
+.original-hero-status > div { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 20px; }
+.original-hero-status button { font: inherit; border: 1px solid var(--line); border-radius: 5px; padding: 10px 16px; background: var(--profile-surface); cursor: pointer; }
+.original-hero-status a { text-underline-offset: 4px; }
+#hero-editorial-stories { scroll-margin-top: 112px; }
+@media (max-width: 900px) {
+  .original-hero-frame { height: calc(100svh - var(--preview-height, 92px)); }
+  .original-theme-toggle { width: 32px; height: 32px; padding: 6px; }
+}

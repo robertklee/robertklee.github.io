@@ -1,0 +1,59 @@
+/* Shared by the homepage, the hero frame, and the retained editorial study. */
+:root {
+  --editorial-color-scheme: light;
+  --editorial-bg: #f5f7fc;
+  --editorial-text: #172540;
+  --editorial-heading: #102044;
+  --editorial-muted: #273957;
+  --editorial-accent: #2e52ce;
+  --editorial-on-accent: #ffffff;
+  --editorial-line: #6a83b84d;
+  --editorial-surface: #fcfdffe8;
+  --editorial-surface-solid: #fcfdff;
+  --editorial-intro-surface: rgba(246, 249, 255, .1);
+  --editorial-conversation-surface: rgba(246, 249, 255, .5);
+  --editorial-chip-surface: rgba(246, 249, 255, .42);
+  --editorial-retry-surface: rgba(24, 45, 91, .08);
+  --editorial-soft: #e8edf8db;
+  --editorial-soft-solid: #e8edf8;
+  --editorial-hover: #dce5fa;
+  --editorial-header: #f9fbffe0;
+  --editorial-header-solid: #f9fbff;
+  --editorial-wallpaper-strength: .38;
+  --editorial-gradient-top: #527be2;
+  --editorial-gradient-bottom: #adc7f2;
+  --editorial-art-fill: #728fdb;
+  --editorial-art-strong: #244dbe;
+  --editorial-art-grid: #e0e7f6;
+  --editorial-art-warm: #b6b5df;
+  --editorial-art-cool: #96bee4;
+}
+:root[data-theme="dark"] {
+  --editorial-color-scheme: dark;
+  --editorial-bg: #0b1326;
+  --editorial-text: #e2eaff;
+  --editorial-heading: #f1f5ff;
+  --editorial-muted: #cad6f0;
+  --editorial-accent: #91afff;
+  --editorial-on-accent: #0e1d40;
+  --editorial-line: #89a5df4d;
+  --editorial-surface: #121f39e8;
+  --editorial-surface-solid: #121f39;
+  --editorial-intro-surface: rgba(13, 18, 30, .1);
+  --editorial-conversation-surface: rgba(13, 18, 30, .5);
+  --editorial-chip-surface: rgba(17, 22, 35, .42);
+  --editorial-retry-surface: rgba(255, 255, 255, .08);
+  --editorial-soft: #1a2b4ceb;
+  --editorial-soft-solid: #1a2b4c;
+  --editorial-hover: #243d68;
+  --editorial-header: #0e192fe8;
+  --editorial-header-solid: #0e192f;
+  --editorial-wallpaper-strength: .78;
+  --editorial-gradient-top: #10255b;
+  --editorial-gradient-bottom: #345db2;
+  --editorial-art-fill: #5176d0;
+  --editorial-art-strong: #a2baff;
+  --editorial-art-grid: #172747;
+  --editorial-art-warm: #776ebb;
+  --editorial-art-cool: #4a85b4;
+}
