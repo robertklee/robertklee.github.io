@@ -19,4 +19,29 @@ Serve the repository root over HTTP, for example:
 python3 -m http.server 4173 --bind 127.0.0.1
 ```
 
-Open `http://127.0.0.1:4173/` for the homepage or `/design-spikes/` for the retained studies. There is no build step.
+Open `http://127.0.0.1:4173/` for the homepage or `/design-spikes/` for the retained studies.
+
+Run `npm run build` to create the production `dist/` directory. The production build publishes root `index.html` and its runtime assets; it intentionally excludes `design-spikes/`.
+
+## Cloudflare Workers Builds deployment
+
+The dependency-free build script recreates `dist/` and copies only the site's
+public runtime files. Wrangler then deploys that directory as static assets.
+The site uses its custom `404.html` for missing paths; it does not use an SPA
+fallback or a server-side Worker.
+
+Configure Cloudflare Workers Builds with:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npm run build` |
+| Deploy command | `npm run deploy` |
+| Version command | `npx wrangler versions upload` |
+| Root directory | `/` |
+| Production branch | `main` |
+
+The version command uploads an unpromoted preview version. The deploy command
+publishes the production version.
+
+For local development, install dependencies with `npm ci`, build with
+`npm run build`, and preview the Worker with `npm run preview`.
