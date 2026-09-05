@@ -1,2 +1,7 @@
 # macOS system files
 .DS_Store
+
+# Node and Cloudflare build artifacts
+node_modules/
+dist/
+.wrangler/

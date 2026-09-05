@@ -1,0 +1,14 @@
+{
+  "name": "robertklee-website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "check": "node --check build.js && node --check chat-core.js && node --check index.js && node --check 404.js",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "4.129.0"
+  }
+}
