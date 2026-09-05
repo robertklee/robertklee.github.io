@@ -29,7 +29,7 @@ function createPortfolioConversation(root, config) {
   if (config.chipsOnly) {
     root.querySelector('.conversation-thread-bar').hidden = true;
     root.querySelector('.conversation-identity p').textContent = 'Interactive introduction';
-    root.querySelector('.conversation-disclosure').textContent = 'Prewritten replies. Choose a question to explore.';
+    root.querySelector('.conversation-disclosure').textContent = 'Choose a question to explore.';
     part('reset').textContent = 'Restart \u21bb';
   }
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');

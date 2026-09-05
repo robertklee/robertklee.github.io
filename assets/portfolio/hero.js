@@ -199,7 +199,7 @@
     const label = content.createElement('span');
     label.textContent = 'Robert Lee / An interactive introduction';
     const disclosure = content.createElement('span');
-    disclosure.textContent = 'Prewritten conversation';
+    disclosure.textContent = 'Chat app';
     kicker.append(label, disclosure);
     hero.prepend(kicker);
 

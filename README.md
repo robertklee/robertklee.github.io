@@ -9,7 +9,7 @@ The homepage is the royal-blue editorial design, with the original chip-driven i
 - **`profile-source.html`** preserves the previous homepage as a `noindex` reference and isolated host for the original hero. Its `index.js`, `chat-core.js`, and `styles.css` dependencies remain unchanged.
 - **`design-spikes/`** retains all nine internal design studies. They are separate from and not linked by the production homepage.
 
-Update CV content in `index.html`, not in the historical reference. The hero's prewritten responses are authored separately in `index.js`; they do not call a model or backend.
+Update CV content in `index.html`, not in the historical reference. The hero's responses are authored separately in `index.js`; they do not call a model or backend.
 
 ## Local preview
 
