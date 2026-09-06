@@ -304,8 +304,8 @@ var app = document.getElementById('app');
           answer: "As a Senior Software Engineer on Azure AI Search since March 2025, I lead vector-search diversity engineering, research-to-production filter and boost generation, and agentic workload benchmarking with a shipped production billing model. I also mentor engineers and drive design reviews across retrieval, Azure OpenAI, and agent orchestration."
         },
         {
-          thought: "One era carries the densest shipped impact, so it deserves its own answer: as a Software Engineer II I owned vector storage, quantization, and relevance across billions of embeddings \u2014 quantization to GA, the hybrid relevance stack, HNSW quota enforcement, and the facet engine. I'll summarize that body of delivered work rather than the calendar.",
-          answer: "As a Software Engineer II I owned vector storage, quantization, and relevance across billions of embeddings \u2014 taking quantization to GA at 8-32x lower cost, building the hybrid-search relevance stack, the HNSW quota-enforcement mechanism, and an extensible facet-aggregation engine. It was a dense stretch of shipping things that are still in production today."
+          thought: "The Software Engineer II chapter spans both building and scaling: I was part of the team that took vector search from 1 to N and quantization from 0 to N. I'll distinguish that team trajectory from my contributions in vector storage, quantization, relevance, HNSW quota enforcement, and the facet engine.",
+          answer: "As a Software Engineer II, I was part of the team that took vector search from 1 to N and quantization from 0 to N \u2014 building the capability and scaling it for broad production adoption across billions of embeddings. My contributions included taking quantization through Public Preview to GA at 8-32x lower customer cost and up to 20x lower latency, building the hybrid-search relevance stack, the HNSW quota-enforcement mechanism, and an extensible facet-aggregation engine."
         }
       ]
     },
