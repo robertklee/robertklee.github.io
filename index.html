@@ -149,31 +149,43 @@
               <p class="fine-print">Figures are drawn from the existing portfolio, not this illustration. Results depend on workload and configuration.</p>
             </details>
           </div>
-          <div class="quantization-art" role="img" aria-label="Conceptual illustration of full-precision vectors compressed into smaller representations">
-            <div class="art-topline">
-<span>Representation / 001</span>
-<span class="tiny-cross">+</span>
-</div>
-            <div class="vector-comparison">
-              <div class="vector-column">
-<span>Full precision</span>
-<div class="vector-block uncompressed">
-</div>
-<small>More detail per dimension</small>
-</div>
-              <span class="compression-arrow" aria-hidden="true">→</span>
-              <div class="vector-column">
-<span>Quantized</span>
-<div class="vector-block compressed">
-</div>
-<small>Smaller representation</small>
-</div>
+          <figure class="quantization-art quantization-study" aria-labelledby="quantization-title" aria-describedby="quantization-caption">
+            <header class="quantization-heading">
+              <p class="eyebrow">Inside a vector</p>
+              <h3 id="quantization-title">Same dimensions.<br>Fewer bits.</h3>
+              <p>Fewer representable levels for each vector dimension.</p>
+            </header>
+            <div class="quantization-level">
+              <div class="quantization-label"><h4>FP32 <span>Full precision</span></h4><p><strong>32 B</strong><span>Baseline</span></p></div>
+              <div class="quantization-ladder quantization-ladder-float" aria-hidden="true"></div>
+              <p class="quantization-resolution">Fine precision</p>
+              <div class="quantization-storage" aria-hidden="true"><span style="--storage: 100%"></span></div>
+              <p class="quantization-note">32 bits per dimension. Retains magnitude and sign.</p>
             </div>
-            <div class="art-baseline">
-<span>Different representations. Same search problem.</span>
-<span>Conceptual</span>
-</div>
-          </div>
+            <div class="quantization-level">
+              <div class="quantization-label"><h4>INT8 <span>Scalar quantization</span></h4><p><strong>8 B</strong><span>4&#215; smaller</span></p></div>
+              <div class="quantization-ladder quantization-ladder-int" aria-hidden="true"></div>
+              <p class="quantization-resolution">256 codes</p>
+              <div class="quantization-storage" aria-hidden="true"><span style="--storage: 25%"></span></div>
+              <p class="quantization-note">8 bits per dimension. Nearby values share a code.</p>
+            </div>
+            <div class="quantization-level">
+              <div class="quantization-label"><h4>Binary <span>Sign only</span></h4><p><strong>1 B</strong><span>32&#215; smaller</span></p></div>
+              <div class="quantization-ladder quantization-ladder-binary" aria-hidden="true"><span>1</span><span>0</span></div>
+              <p class="quantization-resolution">2 codes</p>
+              <div class="quantization-storage" aria-hidden="true"><span style="--storage: 3.125%"></span></div>
+              <p class="quantization-note">1 bit per dimension. Keeps sign, discards magnitude.</p>
+            </div>
+            <figcaption id="quantization-caption">
+              <p class="quantization-scale">FP32 and INT8 divisions are illustrative, not literal counts. Storage shown for eight dimensions.</p>
+              <p><strong>The tradeoff:</strong> less precision, a smaller search footprint. Retrieval quality depends on the data and search strategy.</p>
+              <details class="quantization-method">
+                <summary>How to read this example</summary>
+                <p>Each vertical bar represents the available precision for a single dimension, not its magnitude. FP32 is drawn with 64 fine divisions and INT8 with 16 coarser divisions to make the difference visible. Actual floating-point values are nonuniformly spaced; INT8 has 256 possible integer codes. The binary bar shows its actual two codes: 1 for nonnegative values, 0 for negative values.</p>
+                <p>Storage strips share a scale: one segment is one byte. Sizes count vector values only, excluding scale metadata, indexes, and any retained originals. These are raw storage ratios, not the customer cost or latency figures alongside.</p>
+              </details>
+            </figcaption>
+          </figure>
         </article>
 
         <div class="editorial-secondary">
