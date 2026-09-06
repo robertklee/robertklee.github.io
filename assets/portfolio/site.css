@@ -64,32 +64,48 @@ h1 { font-size: clamp(42px, 5.2vw, 70px); line-height: 1.07; letter-spacing: -.0
 .editorial-metrics strong span { font-size: 25px; }
 .editorial-metrics div > span { font-size: 10px; color: var(--muted); display: block; max-width: 140px; margin-top: 7px; line-height: 1.5; }
 .quantization-art { padding: 26px 28px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
-.quantization-study { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: center; margin: 0; min-width: 0; gap: 24px 18px; border-left: 1px solid var(--line); }
-.quantization-heading, .quantization-study figcaption { grid-column: 1 / -1; }
-.quantization-heading h3 { margin: 10px 0; font-size: 26px; font-weight: 500; line-height: 1.15; letter-spacing: -.04em; }
+.quantization-study { display: flex; flex-direction: column; justify-content: center; margin: 0; min-width: 0; gap: 24px; border-left: 1px solid var(--line); }
+.quantization-heading h3 { margin: 10px 0; font-size: 25px; font-weight: 500; line-height: 1.15; letter-spacing: -.04em; }
 .quantization-heading > p:last-child { font-size: 12px; color: var(--muted); }
-.quantization-level { padding-top: 16px; border-top: 1px solid var(--line); }
-.quantization-label { display: flex; flex-direction: column; gap: 16px; }
-.quantization-label h4 { margin: 0; font: 600 12px/1.6 var(--mono); }
-.quantization-label h4 span { display: block; min-height: 3em; font: 11px/1.5 "DM Sans", sans-serif; color: var(--muted); }
-.quantization-label > p { flex-shrink: 0; }
-.quantization-label strong { display: block; font: 500 20px/1.2 var(--mono); letter-spacing: -.04em; }
-.quantization-label > p > span { font: 9px/1.6 var(--mono); color: var(--accent); }
-.quantization-ladder { position: relative; height: 256px; width: 70%; max-width: 100px; margin: 22px auto 14px; border-radius: 3px; overflow: hidden; background: linear-gradient(to bottom, var(--editorial-art-strong), var(--editorial-art-fill)); }
+.quantization-chart { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; padding-left: 28px; }
+.quantization-column { min-width: 0; text-align: center; }
+.quantization-column h4 { height: 48px; margin: 0; font: 600 12px/1.5 var(--mono); }
+.quantization-column h4 span { display: block; color: var(--muted); font-size: 10px; font-weight: 400; }
+.quantization-axis { position: absolute; top: 48px; left: 0; height: 192px; display: flex; flex-direction: column; justify-content: space-between; color: var(--muted); font: 9px var(--mono); }
+.quantization-axis span { transform: translateY(-50%); }
+.quantization-axis span:last-child { transform: translateY(50%); }
+.quantization-track { position: relative; height: 192px; width: 78%; max-width: 110px; margin: 0 auto 20px; }
+.quantization-ladder { position: absolute; inset: 0; border-radius: 3px; overflow: hidden; background: linear-gradient(to bottom, var(--editorial-art-strong), var(--editorial-art-fill)); }
 .quantization-ladder::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 calc(var(--level-height) - 1px), var(--profile-soft) calc(var(--level-height) - 1px) var(--level-height)); }
-.quantization-ladder-float { --level-height: 4px; }
-.quantization-ladder-int { --level-height: 16px; }
-.quantization-ladder-binary { --level-height: 128px; display: grid; grid-template-rows: 1fr 1fr; background: linear-gradient(to bottom, var(--editorial-art-strong) 50%, var(--editorial-art-fill) 50%); }
+.quantization-ladder-float { --level-height: 3px; }
+.quantization-ladder-int {
+  --level-height: 24px;
+  background: linear-gradient(to bottom,
+    var(--editorial-art-strong) 0% 12.5%,
+    color-mix(in srgb, var(--editorial-art-strong) 86%, var(--editorial-art-fill)) 12.5% 25%,
+    color-mix(in srgb, var(--editorial-art-strong) 71%, var(--editorial-art-fill)) 25% 37.5%,
+    color-mix(in srgb, var(--editorial-art-strong) 57%, var(--editorial-art-fill)) 37.5% 50%,
+    color-mix(in srgb, var(--editorial-art-strong) 43%, var(--editorial-art-fill)) 50% 62.5%,
+    color-mix(in srgb, var(--editorial-art-strong) 29%, var(--editorial-art-fill)) 62.5% 75%,
+    color-mix(in srgb, var(--editorial-art-strong) 14%, var(--editorial-art-fill)) 75% 87.5%,
+    var(--editorial-art-fill) 87.5% 100%);
+}
+.quantization-ladder-int::after { background: repeating-linear-gradient(to bottom, transparent 0 calc(var(--level-height) - 3px), var(--profile-soft) calc(var(--level-height) - 3px) var(--level-height)); }
+.quantization-ladder-binary { --level-height: 96px; display: grid; grid-template-rows: 1fr 1fr; background: linear-gradient(to bottom, var(--editorial-art-strong) 50%, var(--editorial-art-fill) 50%); }
 .quantization-ladder-binary span { display: grid; place-items: center; color: var(--editorial-on-accent); font: 500 24px var(--mono); }
-.quantization-resolution { min-height: 3em; text-align: center; font: 10px/1.5 var(--mono); color: var(--muted); }
-.quantization-storage { position: relative; height: 9px; margin: 12px 0 7px; background: var(--profile-surface); border-radius: 2px; overflow: hidden; }
-.quantization-storage > span { display: block; height: 100%; width: var(--storage); background: var(--accent); }
-.quantization-storage::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to right, transparent 0 calc(3.125% - 1px), var(--profile-soft) calc(3.125% - 1px) 3.125%); }
-.quantization-note { font-size: 10px; color: var(--muted); }
+.quantization-marker { position: absolute; z-index: 1; left: -5px; right: -5px; top: var(--position); height: 3px; transform: translateY(-50%); background: #fff; box-shadow: 0 0 0 1px #172540; border-radius: 2px; }
+.quantization-marker::before { content: ""; position: absolute; left: -4px; top: -3px; width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px #172540; }
+.quantization-result { display: flex; flex-direction: column; align-items: center; }
+.quantization-result > span { white-space: nowrap; font: 500 clamp(12px, 1.2vw, 17px)/1.5 var(--mono); color: var(--accent); }
+.quantization-result small { display: block; margin-top: 4px; font-size: 10px; color: var(--muted); }
+.quantization-control { border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px 0; background: var(--profile-surface); }
+.quantization-control > div { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.quantization-control label { font-size: 12px; }
+.quantization-control output { font: 500 13px var(--mono); color: var(--accent); }
+.quantization-control input { display: block; width: 100%; margin: 0; min-height: 44px; cursor: ew-resize; accent-color: var(--accent); }
+.quantization-control input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .quantization-study figcaption { border-top: 1px solid var(--line); padding-top: 16px; font-size: 11px; color: var(--muted); }
-.quantization-study figcaption strong { color: var(--text); font-weight: 600; }
-.quantization-scale { margin-bottom: 10px; font-size: 10px; }
-.quantization-method { margin-top: 8px; }
+.quantization-method { margin-top: 4px; }
 .quantization-method summary { width: fit-content; padding-block: 12px; min-height: 44px; cursor: pointer; color: var(--accent); font-size: 11px; }
 .quantization-method p + p { margin-top: 8px; }
 .editorial-secondary { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; margin-top: 36px; }
@@ -153,10 +169,10 @@ h1 { font-size: clamp(42px, 5.2vw, 70px); line-height: 1.07; letter-spacing: -.0
   .editorial-metrics { gap: 24px; }
   .editorial-metrics strong { font-size: 37px; }
   .quantization-art { padding: 22px 25px; min-height: 300px; }
-  .quantization-study { gap: 20px 12px; padding-inline: 18px; }
-  .quantization-label h4 span { font-size: 10px; }
-  .quantization-note { font-size: 9px; }
-  .quantization-ladder { width: 85%; }
+  .quantization-study { gap: 20px; padding-inline: 18px; }
+  .quantization-chart { gap: 8px; padding-left: 18px; }
+  .quantization-result > span { font-size: 11px; }
+  .quantization-result small { font-size: 9px; }
   .editorial-secondary { grid-template-columns: 1fr; gap: 30px; margin-top: 30px; }
   .editorial-story + .editorial-story { padding: 27px 0 0; border-left: 0; border-top: 1px solid var(--line); }
   .operator-art { font-size: 10px; gap: 13px; }
