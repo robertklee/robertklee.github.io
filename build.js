@@ -18,11 +18,9 @@ const publicFiles = [
   'assets/me.jpg',
   'assets/me.webp',
   'assets/microsoft-mark.svg',
-  'assets/monocular-depth.jpg',
+  'assets/og.png',
   'assets/monocular-depth.webp',
-  'assets/road-seg.jpg',
   'assets/road-seg.webp',
-  'assets/skateboarder-pred.jpg',
   'assets/skateboarder-pred.webp',
   'r/docs/doc-5634fc2f46e355462f3f00ea422ab133.pdf',
 ];
