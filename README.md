@@ -4,7 +4,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
 
 ## Page structure
 
-1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on its nearest neighbours; answers cite their sources. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
+1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on the documents the answer draws on, branching across regions when the answer spans several; answers cite their sources. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
 2. **About:** a portrait and a short introduction.
 3. **Work:** three chapters, each with a figure:
    - **Diversity:** shopping, grounding, feed, and travel-planning scenarios with a diversity slider over a neighbourhood graph.
@@ -26,7 +26,7 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
   - **`field.js`:** the hero's embedding field, a 3D HNSW-style graph drawn across three blurred depth planes.
   - **`diversity.js`**, **`agentic.js`**, and **`quantization.js`:** the Work figures.
   - The self-hosted fonts, with their OFL licences.
-- **`index.js`** authors the hero's prompts, thoughts, answers, and citations. **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. Neither calls a model or a backend.
+- **`index.js`** authors the hero's prompts, thoughts, answers, citations, and the field documents each answer draws on. **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. Neither calls a model or a backend.
 - **`assets/og.png`** is the 1200×630 social card. If the name or role changes, re-render it to match.
 
 Update CV content in `index.html`; the hero's responses live in `index.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
