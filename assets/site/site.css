@@ -710,7 +710,7 @@ em { font-style: italic; }
 .career-map-org img { width: 16px; height: 16px; }
 .career-map-head h3 em { color: var(--accent); }
 /* Equal-width milestones align with the SVG; Garage is not on the Search curve. */
-.cm-trajectory { --plot-height: 240px; position: relative; }
+.cm-trajectory { --plot-height: 300px; position: relative; }
 .cm-plot { position: absolute; inset: 0 0 auto; height: var(--plot-height); pointer-events: none; }
 .cm-curve { display: block; width: 100%; height: 100%; overflow: visible; color: var(--accent); }
 .cm-curve-fill { fill: url(#career-growth-fill); }
@@ -723,7 +723,7 @@ em { font-style: italic; }
 .cm-step > a { display: flex; flex-direction: column; height: 100%; padding: 0 8px 4px; border-radius: 10px; color: inherit; text-decoration: none; }
 .cm-step > a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .cm-stage { position: relative; flex: none; height: var(--plot-height); }
-.cm-scope { position: absolute; bottom: calc(var(--rise) * 1px + 16px); left: 0; right: 0; color: var(--heading); font-size: 13px; font-weight: 600; line-height: 1.3; text-align: center; text-wrap: balance; }
+.cm-scope { position: absolute; bottom: calc(var(--rise) * 1px + 24px); left: 0; right: 0; color: var(--heading); font-size: 13px; font-weight: 600; line-height: 1.3; text-align: center; text-wrap: balance; }
 .cm-node { position: absolute; bottom: calc(var(--rise) * 1px - 7px); left: calc(50% - 7px); width: 14px; height: 14px; border: 2px solid var(--accent); border-radius: 50%; background: var(--surface); box-shadow: 0 0 0 4px var(--accent-soft); transition: background .2s ease, box-shadow .2s ease; }
 .cm-step-garage .cm-node { border-color: var(--faint); box-shadow: 0 0 0 4px var(--surface-2); }
 .cm-step-now .cm-node { bottom: calc(var(--rise) * 1px - 9px); left: calc(50% - 9px); width: 18px; height: 18px; border-color: var(--amber-strong); background: var(--amber-strong); box-shadow: 0 0 0 5px var(--amber-soft); }
@@ -935,6 +935,10 @@ em { font-style: italic; }
   .impact-stats li:nth-child(3) a { padding-left: 0; }
   .impact-stats li:nth-child(n + 3) { border-top: 1px solid var(--line); }
   .award-list { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 861px) {
+  .cm-step-scale .cm-scope { left: auto; right: calc(50% + 10px); width: max-content; max-width: calc(100% - 20px); text-align: right; }
 }
 
 /* Keep the curve as an overview on phones, with readable milestones below it. */

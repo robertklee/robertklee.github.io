@@ -10,7 +10,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
    - **Diversity:** travel-planning, shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.
    - **Agentic retrieval:** a natural-language request becomes OData filters (`eq`, `ne`, `and`, `or` over categorical fields) and Lucene boosts; anything outside that set is left to ranking.
    - **Quantization:** a value ladder and a memory-at-scale meter.
-4. **Experience:** an illustrative, accelerating growth curve with linked milestones emphasizing delivery, ownership, scale, and technical direction rather than product-release milestones. Microsoft Garage is separate from the Azure AI Search curve. On narrow screens, a compact curve sits above readable role summaries; expandable records provide the full details. The curve is qualitative, not a measured performance scale or a time-proportional chart.
+4. **Experience:** an illustrative exponential-style growth curve with a flatter early trajectory and a much steeper rise into technical direction. Linked milestones emphasize delivery, ownership, scale, and technical direction rather than product-release milestones. Microsoft Garage is separate from the Azure AI Search curve. On narrow screens, a compact curve sits above readable role summaries; expandable records provide the full details. The curve is qualitative, not a measured performance scale or a time-proportional chart. Keep the SVG coordinates, marker percentages, milestone `--rise` values, and CSS plot height in sync.
 5. **Projects, Community & mentoring, Education, and Awards.**
 6. **Contact:** a closing call to action.
 
