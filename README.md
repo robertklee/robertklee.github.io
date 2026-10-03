@@ -7,7 +7,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
 1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on its nearest neighbours; answers cite their sources. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
 2. **About:** a portrait and a short introduction.
 3. **Work:** three chapters, each with a figure:
-   - **Diversity:** shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.
+   - **Diversity:** shopping, grounding, feed, and travel-planning scenarios with a diversity slider over a neighbourhood graph.
    - **Agentic retrieval:** a natural-language request becomes filter, boost, and ranking operators.
    - **Quantization:** a value ladder and a memory-at-scale meter.
 4. **Experience:** a career map (one product, three names), then expandable role records.

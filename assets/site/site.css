@@ -951,7 +951,7 @@ em { font-style: italic; }
   .qm-ratio { grid-column: 3; text-align: right; }
   .figure-heading h3 { font-size: 28px; }
   .segmented { display: flex; }
-  .segmented button { flex: 1 1 auto; padding-inline: clamp(6px, 2.5vw, 14px); font-size: 12.5px; white-space: nowrap; }
+  .segmented button { flex: 1 1 auto; padding-inline: clamp(4px, 1.5vw, 14px); font-size: 12.5px; white-space: nowrap; }
   .dv-plot { margin-inline: -8px; width: calc(100% + 16px); }
   .dv-group-labels text, .dv-query-mark text { font-size: 15px; letter-spacing: 0; }
   .dv-rank { font-size: 12px; }
@@ -970,6 +970,12 @@ em { font-style: italic; }
   .award-list li { grid-template-columns: 1fr; gap: 4px; }
   .contact-actions .button { flex: 1 1 auto; justify-content: center; }
   .site-footer { flex-direction: column; align-items: flex-start; }
+}
+
+/* The narrowest phones can't fit every tab on one line; let them wrap. */
+@media (max-width: 340px) {
+  .segmented { flex-wrap: wrap; border-radius: 20px; }
+  .dv-body .segmented button { flex-basis: 40%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
