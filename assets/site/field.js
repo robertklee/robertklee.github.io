@@ -6,8 +6,9 @@
 // labelled. Each chat question (`herochat:query`) runs a visible HNSW search:
 // it enters at the sparse top layer deep in the background, makes long jumps
 // that arc through depth, descends a layer at a time, and comes into focus as
-// it lands on the region the answer draws from. Broad questions branch to
-// several regions (diverse retrieval); off-topic ones end on a miss.
+// it lands on the exact documents the answer draws on. Answers that span
+// several regions branch to each (diverse retrieval); off-topic questions end
+// on a miss.
 // Illustrative only: generated data, not a real index or embedding model.
 (() => {
   'use strict';
@@ -44,36 +45,20 @@
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
 
   const CLUSTERS = [
-    { id: 'diversity', label: 'Diversity', docs: ['Diversity capability', 'Distributed execution', 'Redundancy reduction', 'Corpus-spanning grounding'] },
-    { id: 'agentic', label: 'Agentic retrieval', docs: ['Filter generation', 'Boost generation', 'Verifiable operator set', 'Workload benchmarks', 'Billing model'] },
-    { id: 'efficiency', label: 'Efficiency & scale', docs: ['Scalar quantization', 'Binary quantization', 'SIMD distance', 'Billion-vector scale'] },
-    { id: 'relevance', label: 'Relevance', docs: ['Hybrid search', 'Vector search 1 to N', 'Facet aggregation', 'Index alias'] },
+    { id: 'diversity', label: 'Diversity', docs: ['Diversity capability', 'Redundancy reduction', 'Corpus-spanning grounding', 'E-commerce & recs', 'Distributed execution', 'Team of five'] },
+    { id: 'agentic', label: 'Agentic retrieval', docs: ['Filter generation', 'Lucene boosts', 'Bounded operator set', 'Production analysis', 'Agent tool calling', 'RAG grounding'] },
+    { id: 'performance', label: 'Performance & cost', docs: ['Scalar quantization', 'Binary quantization', 'SIMD distance', 'Workload benchmarks', 'Billing model'] },
+    { id: 'engine', label: 'Search engine', docs: ['Vector search 1 to N', 'Subscore fusion', 'Score thresholds', 'HNSW quotas', 'Facet engine', 'Incident response'] },
     { id: 'ml', label: 'Vision & ML', docs: ['Pose estimation', 'Road segmentation', 'Monocular depth', 'Battlesnake RL', 'Chest X-ray app'] },
-    { id: 'community', label: 'Community', docs: ['Digital literacy program', 'IEEE student branch', 'Tech & business conference', 'SENG 321 mentor'] },
-    { id: 'foundations', label: 'Foundations', docs: ['B.Eng, 97% average', 'Schulich Leader', 'YC AI Startup School', 'Undergraduate research award'] }
+    { id: 'community', label: 'Community', docs: ['Digital literacy program', 'IEEE workshops', 'Tech & business conference', 'SENG 321 mentor', 'Mentoring engineers'] },
+    { id: 'foundations', label: 'Foundations', docs: ['B.Eng, 97% average', 'Schulich Leader', 'YC AI Startup School', 'National champion', 'Research award', 'Design competitions'] }
   ];
 
-  // Chat topic -> how the field answers it.
-  const TOPICS = {
-    intro: { mode: 'diverse', clusters: ['diversity', 'agentic', 'efficiency', 'ml', 'community'] },
-    search: { mode: 'diverse', clusters: ['diversity', 'agentic', 'efficiency', 'relevance'] },
-    experience: { mode: 'diverse', clusters: ['diversity', 'agentic', 'efficiency', 'relevance', 'ml'] },
-    skills: { mode: 'diverse', clusters: ['relevance', 'efficiency', 'agentic', 'ml', 'diversity'] },
-    projects: { mode: 'diverse', clusters: ['ml', 'diversity', 'agentic', 'community', 'foundations'] },
-    diversity: { mode: 'knn', cluster: 'diversity' },
-    distributed: { mode: 'knn', cluster: 'efficiency' },
-    performance: { mode: 'knn', cluster: 'efficiency' },
-    relevance: { mode: 'knn', cluster: 'relevance' },
-    rag: { mode: 'knn', cluster: 'agentic' },
-    benchmarking: { mode: 'knn', cluster: 'agentic' },
-    vision: { mode: 'knn', cluster: 'ml' },
-    leadership: { mode: 'knn', cluster: 'community' },
-    awards: { mode: 'knn', cluster: 'foundations' },
-    'easter-egg': { mode: 'miss' },
-    'not-found': { mode: 'miss' }
-  };
+  // Answers name the documents they draw on (`docs` in index.js TOPICS); a
+  // query that names none lands on DEFAULT_DOCS, and MISS topics find nothing.
+  const MISS = new Set(['easter-egg', 'not-found']);
+  const DEFAULT_DOCS = ['Diversity capability', 'Filter generation', 'Scalar quantization', 'Pose estimation', 'Digital literacy program'];
 
-  const K = 4;
   const TOP = 2; // layers L2 (sparse entry layer) .. L0 (every vector)
   const HOLD_MS = 9000;
   const FADE_MS = 1600;
@@ -95,6 +80,7 @@
   let adj = [];
   let entry = 0;
   let clusterInfo = [];
+  let docIndex = new Map(); // document label -> node index
   let protectedRects = [];
   let colors = {};
   let palette = [];
@@ -333,6 +319,7 @@
     // 1. Focus regions on the focal plane: the topics the chat can reference.
     const centres = pickCentres(rand);
     const perCluster = wide ? 13 : compact && width < 600 ? 7 : 9;
+    docIndex = new Map();
     clusterInfo = CLUSTERS.map((cluster, ci) => {
       const centre = unproject(centres[ci].x, centres[ci].y, 0);
       const angle = rand() * Math.PI;
@@ -354,7 +341,10 @@
       }
       // Nearest-to-centre points carry the region's document labels.
       const byCentre = members.slice().sort((a, b) => dist3(nodes[a], centre) - dist3(nodes[b], centre));
-      byCentre.forEach((idx, j) => { nodes[idx].label = cluster.docs[j] || ''; });
+      byCentre.forEach((idx, j) => {
+        nodes[idx].label = cluster.docs[j] || '';
+        if (cluster.docs[j]) docIndex.set(cluster.docs[j], idx);
+      });
       const radius = Math.sqrt(dist3(nodes[byCentre[Math.floor(byCentre.length * 0.8)]], centre));
       return { id: cluster.id, label: cluster.label, centre, members, hub: byCentre[0], radius, f: 1 };
     });
@@ -417,7 +407,7 @@
     buildGraph(rand);
     projectNodes(0, true);
 
-    if (query) planQuery(query.topic, query.start);
+    if (query) planQuery(query.spec, query.start);
     else setReadout(nodes.length + ' vectors · ' + (TOP + 1) + '-layer HNSW · ' + CLUSTERS.length + ' topics', false);
   }
 
@@ -559,15 +549,6 @@
   }
   const countHops = branches => branches.reduce((n, steps) => n + steps.filter(s => !s.descend && s.to !== s.from).length, 0);
 
-  function nearest(target, k, filter) {
-    return nodes
-      .map((p, i) => ({ i, d: dist3(p, target) }))
-      .filter(o => !filter || filter(nodes[o.i]))
-      .sort((a, b) => a.d - b.d)
-      .slice(0, k)
-      .map(o => o.i);
-  }
-
   function emptiestSpot() {
     let best = { x: width * 0.12, y: height * 0.5 };
     let bestScore = -Infinity;
@@ -583,41 +564,83 @@
     return unproject(best.x, best.y, 0);
   }
 
-  function planQuery(topic, start) {
-    const spec = TOPICS[topic] || TOPICS.intro;
+  // The answer's documents shape the search. Documents in one region make a
+  // k-NN query that lands on exactly them; documents across regions make a
+  // diverse retrieval that branches to each one. Off-topic questions miss.
+  function resolveDocs(spec) {
+    if (MISS.has(spec.topic)) return [];
+    const hits = [];
+    (spec.docs && spec.docs.length ? spec.docs : DEFAULT_DOCS).forEach(label => {
+      const i = docIndex.get(label);
+      if (i == null) console.warn('field: unknown document "' + label + '"');
+      else if (!hits.includes(i)) hits.push(i);
+    });
+    return hits;
+  }
+
+  function planQuery(spec, start) {
     readProtected();
-    const q = { topic, start, mode: spec.mode, branches: [], results: [], target: null, land: 0, focusAt: 0, focus: null };
-    if (spec.mode === 'knn') {
-      const ci = Math.max(0, clusterInfo.findIndex(x => x.id === spec.cluster));
-      const c = clusterInfo[ci];
-      const seed = rng(topic.length * 131 + Math.round(start));
-      q.target = { x: c.centre.x + (seed() - 0.5) * sigma * 0.6, y: c.centre.y + (seed() - 0.5) * sigma * 0.5, z: 0 };
-      const { steps } = search(q.target, ci, entry, TOP);
+    const hits = resolveDocs(spec);
+    const regions = [...new Set(hits.map(i => nodes[i].cluster))];
+    const q = { spec, start, mode: 'miss', branches: [], results: [], target: null, land: 0, focusAt: 0, focus: null };
+    if (regions.length === 1) {
+      q.mode = 'knn';
+      const ci = regions[0];
+      const target = { x: 0, y: 0, z: 0 };
+      hits.forEach(i => {
+        target.x += nodes[i].x / hits.length;
+        target.y += nodes[i].y / hits.length;
+        target.z += nodes[i].z / hits.length;
+      });
+      if (hits.length === 1) {
+        // A lone document: the query vector sits near it, not on top of it.
+        const angle = rng(spec.topic.length * 131 + Math.round(start))() * TAU;
+        target.x += Math.cos(angle) * sigma * 0.55;
+        target.y += Math.sin(angle) * sigma * 0.55;
+      }
+      q.target = target;
+      const { steps } = search(target, ci, entry, TOP);
       q.land = q.focusAt = schedule(steps, 0);
       q.branches = [steps];
-      q.results = nearest(q.target, K, n => n.cluster === ci).map((i, rank) => ({ i, t: q.land + 120 + rank * 90 }));
+      q.results = hits.slice()
+        .sort((a, b) => dist3(nodes[a], target) - dist3(nodes[b], target))
+        .map((i, rank) => ({ i, t: q.land + 120 + rank * 90 }));
       q.focus = clusterInfo.map((_, i) => (i === ci ? 1 : 0.3));
-      setReadout('HNSW · L' + TOP + '→L0 · ' + countHops(q.branches) + ' hops · k=' + K + ' · ' + c.label, true);
-    } else if (spec.mode === 'diverse') {
-      const picked = spec.clusters.map(id => clusterInfo.findIndex(c => c.id === id)).filter(i => i >= 0);
+      setReadout('HNSW · L' + TOP + '→L0 · ' + countHops(q.branches) + ' hops · k=' + hits.length + ' · ' + clusterInfo[ci].label, true);
+    } else if (regions.length > 1) {
+      q.mode = 'diverse';
       const centroid = { x: 0, y: 0, z: 0 };
-      picked.forEach(ci => { centroid.x += clusterInfo[ci].centre.x / picked.length; centroid.y += clusterInfo[ci].centre.y / picked.length; });
-      // One shared descent through the top layer, then a branch per region.
+      regions.forEach(ci => {
+        centroid.x += clusterInfo[ci].centre.x / regions.length;
+        centroid.y += clusterInfo[ci].centre.y / regions.length;
+      });
+      // One shared descent through the top layer, then a branch per region
+      // that lands on its first document and walks L0 to the rest.
       const trunk = [];
       const fork = greedy(TOP, entry, centroid, trunk);
       trunk.push({ descend: true, at: fork, layer: TOP - 1 });
       const forkAt = schedule(trunk, 0);
       q.branches = [trunk];
-      picked.forEach((ci, k) => {
-        const { steps, end } = search(clusterInfo[ci].centre, ci, fork, TOP - 1);
-        const done = schedule(steps, forkAt + k * 180);
-        q.branches.push(steps);
-        q.results.push({ i: end, t: done + 120 });
+      regions.forEach((ci, k) => {
+        let at = -1;
+        let t = forkAt + k * 180;
+        hits.filter(i => nodes[i].cluster === ci).forEach(i => {
+          let steps = [];
+          if (at < 0) {
+            const found = search(nodes[i], ci, fork, TOP - 1);
+            steps = found.steps;
+            at = found.end;
+          }
+          at = route(0, at, i, steps);
+          t = schedule(steps, t) + 120;
+          q.branches.push(steps);
+          q.results.push({ i, t });
+        });
       });
       q.land = Math.max(...q.results.map(r => r.t));
       q.focusAt = Math.min(...q.results.map(r => r.t));
-      q.focus = clusterInfo.map((_, i) => (picked.includes(i) ? 1 : 0.3));
-      setReadout('Diverse retrieval · ' + q.results.length + ' results across ' + picked.length + ' topics', true);
+      q.focus = clusterInfo.map((_, i) => (regions.includes(i) ? 1 : 0.3));
+      setReadout('Diverse retrieval · ' + q.results.length + ' results across ' + regions.length + ' topics', true);
     } else {
       q.target = emptiestSpot();
       const { steps } = search(q.target, null, entry, TOP);
@@ -764,33 +787,22 @@
   function drawLabel(text, p, color, placed, strong) {
     const ctx = NEAR.ctx;
     ctx.font = (strong ? '500 ' : '400 ') + '11px "IBM Plex Mono", ui-monospace, monospace';
-    const w = ctx.measureText(text).width + 14;
-    const h = 20;
-    // Centred placements slide along the edge rather than fall off screen.
-    const cx = clamp(p.sx - w / 2, 6, width - 6 - w);
-    const options = [
-      { x: p.sx + 10, y: p.sy - h / 2 },
-      { x: p.sx - 10 - w, y: p.sy - h / 2 },
-      { x: cx, y: p.sy - 14 - h },
-      { x: cx, y: p.sy + 14 }
-    ];
-    // Compact screens have only slivers beside the copy: a label may sit a
-    // little further off, tied back to its point by a leader line.
-    if (compact) for (let d = 40; d <= 112; d += 24) options.push({ x: cx, y: p.sy - d - h, lead: true }, { x: cx, y: p.sy + d, lead: true });
-    for (const o of options) {
-      const box = { x: o.x, y: o.y, w, h };
-      if (box.x < 6 || box.y < 6 || box.x + w > width - 6 || box.y + h > height - 6) continue;
-      if (protectedRects.some(r => overlaps(box, r)) || placed.some(r => overlaps(box, r))) continue;
-      const lx = clamp(p.sx, box.x + 8, box.x + w - 8);
-      const ly = box.y > p.sy ? box.y : box.y + h;
-      if (o.lead && [0.25, 0.5, 0.75].some(k => insideAny(p.sx + (lx - p.sx) * k, p.sy + (ly - p.sy) * k))) continue;
-      placed.push(box);
-      if (o.lead) {
+    // Narrow gutters can't fit a long label on one line; break it in two.
+    const mid = text.length / 2;
+    const cut = [...text.matchAll(/ /g)].map(m => m.index).sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid))[0];
+    const layouts = [[text]];
+    if (cut != null) layouts.push([text.slice(0, cut), text.slice(cut + 1)]);
+    for (const lines of layouts) {
+      const w = Math.max(...lines.map(l => ctx.measureText(l).width)) + 14;
+      const h = lines.length * 14 + 6;
+      const box = placeLabel(p, w, h, placed);
+      if (!box) continue;
+      if (box.lead) {
         ctx.strokeStyle = rgba(color, 0.55);
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(p.sx, p.sy + Math.sign(ly - p.sy) * 5);
-        ctx.lineTo(lx, ly);
+        ctx.moveTo(p.sx, p.sy + Math.sign(box.ly - p.sy) * 5);
+        ctx.lineTo(box.lx, box.ly);
         ctx.stroke();
       }
       ctx.fillStyle = rgba(colors.bg, 0.86);
@@ -800,10 +812,39 @@
       ctx.fill();
       ctx.fillStyle = color;
       ctx.textBaseline = 'middle';
-      ctx.fillText(text, box.x + 7, box.y + h / 2 + 0.5);
+      lines.forEach((l, i) => ctx.fillText(l, box.x + 7, box.y + 10.5 + i * 14));
       return true;
     }
     return false;
+  }
+  function placeLabel(p, w, h, placed) {
+    // Centred placements slide along the edge rather than fall off screen.
+    const cx = clamp(p.sx - w / 2, 6, width - 6 - w);
+    const options = [
+      { x: p.sx + 10, y: p.sy - h / 2 },
+      { x: p.sx - 10 - w, y: p.sy - h / 2 },
+      { x: cx, y: p.sy - 14 - h },
+      { x: cx, y: p.sy + 14 }
+    ];
+    // Neighbouring results (and the slivers beside the copy on compact
+    // screens) crowd labels: one may sit a little further off, tied back to
+    // its point by a leader line.
+    for (let d = 40; d <= 112; d += 24) {
+      for (const x of [cx, p.sx - 4, p.sx + 4 - w, 6, width - 6 - w]) options.push({ x, y: p.sy - d - h, lead: true }, { x, y: p.sy + d, lead: true });
+    }
+    for (const o of options) {
+      const box = { x: o.x, y: o.y, w, h };
+      if (box.x < 6 || box.y < 6 || box.x + w > width - 6 || box.y + h > height - 6) continue;
+      if (protectedRects.some(r => overlaps(box, r)) || placed.some(r => overlaps(box, r))) continue;
+      const lx = clamp(p.sx, box.x + 8, box.x + w - 8);
+      const ly = box.y > p.sy ? box.y : box.y + h;
+      // Leaders stay short: the label sits roughly above or below its point.
+      if (o.lead && (p.sx < box.x - 40 || p.sx > box.x + w + 40)) continue;
+      if (o.lead && [0.25, 0.5, 0.75].some(k => insideAny(p.sx + (lx - p.sx) * k, p.sy + (ly - p.sy) * k))) continue;
+      placed.push(box);
+      return Object.assign(box, { lead: !!o.lead, lx, ly });
+    }
+    return null;
   }
 
   function focusTarget(i, now, still) {
@@ -880,7 +921,9 @@
     }
     flush();
 
+    // The answer's documents claim label space first; region names fit around.
     const placed = [];
+    if (query) drawQuery(now, placed, still);
     const ctx = NEAR.ctx;
     ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
     ctx.textBaseline = 'middle';
@@ -907,8 +950,6 @@
         break;
       }
     });
-
-    if (query) drawQuery(now, placed, still);
 
     if (hover != null && nodes[hover]) {
       const p = nodes[hover];
@@ -1039,13 +1080,16 @@
     if (!frame) frame = requestAnimationFrame(tick);
   }
 
-  function onQuery(topic) {
-    if (!topic) return;
-    planQuery(topic, performance.now());
+  // A query is the topic plus the documents its answer draws on; the 404 page
+  // replays a bare topic name.
+  function onQuery(detail) {
+    const spec = typeof detail === 'string' ? { topic: detail } : detail;
+    if (!spec || !spec.topic) return;
+    planQuery(spec, performance.now());
     kick();
   }
 
-  document.addEventListener('herochat:query', e => onQuery(e.detail && e.detail.topic));
+  document.addEventListener('herochat:query', e => onQuery(e.detail));
   document.addEventListener('site:themechange', () => { readColors(); kick(); });
   motionQuery.addEventListener('change', () => { lastFrame = 0; kick(); });
   document.addEventListener('visibilitychange', () => { lastDraw = 0; kick(); });
