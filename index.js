@@ -61,11 +61,11 @@ var app = document.getElementById('app');
       answer: "Hey, I'm Robert. I turn low-level vector-search engineering into lower costs and faster retrieval \u2014 including quantization shipped from Public Preview to GA."
     },
     {
-      thought: "The newest relevance problem is evidence coverage. Nearest-neighbor retrieval can return redundant results for questions that span a corpus, so finding more similar items isn't always enough. Robert is leading a diversity capability that adapts Microsoft Research work to production constraints and billions-of-vectors scale. I'll introduce that shift from individual hits to a useful evidence set.",
-      answer: "I'm Robert \u2014 I work on retrieval that finds a broader set of useful evidence, not just more near-duplicates, so AI can tackle questions that span an entire corpus."
+      thought: "The newest relevance problem is homogeneity. Nearest-neighbor retrieval can return redundant results, so finding more similar items isn't always enough \u2014 whether the results ground a corpus-spanning question or fill an e-commerce page. Robert is the tech lead, guiding five engineers and scientists, for a novel diversity capability that rethinks a research algorithm for distributed execution at production scale. I'll introduce that shift from individual hits to a useful set.",
+      answer: "I'm Robert \u2014 I tech-lead retrieval that returns a broader set of useful results, not just more near-duplicates, so AI can tackle questions that span an entire corpus."
     },
     {
-      thought: "A recent research-to-production example is agentic-retrieval filter and boost generation. Robert narrowed an unbounded synthesis problem into a bounded, verifiable operator set, used production usage analysis to build agreement across research and product, and implemented the translation. Multiple improvements shipped to Public Preview. I'll keep the introduction focused on making research useful in production.",
+      thought: "A recent research-to-production example is agentic-retrieval filter and boost generation. Robert reformulated an unbounded synthesis problem into a bounded, verifiable operator set that excels in specific filter categories, then used production analysis to show it covered real customer workloads and bring research and product teams to consensus. I'll keep the introduction focused on making research useful in production.",
       answer: "Nice to meet you \u2014 I'm Robert. I turn retrieval research into production capabilities that ground LLMs and agents in governed enterprise knowledge."
     },
     {
@@ -116,8 +116,8 @@ var app = document.getElementById('app');
           answer: "My current work spans vector-search diversity, agentic-retrieval filter and boost generation, and the benchmarking and billing behind agentic retrieval. The common problem is taking ambitious retrieval ideas and making them work within real production constraints \u2014 from evidence quality to resource usage."
         },
         {
-          thought: "The interesting part of the diversity effort is the gap between a research idea and an implementable engine design. Robert identified production constraints and adapted Microsoft Research work around them, owning the engineering from scope through implementation and refinement. I'll focus on that research-to-production responsibility.",
-          answer: "I'm the engineering lead for a new vector-search diversity capability. Standard nearest-neighbor retrieval can return redundant evidence for corpus-spanning questions, so I'm adapting Microsoft Research work into a design that broadens the evidence set at billions-of-vectors scale \u2014 owning scoping, design, implementation, and refinements."
+          thought: "The interesting part of the diversity effort is the gap between a research algorithm and a distributed engine. Robert is the tech lead for five engineers and scientists, setting the technical direction and owning delivery from leadership buy-in through architecture, cross-functional alignment, and implementation. I'll focus on that research-to-production responsibility.",
+          answer: "I'm the tech lead, guiding five engineers and scientists, for a novel vector-search diversity capability. Standard nearest-neighbor retrieval can return homogeneous, redundant results, so we rethought a research algorithm for distributed execution and preserved its strengths at production scale. I own it end to end: from leadership buy-in through architecture and cross-functional alignment to implementation."
         },
         {
           thought: "Another current thread is the link between search and agent workflows. The CV specifically names tool calling, multi-agent orchestration, governed indexed knowledge, and RAG. I'll connect that integration to Robert's background in vector and hybrid relevance without claiming he built the entire orchestration platform.",
@@ -149,11 +149,11 @@ var app = document.getElementById('app');
         },
         {
           thought: "The relevance story spans hybrid controls and the newer diversity capability. Those solve different problems: controlling blended signals versus broadening a redundant evidence set. I'll connect them and keep the diversity outcome framed as the design goal.",
-          answer: "My earlier work improved hybrid retrieval through subscore fusion and score thresholds. I'm now also leading vector-search diversity for questions that span a corpus: the goal is to retrieve a broader evidence set rather than a cluster of near-duplicates. It's a shift from judging individual hits to considering what the whole set lets an LLM answer."
+          answer: "My earlier work improved hybrid retrieval through subscore fusion and score thresholds. Now I'm the tech lead for a vector-search diversity capability that reduces homogeneous, redundant kNN results: the goal is a broader result set rather than a cluster of near-duplicates. It's a shift from judging individual hits to considering what the whole set lets an LLM answer."
         },
         {
           thought: "A concrete example is the production usage analysis for agentic filter and boost generation. A smaller operator set only helps if it still covers the requests customers actually make. Robert produced the analysis that established that coverage and helped both teams agree on the design. I'll make that evidence-backed decision the story.",
-          answer: "I try to make relevance decisions concrete. For agentic filter and boost generation, I analyzed production usage to show that a bounded operator set covered real customer workloads. That evidence helped research and product teams agree on a design we could verify and translate into production, with multiple improvements reaching Public Preview."
+          answer: "I try to make relevance decisions concrete. For agentic filter and boost generation, I analyzed production usage to show that a bounded operator set covered real customer workloads. That evidence brought research and product teams to consensus on a design we could verify."
         }
       ]
     },
@@ -164,20 +164,28 @@ var app = document.getElementById('app');
         "Why does vector search need diversity?",
         "What's Robert's retrieval-diversity work?",
         "How do you retrieve more than near-duplicates?",
-        "How is he broadening the evidence for AI?"
+        "What's the diversity capability he tech-leads?"
       ],
       variants: [
         {
-          thought: "Start with the problem rather than the algorithm. Nearest-neighbor hits can be individually relevant yet redundant as a set, especially for questions spanning a corpus. Robert leads a capability intended to broaden that evidence. I'll explain why the goal differs from finding more similar items.",
-          answer: "Nearest-neighbor search can return many individually relevant results that all say much the same thing. For a question spanning an entire corpus, that leaves gaps. I'm leading a vector-search diversity capability that aims to broaden the retrieved evidence for better answer synthesis, rather than simply returning more of the same."
+          thought: "Start with the problem rather than the algorithm. Nearest-neighbor hits can be individually relevant yet redundant as a set, especially for questions spanning a corpus. Robert is the tech lead for a capability that reduces that homogeneity. I'll explain why the goal differs from finding more similar items.",
+          answer: "Nearest-neighbor search can return many individually relevant results that all say much the same thing. For a question spanning an entire corpus, that leaves gaps. I'm the tech lead for a novel vector-search diversity capability that strengthens kNN search by reducing homogeneous, redundant results \u2014 so the set as a whole covers more of what matters."
         },
         {
-          thought: "The distinctive engineering work is adapting research to production constraints. Robert owns scoping, design, implementation, and refinements, building on Microsoft Research work. I'll explain how broadening the evidence set becomes a different challenge when the engine must operate at billions-of-vectors scale.",
-          answer: "I'm adapting Microsoft Research work on retrieval diversity into a production-oriented design at billions-of-vectors scale. I own the engineering end to end: defining scope, identifying engine constraints, implementing the design, and refining it. The goal is broader evidence for complex questions, with a design that fits the realities of a large search service."
+          thought: "The distinctive engineering work is bridging research and production. Robert analyzed the algorithm stage by stage to distill its fundamental concepts and strengths, then rethought its architecture for distributed execution, with targeted algorithmic and systems innovations to preserve those properties. I'll explain that process without describing internals.",
+          answer: "As tech lead, I bridged research and production by analyzing the algorithm stage by stage to distill what made each stage work. Then we rethought its architecture for distributed execution and developed targeted algorithmic and systems innovations to preserve those properties at production scale \u2014 while meeting demanding scalability, durability, and performance requirements. The result reduces redundant kNN results."
         },
         {
-          thought: "A useful explanation connects result-set diversity to answer synthesis. More results alone don't resolve redundant evidence: a larger set of similar hits can still leave parts of a question unanswered. I'll distinguish the objective from simply increasing top-k, then connect it to Robert's work at scale.",
-          answer: "The question isn't only 'How relevant is each hit?' It's also 'What can the model answer from this set of hits?' My diversity work targets corpus-spanning queries where redundant nearest neighbors leave parts of the question uncovered. Broadening that evidence set is the goal; making the approach operate at billions-of-vectors scale is the engineering challenge."
+          thought: "A useful explanation connects result-set diversity to answer synthesis. More results alone don't resolve redundant evidence: a larger set of similar hits can still leave parts of a question unanswered. I'll distinguish the objective from simply increasing top-k, then connect it to Robert's role.",
+          answer: "The question isn't only 'How relevant is each hit?' It's also 'What can the model answer from this set of hits?' Redundant nearest neighbors can leave parts of a corpus-spanning question uncovered. The diversity capability I tech-lead broadens that set; making it hold up in a distributed engine at production scale is the engineering challenge."
+        },
+        {
+          thought: "Diversity isn't only a RAG concern. The same homogeneity shows up in e-commerce and recommendation systems, where a pure nearest-neighbor list can be ten nearly identical items. I'll show that breadth while keeping the answer about the capability Robert leads.",
+          answer: "It isn't only about grounding LLMs. In e-commerce or recommendations, a pure nearest-neighbor list can show ten nearly identical products. The vector-search diversity capability I tech-lead reduces that homogeneity and redundancy \u2014 whether the results ground a complex, corpus-spanning question or fill a product grid."
+        },
+        {
+          thought: "This one is as much about leadership as algorithms. Robert leads five engineers and scientists and owned the effort from leadership buy-in through architecture to cross-functional alignment and implementation. I'll pair that ownership with the problem the capability solves.",
+          answer: "I'm the tech lead for a team of five engineers and scientists building a novel vector-search diversity capability. Plain kNN retrieval can return homogeneous, redundant results; this capability broadens them. I owned the effort from leadership buy-in through architecture to cross-functional alignment and implementation."
         }
       ]
     },
@@ -248,12 +256,12 @@ var app = document.getElementById('app');
           answer: "I build the retrieval layer beneath RAG \u2014 the vector, hybrid, and semantic search on Azure AI Search that decides what an LLM actually gets to read. Generation is only as good as its grounding, and grounding is exactly what I work on: getting the right enterprise knowledge in front of the model."
         },
         {
-          thought: "The strongest recent example is filter and boost generation. An unbounded synthesis problem is difficult to translate into something verifiable; Robert's key move was a bounded operator set over specific filter categories. He set the technical direction and implemented the production translation. I'll make that design decision the center of the answer.",
-          answer: "I led research-to-production delivery for agentic-retrieval filter and boost generation. The key design move was turning an unbounded filter-synthesis problem into a bounded, verifiable set of operators over specific filter categories. I set the technical direction across research and product teams and implemented the production translation; multiple improvements shipped to Public Preview."
+          thought: "The strongest recent example is filter and boost generation. An unbounded synthesis problem is difficult to translate into something verifiable; Robert's key move was a bounded operator set that excels in specific filter categories. He set the technical direction across research and product teams. I'll make that design decision the center of the answer.",
+          answer: "I led research-to-production delivery for agentic-retrieval filter and boost generation. The key design move was reformulating an unbounded filter-synthesis problem into a bounded, verifiable operator set that excels in specific filter categories. I set the technical direction across research and product teams, and used production analysis to show the operator set covered real customer workloads."
         },
         {
-          thought: "A second angle on filter and boost generation is how the design reached agreement. Production usage analysis showed that the reduced operator set covered real workloads, bringing research and product teams to consensus. I'll highlight how that evidence connected a simpler design to a practical production path.",
-          answer: "A big part of productionizing agentic retrieval was proving a simpler design still covered real needs. For filter and boost generation, I produced the production usage analysis showing that our bounded operator set covered customer workloads. That brought research and product teams to consensus and gave us a verifiable design to ship, with multiple improvements reaching Public Preview."
+          thought: "A second angle on filter and boost generation is how the design reached agreement. Production analysis showed that the bounded operator set covered real workloads, bringing research and product teams to consensus. I'll highlight how that evidence connected a simpler design to a practical production path.",
+          answer: "A big part of productionizing agentic retrieval was proving a simpler design still covered real needs. For filter and boost generation, I leveraged production analysis to demonstrate that our bounded operator set covered real customer workloads. That brought research and product teams to consensus on a verifiable design."
         },
         {
           thought: "The integration work connects Azure AI Search to tool calling, multi-agent orchestration, and RAG. The key idea is that an agent can use governed, indexed enterprise knowledge as part of its workflow. I'll explain that connection between the search engine and the systems consuming its results.",
@@ -300,8 +308,8 @@ var app = document.getElementById('app');
           answer: "My Microsoft experience began with a Garage internship in 2018, building a mobile app with offline ML for chest X-ray classification. I then interned on Search in 2019 and 2020, joined Azure AI Search full-time in 2021, and became a Senior Software Engineer in March 2025. The work has grown from search tooling and service features into vector engines, relevance, and agentic retrieval."
         },
         {
-          thought: "The newest senior-role content has three distinct ownership stories: diversity, filter and boost generation, and benchmarking with production billing. I'll show those together and include mentoring and design leadership rather than only listing technologies.",
-          answer: "As a Senior Software Engineer on Azure AI Search since March 2025, I lead vector-search diversity engineering, research-to-production filter and boost generation, and agentic workload benchmarking with a shipped production billing model. I also mentor engineers and drive design reviews across retrieval, Azure OpenAI, and agent orchestration."
+          thought: "The newest senior-role content has three distinct ownership stories: tech-leading diversity, filter and boost generation, and benchmarking with production billing. I'll show those together and include mentoring and design leadership rather than only listing technologies.",
+          answer: "As a Senior Software Engineer on Azure AI Search since March 2025, I'm the tech lead for a novel vector-search diversity capability with a team of five engineers and scientists. I also led research-to-production filter and boost generation for agentic retrieval, and built the benchmarking behind its shipped production billing model \u2014 while mentoring engineers and driving design reviews."
         },
         {
           thought: "The Software Engineer II chapter spans both building and scaling: I was part of the team that took vector search from 1 to N and quantization from 0 to N. I'll distinguish that team trajectory from my contributions in vector storage, quantization, relevance, HNSW quota enforcement, and the facet engine.",
@@ -368,8 +376,8 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "The newer CV gives a concrete leadership decision, not just a role label: reformulating filter synthesis and using production evidence to align research and product. I'll pair that with the ongoing mentoring and review responsibilities.",
-          answer: "At Microsoft, I mentor and onboard engineers and lead design reviews. One concrete example was agentic filter and boost generation: I set a bounded, verifiable technical direction, used production usage analysis to align research and product teams, and implemented the translation into production. Multiple improvements shipped to Public Preview \u2014 leadership through both the design decision and its delivery."
+          thought: "The newer CV gives concrete leadership, not just a role label: tech-leading five engineers and scientists on the diversity capability, and reformulating filter synthesis with production evidence that aligned research and product. I'll pair those with the ongoing mentoring and review responsibilities.",
+          answer: "At Microsoft, I'm the tech lead for a team of five engineers and scientists building a vector-search diversity capability \u2014 I owned it from leadership buy-in through architecture to cross-functional alignment and implementation. For agentic filter and boost generation, I set a bounded, verifiable technical direction and used production analysis to bring research and product teams to consensus. I also mentor engineers and lead design reviews."
         },
         {
           thought: "My community leadership is unusually large-scale, so the numbers do the talking. I founded a Senior's Program and grew it to 180+ volunteers reaching 650+ attendees across 30 workshops, and I led logistics for a 200+ person conference. I'll surface that scale.",

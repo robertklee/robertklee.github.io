@@ -78,6 +78,8 @@ body:is([data-study="editorial"], [data-study="editorial-chat"], [data-study="he
 .cv-record-body p + p, .cv-record-body p + ul { margin-top: 17px; }
 .cv-record-body ul { margin: 0; padding-left: 21px; }
 .cv-record-body li + li { margin-top: 13px; }
+.cv-record-body li > ul { margin-top: 10px; list-style: circle; }
+.cv-record-body li > ul li + li { margin-top: 8px; }
 .cv-teaser strong, .cv-record-body strong, .cv-awards strong { font-weight: 650; }
 .cv-teaser strong { color: var(--editorial-text, inherit); }
 .cv-teaser .cv-impact, .cv-record-body .cv-impact, .cv-awards .cv-impact { color: var(--accent); }

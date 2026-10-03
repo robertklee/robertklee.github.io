@@ -1094,6 +1094,12 @@ ul {
   padding-bottom: 0;
 }
 
+.bullet-list .bullet-list {
+  list-style-type: circle;
+  padding-top: 10px;
+  font-size: 1em;
+}
+
 .flex-container {
   display: flex;
   flex-wrap: wrap;
