@@ -639,6 +639,9 @@ em { font-style: italic; }
   transform: translateY(-50%);
   transition: top .12s ease-out;
 }
+/* FP32 tracks the slider continuously, so easing would only make it trail;
+   the stepped formats keep a short snap between levels. */
+.quantization-marker[data-quantization-marker="float"] { transition: none; }
 .quantization-marker::before {
   content: "";
   position: absolute;
