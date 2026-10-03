@@ -97,7 +97,10 @@ var app = document.getElementById('app');
   // field's search lands exactly on them. A variant may override `docs`.
   // `sources` are the page sections cited under the answer. `weight` (default
   // 1) sets how often a topic is offered as a chip: recent work and the
-  // standout academic, leadership, and project stories lead.
+  // standout academic, leadership, and project stories lead. `category` is
+  // 'technical', 'leadership', or 'general'; general topics are asked and
+  // answered in plain language for friends, family, and non-engineers, and
+  // every suggestion row includes at least one (see pickTopics).
   var TOPICS = [
     {
       id: 'diversity-why',
@@ -143,7 +146,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'tech-lead',
-      category: 'less-technical',
+      category: 'leadership',
       weight: 3,
       docs: ['Team of five', 'Diversity capability'],
       sources: [['profile-work-entry-1', 'Senior Software Engineer'], ['work-diversity', 'Diversity']],
@@ -185,7 +188,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'operator-consensus',
-      category: 'less-technical',
+      category: 'leadership',
       weight: 2,
       docs: ['Production analysis', 'Bounded operator set'],
       sources: [['work-agentic', 'Agentic retrieval'], ['profile-work-entry-1', 'Senior Software Engineer']],
@@ -352,8 +355,71 @@ var app = document.getElementById('app');
       ]
     },
     {
+      id: 'plain-job',
+      category: 'general',
+      weight: 3,
+      docs: ['Vector search 1 to N', 'Team of five'],
+      sources: [['profile-work-entry-1', 'Senior Software Engineer'], ['profile-work-entry-2', 'Software Engineer II']],
+      prompts: [
+        "What does Robert do at work, in plain English?",
+        "Can you explain Robert's job simply?"
+      ],
+      variants: [
+        {
+          thought: "Skip the jargon and start from something everyone uses: typing a question into a search box. Robert works on the search engine businesses build into their own apps and AI assistants, helped grow vector search, which matches by meaning, and now leads a team of five. I'll keep every term plain.",
+          answer: "I build search engines at Microsoft. Businesses use Azure AI Search to let people, and AI assistants, find the right information in their own documents. I helped grow vector search, which finds things by meaning instead of exact words, so a search for \u201Ccheap flights\u201D can also find \u201Cbudget airfare\u201D. Today I lead a team of five engineers and scientists building new search features."
+        },
+        {
+          thought: "Use an everyday comparison: a very fast librarian who understands what you mean, not just the words you typed. That's the search engine Robert works on, and vector search is the part that understands meaning. Then say he now leads a team of five.",
+          answer: "Think of a very fast librarian. You ask a question, and the search engine I work on at Microsoft finds the few pages that answer it in a huge collection of documents. I helped grow vector search, the part that understands what you mean rather than matching exact words, and today I lead a team of five engineers and scientists building what comes next."
+        }
+      ]
+    },
+    {
+      id: 'plain-current',
+      category: 'general',
+      weight: 2,
+      docs: ['Diversity capability', 'E-commerce & recs', 'Corpus-spanning grounding'],
+      sources: [['work-diversity', 'Diversity'], ['profile-work-entry-1', 'Senior Software Engineer']],
+      prompts: [
+        "What is Robert working on these days?",
+        "What's Robert's current project, simply put?"
+      ],
+      variants: [
+        {
+          thought: "Start with a shopping example everyone has seen: search for running shoes and the top results are ten nearly identical pairs. Robert's team is building a diversity capability that keeps results relevant but varied. I'll keep how it works out of it.",
+          answer: "My team and I are building a new diversity capability for Azure AI Search. Search for running shoes in an online store and the top results can easily be ten nearly identical pairs. Our work keeps results relevant but varied, so shopping pages and recommendations show real choices, and AI assistants get a well-rounded set of sources instead of the same one five times."
+        },
+        {
+          thought: "Use a familiar frustration: searching and getting the same thing over and over. Robert leads the diversity capability that fixes that, which matters most for online shopping and recommendations. I'll explain the why and leave the internals out.",
+          answer: "Ever searched for something and gotten the same answer over and over? I lead the team building a diversity capability for Azure AI Search that fixes that: the top results cover different options instead of repeating each other. It helps online shopping and recommendations feel less repetitive, and gives AI assistants a broader view."
+        }
+      ]
+    },
+    {
+      id: 'plain-ai',
+      category: 'general',
+      weight: 2,
+      docs: ['RAG grounding', 'Agent tool calling'],
+      sources: [['work-agentic', 'Agentic retrieval'], ['profile-work-entry-1', 'Senior Software Engineer']],
+      prompts: [
+        "How do AI assistants find their answers?",
+        "What does Robert's work have to do with AI chatbots?"
+      ],
+      variants: [
+        {
+          thought: "Most people picture a chatbot simply knowing things. For questions about a company's own documents, it first looks them up, then answers from what it found. Robert works on that look-up step, offered to AI agents as a tool they can call. I'll explain it without acronyms.",
+          answer: "A chatbot doesn't automatically know what's in a company's own documents. So before it answers, it can run a search and read what comes back, a bit like checking your notes before replying to an email. I work on that search step: I've connected Azure AI Search to AI agents as a tool they can call, so their answers are grounded in the company's real information."
+        },
+        {
+          thought: "Lead with why it matters to anyone who uses AI: an assistant's answer is only as good as the information it finds first. Robert builds the search that AI agents call as a tool to ground their answers. I'll be honest that good search helps but doesn't guarantee a right answer.",
+          answer: "An AI assistant's answer is only as good as the information it finds first. A lot of my work is on that finding step: I've connected Azure AI Search to AI agents as a tool they can call, so answers about a company's documents are grounded in real sources rather than guesswork. Good search doesn't guarantee a right answer, but it gives the assistant the right material."
+        }
+      ]
+    },
+    {
       id: 'career-arc',
-      category: 'less-technical',
+      category: 'general',
       weight: 2,
       docs: ['Chest X-ray app', 'Vector search 1 to N', 'Team of five'],
       sources: [['profile-work', 'Experience']],
@@ -363,12 +429,12 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "Tell it as growing scope. It starts with a Microsoft Garage internship in 2018, a separate team from search, then search internships in 2019 and 2020, full-time on Azure AI Search from 2021, scaling vector search as a Software Engineer II, and tech-leading as a senior engineer since 2025.",
-          answer: "Each step widened the scope. I started at Microsoft Garage in 2018, building parts of a mobile app for chest X-ray classification, then interned on the search team in 2019 and 2020 and joined full-time in 2021. As a Software Engineer II I helped take vector search from 1 to N, and since 2025 I've been a Senior Software Engineer, tech-leading a team of five."
+          thought: "Tell it as growing scope. It starts with a Microsoft Garage internship in 2018, a separate team from search, then search internships in 2019 and 2020, full-time on Azure AI Search from 2021, scaling vector search as a Software Engineer II, and leading a team as a senior engineer since 2025. I'll keep the terms plain.",
+          answer: "Each step widened the scope. I started at Microsoft Garage in 2018, helping build a mobile app that read chest X-rays, then interned on the search team in 2019 and 2020 and joined full-time in 2021. I helped grow vector search, which finds things by meaning, into something customers rely on at scale, and since 2025 I've been a Senior Software Engineer leading a team of five."
         },
         {
-          thought: "A recruiter wants the arc and the scope. Robert's roles go from parts of an app, to a developer tool, to a top-requested feature, to features in preview, to capabilities taken to GA, to tech-leading a team. I'll anchor three points: the Garage app, vector search at scale, and the team he leads now.",
-          answer: "My path at Microsoft has been about widening scope. It began with parts of a chest X-ray mobile app at Microsoft Garage, then a developer tool and a top-requested API feature as a search intern. Full-time, I went from features in preview to helping take vector search from 1 to N, and today I tech-lead a team of five as a Senior Software Engineer."
+          thought: "Show the arc from small pieces to whole efforts: parts of an app, then individual features, then a major search capability at scale, then leading a team. I'll anchor three points in plain words: the Garage chest X-ray app, vector search, and the team he leads now.",
+          answer: "My path at Microsoft has been about taking on bigger pieces. It began with parts of a chest X-ray mobile app at Microsoft Garage, then internships on the search team. Full-time, I went from shipping individual features to helping grow vector search, search by meaning, for customers at scale, and today I lead a team of five as a Senior Software Engineer."
         }
       ]
     },
@@ -416,7 +482,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'community-programs',
-      category: 'less-technical',
+      category: 'general',
       weight: 2,
       docs: ['Digital literacy program', 'IEEE workshops', 'Tech & business conference'],
       sources: [['profile-leadership', 'Community & mentoring']],
@@ -430,14 +496,14 @@ var app = document.getElementById('app');
           answer: "I founded a digital literacy program for seniors and ran it for six years, growing it to 180 volunteers and 650+ seniors across 30 workshops, then handed it to successors who kept it going. Through our IEEE student branch I built a 14-workshop technical series that reached 350+ students, and I founded a tech and business strategy conference with 200+ attendees."
         },
         {
-          thought: "The common thread is building programs that keep running after Robert steps away. The digital literacy program, the IEEE workshop series, and the conference each needed buy-in, funding, and volunteers. I'll lead with that thread, then the scale.",
-          answer: "I like building programs that outlast me. The seniors' digital literacy program I founded reached 650+ seniors with 180 volunteers and kept running after I handed it off; the IEEE workshop series I built reached 350+ students; and I founded a tech and business strategy conference that drew 200+ attendees."
+          thought: "The common thread is building programs that keep running after Robert steps away, and the seniors' program is the warmest example: past participants emailed years later to ask when the next session would run. Then the IEEE workshop series and the conference. I'll lead with that thread, then the scale.",
+          answer: "I like building programs that outlast me. The seniors' digital literacy program I founded reached 650+ seniors with 180 volunteers and kept running after I handed it off; years later, past participants still emailed to ask when the next session would be. I also built an IEEE workshop series that reached 350+ students, and founded a tech and business strategy conference that drew 200+ attendees."
         }
       ]
     },
     {
       id: 'mentoring',
-      category: 'less-technical',
+      category: 'general',
       weight: 2,
       docs: ['SENG 321 mentor', 'Mentoring engineers'],
       sources: [['profile-leadership', 'Community & mentoring'], ['profile-work-entry-1', 'Senior Software Engineer']],
@@ -448,7 +514,7 @@ var app = document.getElementById('app');
       variants: [
         {
           thought: "Mentoring shows up at work and at the university. At Microsoft, Robert mentors and onboards engineers and leads design reviews. He's also an industry mentor for SENG 321 at the University of Victoria, coaching a student team from an ambiguous brief to a prototype. I'll cover both.",
-          answer: "At Microsoft I mentor and onboard engineers and lead design reviews. I'm also an industry mentor for SENG 321, a requirements-engineering course at the University of Victoria: I wrote a challenge drawn from unsolved problems in production AI systems, and I coach a student team from an ambiguous brief to a clickable prototype."
+          answer: "At Microsoft I mentor and onboard engineers and lead design reviews. I'm also an industry mentor for SENG 321, a third-year software engineering course at the University of Victoria: I wrote a real-world challenge about where AI chatbots still fall short, and I coach a student team from a vague brief to a clickable prototype."
         },
         {
           thought: "Focus on how Robert coaches: he reviews the quality of reasoning, not just the output. In SENG 321 he holds biweekly reviews on scope and design rationale; in 2024 he was one of 18 mentors for a 120-student cohort. At work he mentors and onboards engineers. I'll make the coaching style the point.",
@@ -458,7 +524,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'recognition',
-      category: 'less-technical',
+      category: 'general',
       weight: 2,
       docs: ['Schulich Leader', 'YC AI Startup School', 'National champion'],
       sources: [['profile-awards', 'Awards']],
@@ -479,7 +545,7 @@ var app = document.getElementById('app');
     },
     {
       id: 'education',
-      category: 'less-technical',
+      category: 'general',
       weight: 1,
       docs: ['B.Eng, 97% average', 'Research award', 'Design competitions'],
       sources: [['profile-education', 'Education'], ['profile-awards', 'Awards']],
@@ -489,12 +555,12 @@ var app = document.getElementById('app');
       ],
       variants: [
         {
-          thought: "Robert studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a 97% cumulative average. He received the Jamie Cassels Undergraduate Research Award for work on hardware acceleration for neural networks, and won engineering design competitions. I'll keep it tight.",
-          answer: "I studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a 97% cumulative average. I received the Jamie Cassels Undergraduate Research Award for research on hardware acceleration for neural networks, and won senior design competitions along the way: first place at the Western Engineering Competition and three UVEC titles."
+          thought: "Robert studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a 97% cumulative average. He received the Jamie Cassels Undergraduate Research Award for research on hardware that runs neural networks faster, and won engineering design competitions. I'll keep it tight and plain.",
+          answer: "I studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a 97% cumulative average. I received the Jamie Cassels Undergraduate Research Award to research hardware that runs neural networks faster, and won design competitions along the way, including first place at the Western Engineering Competition."
         },
         {
-          thought: "Lead with the breadth of the degree: distributed systems, algorithms, signal processing, embedded design, and machine learning. Then the research award and the competition wins. University of Victoria, 97% average, graduated 2021.",
-          answer: "My Electrical and Computer Engineering degree from the University of Victoria spanned distributed systems, algorithms, signal processing, embedded design, and machine learning; I graduated in 2021 with a 97% average. With a Jamie Cassels Undergraduate Research Award I researched hardware acceleration for neural networks, and I won design competitions, including building a robot to collect Martian artifacts."
+          thought: "Lead with the breadth of the degree, from hardware to software to machine learning, in everyday words. Then the research award and the most fun competition: a robot that collected Martian artifacts. University of Victoria, 97% average, graduated 2021.",
+          answer: "My Electrical and Computer Engineering degree from the University of Victoria ran from hardware to software to machine learning, and I graduated in 2021 with a 97% average. A research award let me study hardware that runs neural networks faster, and I won design competitions too, including one where we built a robot to collect Martian artifacts."
         }
       ]
     },
@@ -905,11 +971,6 @@ var app = document.getElementById('app');
   var CTA_AFTER = 3;
   var CHIPS_UNTIL = 10;
   var EGG_MIN_TURN = 3; // the easter egg never appears before this many turns
-  // For the first few suggestion rows, always include at least one recruiter-
-  // friendly ("less-technical") chip so a non-engineer visitor always has an
-  // approachable question to click. Past this many turns the mix is fully
-  // random again.
-  var ENFORCE_ACCESSIBLE_UNTIL = 3;
 
   function scrollChatToBottom() {
     if (convoMode && stickBottom) chat.scrollTop = chat.scrollHeight;
@@ -1126,13 +1187,12 @@ var app = document.getElementById('app');
     t.meta.classList.add('line-enter');
   }
 
-  // A topic is "accessible" when its chip question reads for a recruiter or
-  // general visitor (career, leadership, recognition) rather than deep
-  // engineering. Drives the early-turn guarantee in pickTopics.
-  function isAccessible(topic) { return topic.category === 'less-technical'; }
+  // A topic is "accessible" when it's asked and answered in plain language for
+  // friends, family, and other non-engineers. Every suggestion row has one.
+  function isAccessible(topic) { return topic.category === 'general'; }
 
   var askedTopics = {}; // topicId -> true once the visitor has asked it
-  function pickTopics(excludeId, n, requireAccessible) {
+  function pickTopics(excludeId, n) {
     // Weighted shuffle: sorting by u^(1/weight) draws without replacement in
     // proportion to each topic's weight. Topics already asked go to the back,
     // so the chips keep moving to new stories until every one has been told.
@@ -1143,12 +1203,17 @@ var app = document.getElementById('app');
     pool = pool.filter(function (t) { return !askedTopics[t.id]; })
       .concat(pool.filter(function (t) { return askedTopics[t.id]; }));
     var picks = pool.slice(0, n);
-    // Guarantee at least one recruiter-friendly chip in the early turns. If the
-    // random draw came back all-technical, swap a less-technical topic into the
-    // last slot (still drawn from the shuffled remainder, so it stays random).
-    if (requireAccessible && n > 0 && !picks.some(isAccessible)) {
+    // Every row offers at least one plain-language chip. If the draw came back
+    // without one, swap the next accessible topic from the shuffled remainder
+    // into a random slot, so it isn't always last (and hidden on phones, where
+    // the row scrolls sideways).
+    if (n > 0 && !picks.some(isAccessible)) {
       for (var k = n; k < pool.length; k++) {
-        if (isAccessible(pool[k])) { picks[picks.length - 1] = pool[k]; break; }
+        if (isAccessible(pool[k])) {
+          picks.pop();
+          picks.splice(Math.floor(Math.random() * n), 0, pool[k]);
+          break;
+        }
       }
     }
     return picks;
@@ -1210,11 +1275,12 @@ var app = document.getElementById('app');
     if (turnCount < CHIPS_UNTIL) {
       chipsWrap = document.createElement('div');
       chipsWrap.className = 'suggest-chips';
-      pickTopics(excludeId, 3, turnCount < ENFORCE_ACCESSIBLE_UNTIL).forEach(function (topic) {
+      pickTopics(excludeId, 3).forEach(function (topic) {
         var phrasing = topic.prompts[pickUnusedIdx(usedPrompts, topic.id, topic.prompts.length)];
         var chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'suggest-chip';
+        if (isAccessible(topic)) chip.dataset.general = '';
         chip.innerHTML = '<span class="suggest-plus" aria-hidden="true">' + H.ICONS.plus + '</span>' +
           '<span class="suggest-text"></span>';
         chip.querySelector('.suggest-text').textContent = phrasing;
@@ -1303,8 +1369,12 @@ var app = document.getElementById('app');
   // clicking it runs the normal chat flow.
   function maybeAddEasterEgg(row) {
     if (eggShown || turnCount < EGG_MIN_TURN || Math.random() > 0.10) return;
-    var chips = row.querySelectorAll('.suggest-chip');
-    if (!chips.length) return;
+    // Never displace the row's plain-language chip unless there's another.
+    var chips = row.querySelectorAll('.suggest-chip:not([data-general])');
+    if (!chips.length) {
+      chips = row.querySelectorAll('.suggest-chip');
+      if (chips.length < 2) return;
+    }
     var phrasing = EASTER_EGG.prompts[Math.floor(Math.random() * EASTER_EGG.prompts.length)];
     var chip = document.createElement('button');
     chip.type = 'button';

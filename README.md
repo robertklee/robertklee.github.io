@@ -4,7 +4,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
 
 ## Page structure
 
-1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus, each a small organic network of linked documents. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on the documents the answer draws on, branching across regions when the answer spans several; answers cite their sources. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
+1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus, each a small organic network of linked documents. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on the documents the answer draws on, branching across regions when the answer spans several; answers cite their sources. Every row of suggested follow-ups includes at least one plain-language question for friends, family, and other non-engineers. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
 2. **About:** a portrait and a short introduction.
 3. **Work:** three chapters, each with a figure:
    - **Diversity:** shopping, grounding, feed, and travel-planning scenarios with a diversity slider over a neighbourhood graph.
