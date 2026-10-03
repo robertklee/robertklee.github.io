@@ -9,6 +9,7 @@
     "preview": "wrangler dev"
   },
   "devDependencies": {
+    "playwright": "1.63.0",
     "wrangler": "4.129.0"
   }
 }

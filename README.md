@@ -49,6 +49,8 @@ Open `http://127.0.0.1:4173/` for the homepage or `http://127.0.0.1:4173/404.htm
 
 Run `npm run check` to syntax-check the scripts, and `npm run build` to create the production `dist/` directory with the pages and their runtime assets.
 
+Playwright is a development dependency for browser checks and screenshots. After `npm ci`, run `npx playwright install chromium` to install its Chromium browser.
+
 ## Cloudflare Workers Builds deployment
 
 The dependency-free build script recreates `dist/` and copies only the site's
