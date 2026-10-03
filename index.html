@@ -55,6 +55,7 @@
     <script src="assets/site/site.js" defer></script>
     <script src="assets/site/quantization.js" defer></script>
     <script src="assets/site/diversity.js" defer></script>
+    <script src="assets/site/agentic.js" defer></script>
     <script src="assets/site/field.js" defer></script>
   </head>
   <body>
@@ -182,6 +183,36 @@
               <li>Set the technical direction across research and product teams, and brought both to consensus.</li>
             </ul>
           </div>
+          <figure class="chapter-figure agentic-demo" data-agentic-demo aria-labelledby="agentic-figure-title" aria-describedby="agentic-caption">
+            <header class="figure-heading">
+              <p class="eyebrow">Try it · Intent to operators</p>
+              <h3 id="agentic-figure-title">Every constraint, checked.</h3>
+              <p>Each phrase maps to one operator from a small, typed set and is validated against the index before it runs. What falls outside the set is left to ranking, not guessed.</p>
+            </header>
+            <div class="ag-body" hidden>
+              <div class="segmented" role="group" aria-label="Example request">
+                <button type="button" aria-pressed="true" data-request="constraints">Constraints</button>
+                <button type="button" aria-pressed="false" data-request="preferences">Preferences</button>
+                <button type="button" aria-pressed="false" data-request="open">Open-ended</button>
+              </div>
+              <div class="ag-request-wrap">
+                <p class="ag-label">Request</p>
+                <p class="ag-request" data-ag-request></p>
+                <p class="ag-legend" aria-hidden="true"><span class="ag-key ag-filter">Filter · must match</span><span class="ag-key ag-boost">Boost · ranks higher</span><span class="ag-key ag-rank">Ranking only</span></p>
+              </div>
+              <div class="ag-schema-wrap">
+                <p class="ag-label">Index schema · hotels</p>
+                <ul class="ag-schema" data-ag-schema aria-label="Index fields"></ul>
+              </div>
+              <ol class="ag-ops" data-ag-ops aria-label="Operators"></ol>
+              <div class="ag-output" aria-label="Generated query">
+                <p><span>filter</span><code data-ag-filter></code></p>
+                <p><span>boost</span><code data-ag-boost></code></p>
+              </div>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-ag-live></p>
+            </div>
+            <figcaption id="agentic-caption">A simplified illustration on a sample hotel index. Operator names and syntax are illustrative, not the production design.</figcaption>
+          </figure>
         </article>
 
         <article class="chapter" id="work-quantization" aria-labelledby="work-quantization-title">
