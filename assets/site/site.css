@@ -445,7 +445,7 @@ em { font-style: italic; }
 
 .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 28px; }
 .metric strong { display: block; color: var(--heading); font: 400 clamp(52px, 5.4vw, 72px)/.95 var(--font-display); letter-spacing: -.02em; }
-.metric span { display: block; max-width: 180px; margin-top: 10px; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.metric > span { display: block; max-width: 180px; margin-top: 10px; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
 
 .chapter-figure {
   position: relative;
@@ -818,7 +818,7 @@ em { font-style: italic; }
 .impact-stats a { display: block; height: 100%; padding: 22px clamp(14px, 2vw, 24px) 6px; color: inherit; text-decoration: none; }
 .impact-stats li:first-child a { padding-left: 0; }
 .impact-stats strong { display: block; color: var(--heading); font: 400 clamp(44px, 5vw, 64px)/1 var(--font-display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; transition: color .2s ease; }
-.impact-stats span { display: block; max-width: 190px; margin-top: 10px; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.impact-stats a > span { display: block; max-width: 190px; margin-top: 10px; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
 .impact-stats a:hover strong, .impact-stats a:focus-visible strong { color: var(--accent); }
 
 /* Awards */
@@ -826,7 +826,7 @@ em { font-style: italic; }
 .award-card { display: flex; flex-direction: column; padding: clamp(22px, 2.4vw, 30px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .award-figure { margin-bottom: 26px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
 .award-figure strong { display: block; color: var(--accent); font: 400 clamp(48px, 5vw, 64px)/1 var(--font-display); letter-spacing: -.02em; }
-.award-figure span { display: block; margin-top: 8px; color: var(--muted); font-size: 13.5px; }
+.award-figure > span { display: block; margin-top: 8px; color: var(--muted); font-size: 13.5px; }
 .award-card h3 { color: var(--heading); font-size: 18px; font-weight: 600; line-height: 1.35; letter-spacing: -.01em; }
 .award-meta { margin-top: 6px; color: var(--faint); font: 500 12px/1.5 var(--font-mono); letter-spacing: .02em; }
 .award-meta + p { margin-top: 14px; color: var(--muted); font-size: 14.5px; line-height: 1.65; }
@@ -890,6 +890,20 @@ em { font-style: italic; }
 }
 .site-footer a { color: var(--muted); text-underline-offset: 4px; }
 .site-footer a:hover { color: var(--accent); }
+
+/* Motion: site.js adds .reveal only to content below the fold, and never under reduced motion. */
+.reveal { opacity: 0; transform: translateY(28px); }
+.reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+  transition: opacity .7s ease var(--reveal-delay, 0s), transform .9s cubic-bezier(.2, .7, .2, 1) var(--reveal-delay, 0s);
+}
+.career-map.reveal .cm-track { clip-path: inset(-40px 100% -40px -8px); }
+.career-map.reveal.is-revealed .cm-track { clip-path: inset(-40px -40px -40px -8px); transition: clip-path 1.2s cubic-bezier(.6, 0, .2, 1) calc(var(--reveal-delay, 0s) + .2s + var(--row, 0) * .14s); }
+.cm-roles { --row: 1; }
+.cm-edu { --row: 2; }
+[data-count] { font-variant-numeric: tabular-nums; }
+@media print { .reveal { opacity: 1; transform: none; } .career-map.reveal .cm-track { clip-path: none; } }
 
 /* Responsive */
 @media (max-width: 1080px) {

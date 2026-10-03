@@ -128,4 +128,67 @@
     });
   });
   document.querySelectorAll('[data-scroll-end]').forEach(el => { el.scrollLeft = el.scrollWidth; });
+
+  // Scroll reveals and count-ups. Only content that starts below the fold is hidden,
+  // so nothing already on screen flickers; reduced motion skips all of it.
+  if (reducedMotion.matches || !('IntersectionObserver' in window)) return;
+
+  const countUp = (el, delay) => {
+    const text = el.textContent;
+    const parts = text.split(/(\d+(?:\.\d+)?)/);
+    if (parts.length < 2) return;
+    const visual = document.createElement('span');
+    const spoken = document.createElement('span');
+    visual.setAttribute('aria-hidden', 'true');
+    spoken.className = 'cv-sr-only';
+    spoken.textContent = text;
+    el.replaceChildren(visual, spoken);
+    const render = progress => {
+      visual.textContent = parts.map((part, i) => {
+        if (i % 2 === 0) return part;
+        const decimals = (part.split('.')[1] || '').length;
+        return (parseFloat(part) * progress).toFixed(decimals);
+      }).join('');
+    };
+    render(0);
+    const duration = 1400;
+    setTimeout(() => {
+      const start = performance.now();
+      const tick = now => {
+        const t = Math.min(1, (now - start) / duration);
+        render(1 - Math.pow(1 - t, 4));
+        if (t < 1) requestAnimationFrame(tick);
+        else visual.textContent = text;
+      };
+      requestAnimationFrame(tick);
+    }, delay);
+  };
+
+  const reveal = (el, delay = 0) => {
+    el.style.setProperty('--reveal-delay', `${delay}ms`);
+    el.classList.add('is-revealed');
+    el.querySelectorAll('[data-count]').forEach(counter => countUp(counter, delay + 150));
+    revealer.unobserve(el);
+  };
+  const revealer = new IntersectionObserver(entries => {
+    entries
+      .filter(entry => entry.isIntersecting)
+      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left)
+      .forEach((entry, i) => reveal(entry.target, Math.min(i, 5) * 80));
+  }, { rootMargin: '0px 0px -8% 0px' });
+  // Keyboard focus can land just inside the margin above; never leave a focused element invisible.
+  document.addEventListener('focusin', event => {
+    const hidden = event.target instanceof Element && event.target.closest('.reveal:not(.is-revealed)');
+    if (hidden) reveal(hidden);
+  });
+
+  const fold = window.innerHeight;
+  document.querySelectorAll([
+    '.section-heading', '.cv-about > *', '.chapter-copy', '.chapter-figure', '.career-map',
+    '.cv-records > *', '.impact-stats > li', '.award-cards > li', '.award-list > li', '.contact-card',
+  ].join(',')).forEach(el => {
+    if (el.getBoundingClientRect().top <= fold) return;
+    el.classList.add('reveal');
+    revealer.observe(el);
+  });
 })();
