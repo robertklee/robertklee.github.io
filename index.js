@@ -65,10 +65,33 @@ var app = document.getElementById('app');
   var stickBottom = true; // auto-follow new output unless the visitor scrolls up
   var activeTurnTop = null; // top element of the current turn (for revealing its answer)
   var chipScrollKnown = false; // visitor has picked a non-first chip, so they know the row scrolls
+  var compactQuery = window.matchMedia('(max-width: 760px), (max-width: 960px) and (max-height: 600px)');
 
   var chat = document.createElement('div');
   chat.className = 'hero-chat';
   app.appendChild(chat);
+  var mobileFollowups = document.createElement('div');
+  mobileFollowups.className = 'chat-mobile-followups';
+  mobileFollowups.hidden = true;
+  app.appendChild(mobileFollowups);
+
+  function syncCompactLayout() {
+    document.body.classList.toggle('chat-compact', compactQuery.matches);
+    var chips = mobileFollowups.firstElementChild ||
+      (activeSuggestRow && activeSuggestRow.querySelector('.suggest-chips'));
+    if (chips && activeSuggestRow) {
+      if (compactQuery.matches) mobileFollowups.appendChild(chips);
+      else activeSuggestRow.insertBefore(chips, activeSuggestRow.firstChild);
+      activeSuggestRow.hidden = !activeSuggestRow.firstElementChild;
+    }
+    mobileFollowups.hidden = !compactQuery.matches || !mobileFollowups.firstElementChild;
+    chat.classList.toggle('has-followups', !mobileFollowups.hidden);
+    updateConvoHeight();
+    if (chips) updateChipEdges(chips);
+    if (compactQuery.matches && activeSuggestRow) revealAnswer(activeTurnTop, activeSuggestRow);
+  }
+  compactQuery.addEventListener('change', syncCompactLayout);
+  syncCompactLayout();
 
   // Track whether the visitor is parked at the bottom. Streaming only auto-
   // scrolls while this holds, so scrolling up to re-read earlier text sticks
@@ -82,6 +105,7 @@ var app = document.getElementById('app');
   // scroll handler behind a short window opened by wheel / touch / scrollbar /
   // key input, and ignore reflow- or script-driven scrolls.
   var userScrollUntil = 0;
+  var lastScrollTop = 0;
   function markUserScroll() { userScrollUntil = Date.now() + 500; }
   chat.addEventListener('wheel', markUserScroll, { passive: true });
   chat.addEventListener('touchmove', markUserScroll, { passive: true });
@@ -92,9 +116,33 @@ var app = document.getElementById('app');
     if (e.target === chat) markUserScroll();
   });
   chat.addEventListener('scroll', function () {
+    var previousTop = lastScrollTop;
+    lastScrollTop = chat.scrollTop;
     if (Date.now() > userScrollUntil) return; // reflow / programmatic scroll
     markUserScroll(); // keep the window alive through touch-scroll momentum
-    stickBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 24;
+    var atBottom = (chat.scrollHeight - chat.scrollTop - chat.clientHeight) < 24;
+    // A collapsing trace can look "at bottom" without a downward scroll.
+    if (compactQuery.matches && !stickBottom && atBottom && lastScrollTop <= previousTop) return;
+    stickBottom = atBottom;
+  });
+  chat.addEventListener('focusin', function (event) {
+    var target = event.target;
+    if (!compactQuery.matches || !target.closest('.retry-wrap')) return;
+    var token = runToken;
+    requestAnimationFrame(function () {
+      if (!compactQuery.matches || token !== runToken ||
+          !chat.contains(target) || document.activeElement !== target || target.disabled) return;
+      var rect = target.getBoundingClientRect();
+      if (!rect.height) return;
+      var menu = target.closest('.retry-menu');
+      if (menu) {
+        var menuRect = menu.getBoundingClientRect();
+        if (menuRect.height <= chat.clientHeight - 16) rect = menuRect;
+      }
+      var bounds = chat.getBoundingClientRect();
+      if (rect.top < bounds.top + 8) chat.scrollTop -= bounds.top + 8 - rect.top;
+      else if (rect.bottom > bounds.bottom - 8) chat.scrollTop += rect.bottom - bounds.bottom + 8;
+    });
   });
 
   var cursor = H.createCursor();
@@ -112,11 +160,11 @@ var app = document.getElementById('app');
 
   // Streams tokens into a line (trailing the shared cursor), aborting when a
   // newer (re)generation bumps runToken, and following the newest tokens down
-  // the transcript while in conversation mode.
+  // the transcript in conversation mode or the compact mobile layout.
   var stream = H.createStreamer({
     cursor: cursor,
     getToken: function () { return runToken; },
-    onChunk: function () { if (convoMode && stickBottom) chat.scrollTop = chat.scrollHeight; }
+    onChunk: function () { scrollChatToBottom(); }
   });
 
   var prompt = makeLine('chat-prompt', '\u276F');
@@ -155,7 +203,7 @@ var app = document.getElementById('app');
       return (typeof actions !== 'undefined' && actions &&
         !actions.classList.contains('chat-actions-hidden')) ? actions : answer.line;
     },
-    skipEnsure: function () { return convoMode; },
+    skipEnsure: function () { return convoMode || compactQuery.matches; },
     initialReserve: 170
   });
   var cotCap = fold.cotCap;
@@ -369,7 +417,7 @@ var app = document.getElementById('app');
   var DISCOVERY_MIN_TURN = 3;
 
   function scrollChatToBottom() {
-    if (convoMode && stickBottom) chat.scrollTop = chat.scrollHeight;
+    if ((convoMode || compactQuery.matches) && stickBottom) chat.scrollTop = chat.scrollHeight;
   }
 
   // When suggestions/CTA appear, always keep the whole suggestion row (chips +
@@ -379,6 +427,18 @@ var app = document.getElementById('app');
   // stays visible above it (scroll up for the rest). Parks the visitor off-
   // bottom, disengaging auto-follow until they scroll back down or start a turn.
   function revealAnswer(topEl, bottomEl) {
+    if (compactQuery.matches) {
+      if (!stickBottom || !topEl) return;
+      // Chips are docked outside the scroller, so prioritize the answer's start
+      // instead of parking on its retry toolbar or the contact card.
+      var line = topEl.classList.contains('chat-turn') ? topEl.querySelector('.chat-answer') : answer.line;
+      var start = topEl.getBoundingClientRect().top;
+      if (line.getBoundingClientRect().bottom - start > chat.clientHeight - 24) {
+        start = line.getBoundingClientRect().top;
+      }
+      chat.scrollTop = Math.max(0, start - chat.getBoundingClientRect().top + chat.scrollTop - 12);
+      return;
+    }
     if (!convoMode) return;
     if (!bottomEl) { scrollChatToBottom(); return; }
     var ctop = chat.getBoundingClientRect().top;
@@ -399,7 +459,10 @@ var app = document.getElementById('app');
   // hero's HNSW backdrop visible so each retrieval can be seen behind the chat.
   var wideQuery = window.matchMedia ? window.matchMedia('(min-width: 761px)') : null;
   function updateConvoHeight() {
-    if (!convoMode) return;
+    if (compactQuery.matches || !convoMode) {
+      chat.style.maxHeight = '';
+      return;
+    }
     var box = app.parentElement;
     if (!box || !box.getBoundingClientRect) return;
     // Leave a band at the hero's bottom for the persistent scroll cue so the
@@ -439,6 +502,9 @@ var app = document.getElementById('app');
       activeSuggestRow.parentNode.removeChild(activeSuggestRow);
     }
     activeSuggestRow = null;
+    mobileFollowups.replaceChildren();
+    mobileFollowups.hidden = true;
+    chat.classList.remove('has-followups');
   }
 
   // A lightweight fold for follow-up traces. In conversation mode the whole
@@ -689,7 +755,8 @@ var app = document.getElementById('app');
     if (turnCount >= CTA_AFTER) row.appendChild(buildContactCta());
     chat.appendChild(row);
     activeSuggestRow = row;
-    revealAnswer(activeTurnTop, row);
+    syncCompactLayout();
+    if (!compactQuery.matches) revealAnswer(activeTurnTop, row);
     if (chipsWrap) initChipScroll(chipsWrap);
     return row;
   }
@@ -698,15 +765,19 @@ var app = document.getElementById('app');
   // scrollable line. Toggle edge-fade classes so it's clear more chips exist
   // beyond the visible edge, and give a subtle one-time sideways nudge so the
   // overflow is discoverable without the visitor having to guess.
+  function updateChipEdges(chipsWrap) {
+    var max = chipsWrap.scrollWidth - chipsWrap.clientWidth;
+    chipsWrap.classList.toggle('more-right', chipsWrap.scrollLeft < max - 2);
+    chipsWrap.classList.toggle('more-left', chipsWrap.scrollLeft > 2);
+  }
+
   function initChipScroll(chipsWrap) {
     function nudge(x) {
       if (chipsWrap.scrollTo) chipsWrap.scrollTo({ left: x, behavior: 'smooth' });
       else chipsWrap.scrollLeft = x;
     }
     function update() {
-      var max = chipsWrap.scrollWidth - chipsWrap.clientWidth;
-      chipsWrap.classList.toggle('more-right', chipsWrap.scrollLeft < max - 2);
-      chipsWrap.classList.toggle('more-left', chipsWrap.scrollLeft > 2);
+      updateChipEdges(chipsWrap);
     }
     chipsWrap.addEventListener('scroll', update);
     requestAnimationFrame(update); // paint the edge fades right away
@@ -773,8 +844,7 @@ var app = document.getElementById('app');
     turnCount++;
     enterConvoMode();
     stickBottom = true; // a visitor-initiated turn re-engages auto-follow
-    sourceRow.parentNode.removeChild(sourceRow);
-    if (sourceRow === activeSuggestRow) activeSuggestRow = null;
+    removeActiveSuggestions();
     hideIntroActions();
     runToken++; // abort any in-flight follow-up stream
     var myToken = runToken;
@@ -866,6 +936,10 @@ var app = document.getElementById('app');
       t.answer.txt.textContent = v.answer;
       t.answer.txt.appendChild(cursor);
       t.modelTag.textContent = MODELS[t.modelIdx];
+      if (compactQuery.matches) {
+        stickBottom = true;
+        revealAnswer(t.wrap, activeSuggestRow);
+      }
       return;
     }
     regenFollow(t, v);
@@ -930,6 +1004,7 @@ var app = document.getElementById('app');
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(function () {
+      syncCompactLayout();
       if (convoMode) { updateConvoHeight(); return; }
       if (reduceMotion) return;
       fold.refreshReserve();

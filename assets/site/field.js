@@ -152,10 +152,10 @@
     return { x: r.left - b.left - pad, y: r.top - b.top - pad, w: r.width + pad * 2, h: r.height + pad * 2 };
   }
   function readProtected() {
-    const sel = '.hero-eyebrow, .hero-viewport > h1, .hero-tagline, .hero-chat, .scroll-cue, .field-readout';
+    const sel = '.hero-eyebrow, .hero-viewport > h1, .hero-tagline, .hero-chat, .chat-mobile-followups, .scroll-cue, .field-readout';
     protectedRects = [...hero.querySelectorAll(sel)].map(el => {
       const r = relRect(el, 10);
-      if (r) r.glass = el.classList.contains('hero-chat');
+      if (r) r.glass = el.matches('.hero-chat, .chat-mobile-followups');
       return r;
     }).filter(Boolean);
   }
@@ -164,7 +164,7 @@
   // the bottom, and the field composes around the copy instead of beside it.
   function layoutProtected() {
     readProtected();
-    const chat = hero.querySelector('.hero-chat');
+    const chat = hero.querySelector('#app');
     const r = chat && relRect(chat, 16);
     compact = !!r && Math.min(r.x, width - r.x - r.w) < 90;
     if (!r) return;
