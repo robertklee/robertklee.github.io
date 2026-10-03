@@ -54,6 +54,7 @@
     <script src="index.js" defer></script>
     <script src="assets/site/site.js" defer></script>
     <script src="assets/site/quantization.js" defer></script>
+    <script src="assets/site/diversity.js" defer></script>
     <script src="assets/site/field.js" defer></script>
   </head>
   <body>
@@ -138,6 +139,34 @@
             </ul>
             <p class="chapter-uses"><span>Grounding for corpus-spanning questions</span><span>E-commerce</span><span>Recommendations</span></p>
           </div>
+          <figure class="chapter-figure diversity-demo" data-diversity-demo aria-labelledby="diversity-figure-title" aria-describedby="diversity-caption">
+            <header class="figure-heading">
+              <p class="eyebrow">Try it · Relevance vs. diversity</p>
+              <h3 id="diversity-figure-title">Same query, broader evidence.</h3>
+              <p>Pure nearest-neighbour ranking can fill the top six with near-copies. Slide toward diversity and watch them give way.</p>
+            </header>
+            <div class="dv-body" hidden>
+              <div class="segmented" role="group" aria-label="Example">
+                <button type="button" aria-pressed="true" data-scenario="product">Product search</button>
+                <button type="button" aria-pressed="false" data-scenario="corpus">Corpus question</button>
+              </div>
+              <p class="dv-query"><span>Query</span><span data-dv-query>running shoes</span></p>
+              <svg class="dv-plot" viewBox="0 0 560 300" aria-hidden="true" focusable="false" data-dv-plot></svg>
+              <div class="dv-control">
+                <div><label for="dv-lambda">Diversity</label><output for="dv-lambda" data-dv-lambda>&#955; = 1.00</output></div>
+                <input id="dv-lambda" type="range" min="0" max="1" step="0.01" value="0" aria-describedby="diversity-caption">
+                <div class="dv-scale" aria-hidden="true"><span>Relevance only</span><span>Diversity only</span></div>
+              </div>
+              <dl class="dv-stats">
+                <div><dt>Distinct groups</dt><dd data-dv-groups>2 of 6</dd></div>
+                <div><dt>Near-duplicates</dt><dd data-dv-dupes>4</dd></div>
+                <div><dt>Avg. relevance</dt><dd data-dv-rel>0.86</dd></div>
+              </dl>
+              <ol class="dv-results" data-dv-results aria-label="Top six results"></ol>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-dv-live></p>
+            </div>
+            <figcaption id="diversity-caption">Illustration using maximal marginal relevance (Carbonell &amp; Goldstein, 1998) on hand-made data: score = &#955; &#183; relevance &minus; (1 &minus; &#955;) &#183; similarity to results already chosen. Not the production algorithm.</figcaption>
+          </figure>
         </article>
 
         <article class="chapter chapter-flip" id="work-agentic" aria-labelledby="work-agentic-title">
@@ -171,7 +200,7 @@
             <p class="fine-print">Figures are reported customer results. They depend on workload and configuration.</p>
           </div>
           <figure class="chapter-figure quantization-study" aria-labelledby="quantization-title" aria-describedby="quantization-caption">
-            <header class="quantization-heading">
+            <header class="figure-heading quantization-heading">
               <p class="eyebrow">The precision tradeoff</p>
               <h3 id="quantization-title">How much detail do you keep?</h3>
               <p>One value. Three representations.</p>
