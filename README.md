@@ -22,7 +22,7 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
 - **`assets/site/`** holds the design system and page behaviour:
   - **`site.css`:** the design system.
   - **`hero.css`:** hero and chat styles.
-  - **`site.js`:** navigation, theme sync, the career-map readout, scroll reveals, and count-ups.
+  - **`site.js`:** navigation, theme sync, scroll reveals, and count-ups.
   - **`field.js`:** the hero's embedding field, a 3D HNSW-style graph drawn across three blurred depth planes.
   - **`diversity.js`**, **`agentic.js`**, and **`quantization.js`:** the Work figures.
   - The self-hosted fonts, with their OFL licences.
