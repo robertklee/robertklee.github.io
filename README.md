@@ -1,15 +1,14 @@
 # Robert Lee's website
 
-The homepage is the royal-blue editorial design, with the original chip-driven introduction, an animated mountain backdrop, and a complete static CV.
+The homepage is an editorial, single-page profile: a scripted chat hero, selected engineering stories with interactive figures, and a complete static CV, in light and dark themes.
 
 ## Content and presentation
 
 - **`index.html`** is the canonical, directly editable source for the selected stories and complete CV. The page flows from the interactive hero to the personal introduction, selected engineering, and full experience. The experience summaries separate the role from the company and team.
-- **`assets/portfolio/`** contains the shared theme, hero presentation, navigation, and profile interactions. The homepage does not fetch its own content; the design studies import its CV sections.
-- **`profile-source.html`** preserves the previous homepage as a `noindex` reference and isolated host for the original hero. Its `index.js`, `chat-core.js`, and `styles.css` dependencies remain unchanged.
-- **`design-spikes/`** retains all nine internal design studies. They are separate from and not linked by the production homepage.
+- **`assets/site/`** holds the design system (`site.css`), the hero and chat styles (`hero.css`), page behaviour (`site.js`), the interactive figures, and the self-hosted fonts with their OFL licences.
+- **`index.js`** authors the hero's prompts, thoughts, and answers; **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. Neither calls a model or backend.
 
-Update CV content in `index.html`, not in the historical reference. The hero's responses are authored separately in `index.js`; they do not call a model or backend.
+Update CV content in `index.html`. The hero's responses are authored separately in `index.js`.
 
 ## Local preview
 
@@ -19,9 +18,9 @@ Serve the repository root over HTTP, for example:
 python3 -m http.server 4173 --bind 127.0.0.1
 ```
 
-Open `http://127.0.0.1:4173/` for the homepage or `/design-spikes/` for the retained studies.
+Open `http://127.0.0.1:4173/` for the homepage or `http://127.0.0.1:4173/404.html` for the not-found page.
 
-Run `npm run build` to create the production `dist/` directory. The production build publishes root `index.html` and its runtime assets; it intentionally excludes `design-spikes/`.
+Run `npm run check` to syntax-check the scripts, and `npm run build` to create the production `dist/` directory with the pages and their runtime assets.
 
 ## Cloudflare Workers Builds deployment
 

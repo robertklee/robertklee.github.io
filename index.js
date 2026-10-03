@@ -471,7 +471,7 @@ var app = document.getElementById('app');
   };
 
   // The shared chat engine (streaming, retry/model menu, fold logic, timing
-  // helpers, Granim backdrop, theme toggle) lives in chat-core.js as HeroChat.
+  // helpers, theme toggle) lives in chat-core.js as HeroChat.
   var H = window.HeroChat;
   var reduceMotion = H.reduceMotion;
   var CHEVRON_SVG = H.CHEVRON_SVG;
@@ -787,18 +787,17 @@ var app = document.getElementById('app');
 
   // --- Suggested follow-ups + conversation mode ----------------------------
   // After each answer we offer ChatGPT-style follow-up chips. Clicking one
-  // dims the mountain backdrop and grows the hero into a scrollable chat
+  // dims the backdrop and grows the hero into a scrollable chat
   // transcript, appending a fresh prompt -> thinking -> answer for that topic.
 
   // A dim layer that sits between the animated backdrop and the content, so
-  // "conversation mode" can spotlight the chat over a darkened mountain.
+  // "conversation mode" can spotlight the chat over a quieter backdrop.
   var heroDim = document.createElement('div');
   heroDim.id = 'hero-dim';
   heroDim.setAttribute('aria-hidden', 'true');
-  var canvasEl = document.getElementById('canvas-image-blending') ||
-    document.querySelector('[data-hero-backdrop]');
-  if (canvasEl && canvasEl.parentNode) {
-    canvasEl.parentNode.insertBefore(heroDim, canvasEl.nextSibling);
+  var backdropEl = document.querySelector('[data-hero-backdrop]');
+  if (backdropEl && backdropEl.parentNode) {
+    backdropEl.parentNode.insertBefore(heroDim, backdropEl.nextSibling);
   }
 
   var activeSuggestRow = null;
@@ -1346,51 +1345,17 @@ var app = document.getElementById('app');
 })();
 
 
-var initialTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-
-// The homepage draws its own backdrop; only the archived page uses Granim.
-var granimInstance = (typeof Granim === 'function' &&
-  document.getElementById('canvas-image-blending'))
-  ? HeroChat.createGranim(initialTheme)
-  : null;
-
-function bindOpen(id, url) {
-  var el = document.getElementById(id);
-  if (el) el.onclick = function () { window.open(url, "_blank"); };
-}
-
-//RESUME
-// The resume path is base64-encoded rather than embedded as a literal URL so
-// crawlers that scrape links from JS can't discover it. Combined with the
-// unguessable filename and robots.txt Disallow, this keeps it out of search
-// results. (GitHub Pages can't send an X-Robots-Tag: noindex header.)
-bindOpen("resume", atob("L3IvZG9jcy9kb2MtNTYzNGZjMmY0NmUzNTU0NjJmM2YwMGVhNDIyYWIxMzMucGRm"));
-bindOpen("btn-proj1", "https://github.com/robertklee/COCO-Human-Pose");
-bindOpen("btn-proj2", "https://github.com/robertklee/KITTI-RoadSeg");
-bindOpen("btn-proj3", "https://github.com/DeclanMcIntosh/monodepthV2tf");
-
 // THEME / DARK MODE — handled by the shared HeroChat controller (persists the
-// choice, animates a circular reveal, and cross-fades the Granim backdrop).
-HeroChat.initThemeToggle(granimInstance);
+// choice and animates a circular reveal).
+HeroChat.initThemeToggle();
 
 // SCROLL CUE: the hero fills the viewport, so hint that there's more below.
-// Fades out once the visitor starts scrolling and reappears at the top; a
-// click smooth-scrolls past the hero to the Introduction section.
+// Fades out once the visitor starts scrolling and reappears at the top. The
+// cue is an in-page link, so site.js handles the smooth scroll.
 ;(function () {
   var cue = document.querySelector('.scroll-cue');
   if (!cue) return;
-  var hero = document.querySelector('.hero-viewport');
   var fade = document.querySelector('.hero-scroll-fade');
-  var reduceMotion = window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // A link cue (the homepage) is routed by the page's own anchor navigation.
-  if (cue.tagName !== 'A') cue.addEventListener('click', function () {
-    var y = hero
-      ? hero.getBoundingClientRect().bottom + window.pageYOffset
-      : window.innerHeight;
-    window.scrollTo({ top: y, behavior: reduceMotion ? 'auto' : 'smooth' });
-  });
 
   var ticking = false;
   function onScroll() {

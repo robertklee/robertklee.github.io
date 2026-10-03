@@ -1,63 +1,55 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <script>
-      // Apply saved/system theme before first paint to avoid a flash.
       (function () {
+        var theme = 'light';
         try {
-          var t = localStorage.getItem('theme');
-          if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          document.documentElement.setAttribute('data-theme', t);
+          var saved = localStorage.getItem('theme');
+          if (saved === 'light' || saved === 'dark') theme = saved;
+          else if (window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
         } catch (e) {}
+        document.documentElement.setAttribute('data-theme', theme);
       })();
     </script>
     <title>404 — Page Not Found | Robert Lee</title>
     <meta name="description" content="This page couldn't be found. Head back to Robert Lee's homepage.">
     <meta name="robots" content="noindex, follow">
-    <meta name="theme-color" content="#3D348B">
+    <meta name="theme-color" content="#f5f5f0">
     <link rel="icon" href="/assets/favicon.png">
     <link rel="apple-touch-icon" href="/assets/favicon.png">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="/granim.min.js"></script>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="preload" href="/assets/site/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/assets/site/fonts/instrument-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/assets/site/site.css">
+    <link rel="stylesheet" href="/assets/site/hero.css">
+    <script src="/chat-core.js" defer></script>
+    <script src="/404.js" defer></script>
+    <script src="/assets/site/site.js" defer></script>
   </head>
-  <body>
-    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
-      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8 8 0 0 1-9.45-9.45 1 1 0 0 0-1.19-1.19 10 10 0 1 0 12 12 1 1 0 0 0-.31-1.22z"/></svg>
-      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 17a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1zM5.64 5.64a1 1 0 0 1 1.42 0l.7.71a1 1 0 1 1-1.41 1.41l-.71-.7a1 1 0 0 1 0-1.42zm11.31 11.31a1 1 0 0 1 1.41 0l.71.7a1 1 0 0 1-1.41 1.41l-.71-.71a1 1 0 0 1 0-1.4zM2 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1zm17 0a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1zM5.64 18.36a1 1 0 0 1 0-1.41l.71-.71a1 1 0 0 1 1.41 1.41l-.7.71a1 1 0 0 1-1.42 0zm11.31-11.31a1 1 0 0 1 0-1.41l.71-.71a1 1 0 1 1 1.41 1.42l-.71.7a1 1 0 0 1-1.4 0z"/></svg>
-    </button>
-    <canvas id="canvas-image-blending"></canvas>
-
-    <div class="main-content" style="text-align: center; width: 100%; position: absolute">
-      <center>
-
+  <body class="page-404">
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Robert Lee, homepage"><span class="brand-mark" aria-hidden="true">rl.</span><span class="brand-name">Robert Lee</span></a>
+      <div class="header-actions">
+        <button id="theme-toggle" class="icon-button" type="button" aria-label="Dark mode" aria-pressed="false" title="Toggle light/dark mode">
+          <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2m0 15v2M2.5 12h2m15 0h2M5.3 5.3l1.4 1.4m10.6 10.6 1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>
+        </button>
+        <a class="button button-solid" href="/">Homepage <span class="arrow" aria-hidden="true">&#8594;</span></a>
+      </div>
+    </header>
+    <main>
+      <section class="hero" aria-labelledby="not-found-title">
+        <div class="hero-backdrop" data-hero-backdrop aria-hidden="true"></div>
         <div class="hero-viewport">
-          <h1 style="color: white;">404</h1>
-          <p class="hero-tagline">Page not found</p>
-          <div style="padding-top: 25px; color: white;" id="app"></div>
-          <noscript>
-            <p style="color: #fff; padding-top: 20px;">
-              This page couldn't be found. <a href="/" style="color: #fff;">Return to the homepage</a>.
-            </p>
-          </noscript>
+          <p class="hero-eyebrow"><span class="live-dot" aria-hidden="true"></span>Error 404<span class="hero-eyebrow-note">0 results above threshold</span></p>
+          <h1 id="not-found-title">Off the map.</h1>
+          <p class="hero-tagline">Nothing lives at this address, but everything else is one hop away.</p>
+          <div id="app"></div>
+          <noscript><p class="hero-noscript">This page couldn't be found. <a href="/">Return to the homepage</a>.</p></noscript>
         </div>
-
-        <!-- Ending section: a single way back to the main page. -->
-        <div class="text-block" style="padding-top: 40px; padding-bottom: 60px; text-align: center;">
-          <a href="/" class="btn btn-outline-success">Return to homepage</a>
-
-          <br> <br> <br>
-
-          <p><small>&copy; Robert Lee <script>document.write(new Date().getFullYear());</script></small></p>
-        </div>
-
-      </center>
-    </div>
-
-    <script src="/chat-core.js" charset="utf-8"></script>
-    <script src="/404.js" charset="utf-8"></script>
+      </section>
+    </main>
   </body>
 </html>

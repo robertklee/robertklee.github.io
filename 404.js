@@ -99,7 +99,7 @@ var app = document.getElementById('app');
     },
     {
       egg: true, w: 1,
-      thought: "The backdrop is a snowy mountain, so I'll lean into the 'lost' metaphor. This URL is off the map; no trail leads here. I'll admit the 404 and point down the ridge to the homepage.",
+      thought: "I'll lean into the 'lost' metaphor. This URL is off the map; no trail leads here. I'll admit the 404 and point down the ridge to the homepage.",
       answer: "You've wandered off the map \u2014 there's no trail to this page (404). Follow the ridge back down to the homepage."
     }
   ];
@@ -213,7 +213,7 @@ var app = document.getElementById('app');
 
   // The homepage, rendered as a chip so it matches the site's suggested-action
   // styling. `.chat-suggest { display: flex }` is declared after
-  // `.chat-actions-hidden` in styles.css (equal specificity, so it wins), which
+  // `.chat-actions-hidden` in hero.css (equal specificity, so it wins), which
   // means the class can't hide this row \u2014 drive visibility with an inline style.
   var suggest = document.createElement('div');
   suggest.className = 'chat-suggest';
@@ -371,7 +371,4 @@ var app = document.getElementById('app');
   });
 })();
 
-
-var initialTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-var granimInstance = HeroChat.createGranim(initialTheme);
-HeroChat.initThemeToggle(granimInstance);
+HeroChat.initThemeToggle();

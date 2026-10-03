@@ -1,6 +1,6 @@
 // Shared simulated-model UI used by the homepage hero (index.js) and the 404
 // page (404.js). It owns streaming, collapsible thinking traces, model retry
-// controls, the animated backdrop, and theme switching. Page scripts provide
+// controls, and theme switching. Page scripts provide
 // their content and orchestrate each response through the global `HeroChat`.
 window.HeroChat = (function () {
   var reduceMotion = window.matchMedia &&
@@ -492,48 +492,9 @@ window.HeroChat = (function () {
     };
   }
 
-  // The animated mountain backdrop. Light mode is a bright, cool daytime
-  // palette; dark mode is a blue-hour-into-rose dusk (alpenglow on snow).
-  function createGranim(initialTheme) {
-    return new Granim({
-      element: '#canvas-image-blending',
-      direction: 'top-bottom',
-      isPausedWhenNotInView: true,
-      stateTransitionSpeed: 1500,
-      defaultStateName: initialTheme === 'dark' ? 'sunset' : 'day',
-      image: {
-        source: 'assets/snow.jpg',
-        position: ['center', 'center'],
-        stretchMode: ['stretch-if-smaller', 'stretch-if-smaller'],
-        blendingMode: 'multiply'
-      },
-      states: {
-        "day": {
-          gradients: [
-            ['#29323c', '#485563'],
-            ['#FF6B6B', '#556270'],
-            ['#80d3fe', '#7ea0c4'],
-            ['#f0ab51', '#eceba3']
-          ],
-          transitionSpeed: 8000
-        },
-        "sunset": {
-          gradients: [
-            ['#0d1b2a', '#2c5364'],
-            ['#1b263b', '#41668c'],
-            ['#2b3a5e', '#a86a80'],
-            ['#3a1c71', '#d76d77']
-          ],
-          transitionSpeed: 6000
-        }
-      }
-    });
-  }
-
-  // Dark-mode toggle: persists choice, animates a circular reveal from the
-  // button (View Transitions API), and cross-fades the Granim backdrop toward
-  // the matching palette.
-  function initThemeToggle(granimInstance) {
+  // Dark-mode toggle: persists the choice and animates a circular reveal from
+  // the button (View Transitions API).
+  function initThemeToggle() {
     var root = document.documentElement;
     var toggle = document.getElementById('theme-toggle');
     var meta = document.querySelector('meta[name="theme-color"]');
@@ -546,15 +507,12 @@ window.HeroChat = (function () {
       root.setAttribute('data-theme', theme);
       try { localStorage.setItem('theme', theme); } catch (e) {}
       if (toggle) toggle.setAttribute('aria-pressed', theme === 'dark');
-      if (meta) meta.setAttribute('content', theme === 'dark' ? '#0d1117' : '#ffffff');
+      var bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+      if (meta && bg) meta.setAttribute('content', bg);
     }
 
     function switchTheme(event) {
       var next = currentTheme() === 'dark' ? 'light' : 'dark';
-
-      if (granimInstance && granimInstance.changeState) {
-        granimInstance.changeState(next === 'dark' ? 'sunset' : 'day');
-      }
 
       if (!document.startViewTransition || reduceMotion) {
         applyTheme(next);
@@ -614,7 +572,6 @@ window.HeroChat = (function () {
     createStreamer: createStreamer,
     buildRetryMenu: buildRetryMenu,
     createHeroFold: createHeroFold,
-    createGranim: createGranim,
     initThemeToggle: initThemeToggle
   };
 })();

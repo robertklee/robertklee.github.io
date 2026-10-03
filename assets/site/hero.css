@@ -1,6 +1,5 @@
-/* Hero and scripted chat. The chat engine (index.js + chat-core.js) is shared
-   with the archived page, so these rules keep its class names and only change
-   the presentation. */
+/* Hero and scripted chat, shared by the homepage (index.js) and the 404 page
+   (404.js); both drive the same chat-core.js engine and class names. */
 
 .hero {
   position: relative;
@@ -577,6 +576,8 @@ body.convo-active .hero-scroll-fade.cue-hidden { opacity: 0; }
 }
 
 .suggest-plus { color: var(--accent); }
+
+a.suggest-chip { align-self: flex-start; text-decoration: none; }
 
 .egg-chip { border-color: color-mix(in srgb, var(--amber-strong) 55%, transparent); background: var(--amber-soft); }
 .egg-chip:hover { border-color: var(--amber-strong); }

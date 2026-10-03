@@ -7,22 +7,16 @@ const root = __dirname;
 const output = join(root, 'dist');
 const publicFiles = [
   'index.html',
-  'profile-source.html',
   '404.html',
-  'styles.css',
-  'granim.min.js',
   'chat-core.js',
   'index.js',
   '404.js',
   'robots.txt',
   'sitemap.xml',
-  'assets/airplane.jpg',
-  'assets/airplane.webp',
   'assets/battlesnake.png',
   'assets/favicon.png',
   'assets/me.jpg',
   'assets/me.webp',
-  'assets/microsoft.png',
   'assets/microsoft-mark.svg',
   'assets/monocular-depth.jpg',
   'assets/monocular-depth.webp',
@@ -30,7 +24,6 @@ const publicFiles = [
   'assets/road-seg.webp',
   'assets/skateboarder-pred.jpg',
   'assets/skateboarder-pred.webp',
-  'assets/snow.jpg',
   'r/docs/doc-5634fc2f46e355462f3f00ea422ab133.pdf',
 ];
 const publicDirectories = ['assets/site'];
