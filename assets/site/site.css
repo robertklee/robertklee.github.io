@@ -818,10 +818,13 @@ em { font-style: italic; }
 .award-card { display: flex; flex-direction: column; padding: clamp(22px, 2.4vw, 30px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .award-figure { margin-bottom: 26px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
 .award-figure strong { display: block; color: var(--accent); font: 400 clamp(48px, 5vw, 64px)/1 var(--font-display); letter-spacing: -.02em; }
-.award-figure > span { display: block; margin-top: 8px; color: var(--muted); font-size: 13.5px; }
+.award-figure > span { display: block; min-height: 3em; margin-top: 8px; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
 .award-card h3 { color: var(--heading); font-size: 18px; font-weight: 600; line-height: 1.35; letter-spacing: -.01em; }
 .award-meta { margin-top: 6px; color: var(--faint); font: 500 12px/1.5 var(--font-mono); letter-spacing: .02em; }
 .award-meta + p { margin-top: 14px; color: var(--muted); font-size: 14.5px; line-height: 1.65; }
+.award-source { margin-top: auto; padding-top: 18px; font-size: 12px; line-height: 1.4; }
+.award-source a { color: var(--faint); text-underline-offset: 3px; }
+.award-source a:hover, .award-source a:focus-visible { color: var(--accent); }
 .award-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; margin: clamp(28px, 4vw, 40px) 0 0; padding: 0; list-style: none; }
 .award-list li { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
 .award-year { padding-top: 3px; color: var(--faint); font: 500 12px/1.5 var(--font-mono); }
@@ -915,7 +918,8 @@ em { font-style: italic; }
   .chapter-copy { max-width: 720px; }
   .award-cards { grid-template-columns: 1fr; }
   .award-card { display: grid; grid-template-columns: minmax(180px, 240px) minmax(0, 1fr); column-gap: 32px; }
-  .award-figure { grid-row: 1 / span 3; margin: 0; padding: 0 32px 0 0; border-bottom: 0; border-right: 1px solid var(--line); }
+  .award-figure { grid-row: 1 / span 4; margin: 0; padding: 0 32px 0 0; border-bottom: 0; border-right: 1px solid var(--line); }
+  .award-figure > span { min-height: 0; }
 }
 
 @media (max-width: 860px) {

@@ -509,12 +509,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Lead with the most selective: the Schulich Leader Scholarship, $80,000, given to 50 students nationally from about 1,500 nominees. Then the Y Combinator AI Startup School selection and the national science-challenge record. Let the numbers speak.",
-          answer: "The one I'm proudest of is the Schulich Leader Scholarship: $80,000, awarded to 50 students nationally from about 1,500 nominees. I was also selected for Y Combinator's first AI Startup School in 2025, which accepted about 8% of 30,000 applicants, and I was national champion of the Michael Smith Science Challenge with a record score of 97.5%."
+          thought: "Explain the Schulich distinction: $80,000, one of 25 engineering recipients nationally in 2016, within a 50-person STEM cohort selected from 1,500+ school nominees. Then the YC event selection and national science title. Keep the event distinct from YC's startup accelerator.",
+          answer: "The one I'm proudest of is the $80,000 Schulich Leader Scholarship. I was one of 25 engineering recipients across Canada in 2016, in a cohort of 50 selected from 1,500+ school nominees. I was also hand-picked for Y Combinator's first AI Startup School\u2014about 8% of 30,000 applicants\u2014and won the Michael Smith Science Challenge nationally with a record-setting 97.5%."
         },
         {
-          thought: "Show range across the years: a national science title in 2014, the Schulich Leader Scholarship in 2016, and Y Combinator's AI Startup School in 2025. They're part of 20+ awards worth over $100,000. List them in order.",
-          answer: "Three stand out over the years: national champion of the Michael Smith Science Challenge in 2014 with a record 97.5%, the $80,000 Schulich Leader Scholarship in 2016 as one of 50 recipients nationally, and a spot in Y Combinator's first AI Startup School in 2025. They're part of 20+ scholarships and awards worth over $100,000."
+          thought: "Show range across the years: first nationally among 1,753 science-challenge competitors in 2014, Canada's largest undergraduate STEM scholarship program in 2016, and the inaugural YC AI event in 2025. Give the science score context with the 42.5% national average.",
+          answer: "Three stand out: first in Canada among 1,753 Michael Smith Science Challenge competitors in 2014, with a record-setting 97.5% against a 42.5% national average; the $80,000 Schulich Leader Scholarship in 2016, from Canada's largest undergraduate STEM scholarship program; and selection for Y Combinator's inaugural AI Startup School in 2025. I've received 20+ scholarships and awards worth over $100,000."
         }
       ]
     },
