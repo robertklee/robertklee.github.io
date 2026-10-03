@@ -63,6 +63,7 @@
   const HOLD_MS = 9000;
   const FADE_MS = 1600;
   const FRAME_MS = 1000 / 30;
+  const ENTRANCE_MS = document.body.classList.contains('chat-compact') ? 520 : 820;
   const TAU = Math.PI * 2;
 
   let width = 0;
@@ -93,6 +94,8 @@
   let farDirty = true;
   let farSkip = false;
   const clockStart = performance.now();
+  let entranceStart = null;
+  let entranceProgress = (motionQuery.matches || document.body.classList.contains('page-404')) ? 1 : 0;
   const cam = { cy: 1, sy: 0, cp: 1, sp: 0, px: 0, py: 0, tx: 0, ty: 0, yaw: 0, pitch: 0 };
 
   // --- Utilities -------------------------------------------------------------
@@ -817,6 +820,37 @@
   }
 
   // --- Drawing -----------------------------------------------------------------
+  function finishEntrance() {
+    if (entranceProgress === 1) return;
+    entranceProgress = 1;
+    farDirty = true;
+    hero.classList.remove('field-entering');
+    hero.style.removeProperty('--field-enter-duration');
+  }
+  function updateEntrance(now, still) {
+    if (entranceProgress === 1) return;
+    if (still || query) { finishEntrance(); return; }
+    if (entranceStart == null) {
+      entranceStart = now;
+      hero.style.setProperty('--field-enter-duration', ENTRANCE_MS + 'ms');
+      hero.classList.add('field-entering');
+    }
+    const progress = clamp((now - entranceStart) / ENTRANCE_MS, 0, 1);
+    if (progress === 1) finishEntrance();
+    else entranceProgress = progress;
+  }
+  function nodeEntrance(n) {
+    if (entranceProgress === 1) return 1;
+    const depth = n.cluster >= 0 ? 0.2 : planeFor(n.zz) === FAR ? 0 : 0.07;
+    return smooth((entranceProgress - depth - n.phase / TAU * 0.1) / 0.26);
+  }
+  function edgeEntrance(A, B) {
+    if (entranceProgress === 1) return 1;
+    const local = A.cluster >= 0 && A.cluster === B.cluster;
+    const delay = (local ? 0.4 : 0.24) + (A.phase + B.phase) / (2 * TAU) * 0.1;
+    return smooth((entranceProgress - delay) / 0.34);
+  }
+
   // The background is batched by plane, colour, and quantised alpha so a few
   // thousand links cost a handful of stroke calls.
   const batches = PLANES.map(() => ({ lines: new Map(), dots: new Map() }));
@@ -867,7 +901,7 @@
       n.wx = still ? n.x : n.x + Math.sin(t * n.freq + n.phase) * n.amp;
       n.wy = still ? n.y : n.y + Math.cos(t * n.freq * 0.8 + n.phase) * n.amp;
       project(n.wx, n.wy, n.z, n);
-      n.vis = viewFade(n.sx, n.sy) * (0.2 + 0.8 * smooth(freeDist(n.sx, n.sy) / 48));
+      n.vis = viewFade(n.sx, n.sy) * (0.2 + 0.8 * smooth(freeDist(n.sx, n.sy) / 48)) * nodeEntrance(n);
     }
   }
 
@@ -1022,13 +1056,16 @@
         const B = nodes[b];
         const v = Math.min(A.vis, B.vis) * alpha;
         if (v < 0.01) continue;
+        const grow = edgeEntrance(A, B);
+        if (grow < 0.01) continue;
         const lit = hover === a || hover === b;
         const spoke = a === c.hub;
-        ctx.strokeStyle = rgba(lit ? colors.accent : colors.point, (lit ? 0.9 : (spoke ? 0.44 : 0.32) * (dark ? 1.2 : 1)) * v);
+        ctx.strokeStyle = rgba(lit ? colors.accent : colors.point, (lit ? 0.9 : (spoke ? 0.44 : 0.32) * (dark ? 1.2 : 1)) * v * grow);
         ctx.lineWidth = (lit ? 1.8 : spoke ? 1.4 : 1.1) * ui;
         ctx.beginPath();
         ctx.moveTo(A.sx, A.sy);
-        ctx.lineTo(B.sx, B.sy);
+        ctx.lineTo(grow === 1 ? B.sx : A.sx + (B.sx - A.sx) * grow,
+          grow === 1 ? B.sy : A.sy + (B.sy - A.sy) * grow);
         ctx.stroke();
       }
       for (const i of c.members) {
@@ -1081,6 +1118,7 @@
   function draw(now) {
     const t = now - clockStart;
     const still = motionQuery.matches;
+    updateEntrance(now, still);
     const dt = lastDraw ? Math.min(120, now - lastDraw) : 0;
     lastDraw = now;
     const prevYaw = cam.yaw;
@@ -1089,7 +1127,7 @@
     // The far plane is blurred and drifts slowly, so it repaints at half rate
     // unless the camera swings quickly (pointer parallax) or the scene changed.
     const swing = Math.abs(cam.yaw - prevYaw) + Math.abs(cam.pitch - prevPitch);
-    farSkip = !still && !farDirty && dt > 0 && swing < 0.0006 && !farSkip;
+    farSkip = entranceProgress === 1 && !still && !farDirty && dt > 0 && swing < 0.0006 && !farSkip;
     farDirty = false;
     projectNodes(t, still);
     clusterInfo.forEach((c, i) => {
@@ -1117,7 +1155,10 @@
       // Everything off the focal plane, including links out of a region, is soft.
       const deep = A.zz > B.zz ? A : B;
       const plane = planeFor(deep.zz) === FAR ? FAR : MID;
-      line(plane, plane === FAR ? 0 : 1, bgEdge * v * depthA(deep.s) * (plane === FAR ? 1.6 : 0.7), A.sx, A.sy, B.sx, B.sy);
+      const grow = edgeEntrance(A, B);
+      line(plane, plane === FAR ? 0 : 1, bgEdge * v * depthA(deep.s) * (plane === FAR ? 1.6 : 0.7) * grow,
+        A.sx, A.sy, grow === 1 ? B.sx : A.sx + (B.sx - A.sx) * grow,
+        grow === 1 ? B.sy : A.sy + (B.sy - A.sy) * grow);
     }
     for (const n of nodes) {
       if (n.vis < 0.02 || n.cluster >= 0) continue;
@@ -1132,6 +1173,7 @@
     const placed = [];
     if (query) drawQuery(now, placed, still);
     const ctx = NEAR.ctx;
+    const labelEntrance = smooth((entranceProgress - 0.68) / 0.32);
     ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
     ctx.textBaseline = 'middle';
     clusterInfo.forEach(c => {
@@ -1166,13 +1208,13 @@
         if (clusterInfo.some(o => o.members.some(i => hit(nodes[i])))) continue;
         placed.push(box);
         c.spot = k;
-        ctx.fillStyle = rgba(colors.faint, 0.8 * viewFade(mx, my) * (0.3 + 0.7 * c.f));
+        ctx.fillStyle = rgba(colors.faint, 0.8 * viewFade(mx, my) * (0.3 + 0.7 * c.f) * labelEntrance);
         ctx.fillText(text, s.x, s.y);
         break;
       }
     });
 
-    if (hover != null && nodes[hover]) {
+    if (entranceProgress === 1 && hover != null && nodes[hover]) {
       const p = nodes[hover];
       ring(p, colors.accent, 0.9, 6, 1.5);
       drawLabel(p.label || CLUSTERS[p.cluster].label, p, dark ? colors.point : colors.accent, placed, true);
@@ -1306,6 +1348,7 @@
   function onQuery(detail) {
     const spec = typeof detail === 'string' ? { topic: detail } : detail;
     if (!spec || !spec.topic) return;
+    finishEntrance();
     planQuery(spec, performance.now());
     kick();
   }
@@ -1313,7 +1356,11 @@
   document.addEventListener('herochat:query', e => onQuery(e.detail));
   document.addEventListener('site:themechange', () => { readColors(); kick(); });
   motionQuery.addEventListener('change', () => { lastFrame = 0; kick(); });
-  document.addEventListener('visibilitychange', () => { lastDraw = 0; kick(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && entranceStart != null) finishEntrance();
+    lastDraw = 0;
+    kick();
+  });
 
   let resizeTimer = 0;
   const relayout = () => {
@@ -1329,6 +1376,7 @@
   new IntersectionObserver(entries => {
     visible = entries.some(e => e.isIntersecting);
     if (visible) { lastDraw = 0; kick(); }
+    else if (entranceStart != null) finishEntrance();
   }).observe(hero);
 
   if (finePointer.matches) {

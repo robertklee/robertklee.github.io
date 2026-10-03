@@ -286,6 +286,12 @@ body.convo-active .hero-scroll-fade.cue-hidden { opacity: 0; }
   transition: background .6s ease, border-color .6s ease, box-shadow .6s ease;
 }
 
+.field-entering .hero-chat { animation: hero-panel-enter var(--field-enter-duration) ease-out; }
+@keyframes hero-panel-enter {
+  0%, 100% { border-color: var(--line); }
+  40% { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+}
+
 .hero-chat.convo {
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -781,7 +787,8 @@ body.chat-compact .suggest-chips.more-left.more-right {
 
 @media (prefers-reduced-motion: reduce) {
   .stream-cursor { animation: none; opacity: 1; }
-  .tok, .line-enter, .suggest-enter, .scroll-cue svg, .live-dot { animation: none; }
+  .tok, .line-enter, .suggest-enter, .scroll-cue svg, .live-dot,
+  .field-entering .hero-chat { animation: none; }
   .gen-orb { animation: none; filter: none; box-shadow: none; }
   .chat-think .txt, .hero-viewport, .hero-viewport > h1, .hero-tagline, .hero-eyebrow, #app, #hero-dim { transition: none; }
 }

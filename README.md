@@ -31,6 +31,8 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
 
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
+The homepage graph has a one-time entrance: nodes emerge through the depth layers, existing connections trace into place, and topic labels resolve while the chat border briefly picks up the blue accent. It lasts 820 ms on desktop or 520 ms in the compact layout, without delaying the prompt or hiding the name, navigation, or page content. A query takes priority over any remaining entrance. Resizing and theme changes do not replay it; reduced motion skips it, and the 404 graph keeps its existing behavior.
+
 On phones, narrow windows, and short landscape viewports, the homepage uses a compact heading and a scrollable chat from the first answer. Suggested questions sit in a separate bottom strip so long answers, expanded traces, and contact cards cannot hide them. The same chip elements move back into the transcript on wider screens, preserving their handlers and the accessible-question guarantee. Model menus expand inline in the compact transcript to avoid clipped popovers; answers and contact links remain fully available by scrolling.
 
 Match each answer's depth to its question: technical topics keep mechanisms and tradeoffs, leadership topics explain decisions and ownership, and general topics introduce unfamiliar terms with brief explanations and concrete examples. Every answer variant must fit both of its topic's question phrasings and cover the field documents in `docs`.
