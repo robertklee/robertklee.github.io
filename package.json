@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
-    "check": "node --check build.js && node --check chat-core.js && node --check index.js && node --check 404.js && node --check assets/site/site.js && node --check assets/site/quantization.js && node --check assets/site/field.js && node --check assets/site/diversity.js && node --check assets/site/agentic.js",
+    "check": "node --check build.js && node --check chat-core.js && node --check chat-content.js && node --check index.js && node --check 404.js && node --check assets/site/site.js && node --check assets/site/quantization.js && node --check assets/site/field.js && node --check assets/site/diversity.js && node --check assets/site/agentic.js",
     "deploy": "wrangler deploy",
     "preview": "wrangler dev"
   },

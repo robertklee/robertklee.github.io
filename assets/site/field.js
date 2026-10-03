@@ -54,8 +54,8 @@
     { id: 'foundations', label: 'Foundations', docs: ['B.Eng, 97% average', 'Schulich Leader', 'YC AI Startup School', 'National champion', 'Research award', 'Design competitions'] }
   ];
 
-  // Answers name the documents they draw on (`docs` in index.js TOPICS); a
-  // query that names none lands on DEFAULT_DOCS, and MISS topics find nothing.
+  // Answers name the documents they draw on (`docs` in chat-content.js); a query
+  // that names none lands on DEFAULT_DOCS, and MISS topics find nothing.
   const MISS = new Set(['easter-egg', 'not-found']);
   const DEFAULT_DOCS = ['Diversity capability', 'Filter generation', 'Scalar quantization', 'Pose estimation', 'Digital literacy program'];
 

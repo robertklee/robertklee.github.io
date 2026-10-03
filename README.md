@@ -26,10 +26,10 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
   - **`field.js`:** the hero's embedding field, a 3D HNSW-style graph drawn across three blurred depth planes.
   - **`diversity.js`**, **`agentic.js`**, and **`quantization.js`:** the Work figures.
   - The self-hosted fonts, with their OFL licences.
-- **`index.js`** authors the hero's prompts, thoughts, answers, citations, and the field documents each answer draws on. **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. Neither calls a model or a backend.
+- **`chat-content.js`** holds the hero's scripted copy: the opening questions, thoughts, answers, citations, and the field documents each answer draws on. **`index.js`** runs the homepage chat: it samples that copy, offers follow-up chips, and tells the field what to search. **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. None of them calls a model or a backend.
 - **`assets/og.png`** is the 1200×630 social card. If the name or role changes, re-render it to match.
 
-Update CV content in `index.html`; the hero's responses live in `index.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
+Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
 When you add a new top-level asset, also add it to `publicFiles` in `build.js`. Everything under `assets/site/` is copied automatically. When you add a script, add it to the `check` script in `package.json`.
 

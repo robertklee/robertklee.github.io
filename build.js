@@ -9,6 +9,7 @@ const publicFiles = [
   'index.html',
   '404.html',
   'chat-core.js',
+  'chat-content.js',
   'index.js',
   '404.js',
   'robots.txt',
