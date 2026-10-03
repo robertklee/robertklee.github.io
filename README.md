@@ -1,14 +1,37 @@
 # Robert Lee's website
 
-The homepage is an editorial, single-page profile: a scripted chat hero, selected engineering stories with interactive figures, and a complete static CV, in light and dark themes.
+A single-page profile that demonstrates retrieval as well as describing it. A scripted chat hero answers over a live embedding field, three engineering stories each carry an interactive figure, and a complete static CV follows. The site supports light and dark themes. The full profile reads without JavaScript; only the interactive parts need it.
+
+## Page structure
+
+1. **Hero:** a scripted chat over an embedding-field backdrop. Each prompt animates a query reaching its nearest neighbours, and answers cite their sources.
+2. **About:** a portrait and a short introduction.
+3. **Work:** three chapters, each with a figure:
+   - **Diversity:** shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.
+   - **Agentic retrieval:** a natural-language request becomes filter, boost, and ranking operators.
+   - **Quantization:** a value ladder and a memory-at-scale meter.
+4. **Experience:** a career map (one product, three names), then expandable role records.
+5. **Projects, Community & mentoring, Education, and Awards.**
+6. **Contact:** a closing call to action.
+
+The demos use hand-made, illustrative data. They show the idea behind each piece of work, not production algorithms, schemas, or numbers.
 
 ## Content and presentation
 
-- **`index.html`** is the canonical, directly editable source for the selected stories and complete CV. The page flows from the interactive hero to the personal introduction, selected engineering, and full experience. The experience summaries separate the role from the company and team.
-- **`assets/site/`** holds the design system (`site.css`), the hero and chat styles (`hero.css`), page behaviour (`site.js`), the interactive figures, and the self-hosted fonts with their OFL licences.
-- **`index.js`** authors the hero's prompts, thoughts, and answers; **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. Neither calls a model or backend.
+- **`index.html`** is the canonical, directly editable source for the stories, the figures' markup, and the full CV.
+- **`assets/site/`** holds the design system and page behaviour:
+  - **`site.css`:** the design system.
+  - **`hero.css`:** hero and chat styles.
+  - **`site.js`:** navigation, theme sync, the career-map readout, scroll reveals, and count-ups.
+  - **`field.js`:** the hero's embedding field.
+  - **`diversity.js`**, **`agentic.js`**, and **`quantization.js`:** the Work figures.
+  - The self-hosted fonts, with their OFL licences.
+- **`index.js`** authors the hero's prompts, thoughts, answers, and citations. **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. Neither calls a model or a backend.
+- **`assets/og.png`** is the 1200×630 social card. If the name or role changes, re-render it to match.
 
-Update CV content in `index.html`. The hero's responses are authored separately in `index.js`.
+Update CV content in `index.html`; the hero's responses live in `index.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
+
+When you add a new top-level asset, also add it to `publicFiles` in `build.js`. Everything under `assets/site/` is copied automatically. When you add a script, add it to the `check` script in `package.json`.
 
 ## Local preview
 
