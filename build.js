@@ -33,7 +33,7 @@ const publicFiles = [
   'assets/snow.jpg',
   'r/docs/doc-5634fc2f46e355462f3f00ea422ab133.pdf',
 ];
-const publicDirectories = ['assets/portfolio'];
+const publicDirectories = ['assets/site'];
 
 rmSync(output, { recursive: true, force: true });
 

@@ -795,7 +795,8 @@ var app = document.getElementById('app');
   var heroDim = document.createElement('div');
   heroDim.id = 'hero-dim';
   heroDim.setAttribute('aria-hidden', 'true');
-  var canvasEl = document.getElementById('canvas-image-blending');
+  var canvasEl = document.getElementById('canvas-image-blending') ||
+    document.querySelector('[data-hero-backdrop]');
   if (canvasEl && canvasEl.parentNode) {
     canvasEl.parentNode.insertBefore(heroDim, canvasEl.nextSibling);
   }
@@ -1347,35 +1348,26 @@ var app = document.getElementById('app');
 
 var initialTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 
-var granimInstance = HeroChat.createGranim(initialTheme);
+// The homepage draws its own backdrop; only the archived page uses Granim.
+var granimInstance = (typeof Granim === 'function' &&
+  document.getElementById('canvas-image-blending'))
+  ? HeroChat.createGranim(initialTheme)
+  : null;
+
+function bindOpen(id, url) {
+  var el = document.getElementById(id);
+  if (el) el.onclick = function () { window.open(url, "_blank"); };
+}
 
 //RESUME
 // The resume path is base64-encoded rather than embedded as a literal URL so
 // crawlers that scrape links from JS can't discover it. Combined with the
 // unguessable filename and robots.txt Disallow, this keeps it out of search
 // results. (GitHub Pages can't send an X-Robots-Tag: noindex header.)
-var resume = document.getElementById("resume");
-resume.onclick = function() {
-  window.open(atob("L3IvZG9jcy9kb2MtNTYzNGZjMmY0NmUzNTU0NjJmM2YwMGVhNDIyYWIxMzMucGRm"), "_blank");
-};
-
-// Project 1
-var btn_proj_1 = document.getElementById("btn-proj1");
-btn_proj_1.onclick = function() {
-  window.open("https://github.com/robertklee/COCO-Human-Pose", "_blank");
-};
-
-// Project 2
-var btn_proj_2 = document.getElementById("btn-proj2");
-btn_proj_2.onclick = function() {
-  window.open("https://github.com/robertklee/KITTI-RoadSeg", "_blank");
-};
-
-// Project 3
-var btn_proj_3 = document.getElementById("btn-proj3");
-btn_proj_3.onclick = function() {
-  window.open("https://github.com/DeclanMcIntosh/monodepthV2tf", "_blank");
-};
+bindOpen("resume", atob("L3IvZG9jcy9kb2MtNTYzNGZjMmY0NmUzNTU0NjJmM2YwMGVhNDIyYWIxMzMucGRm"));
+bindOpen("btn-proj1", "https://github.com/robertklee/COCO-Human-Pose");
+bindOpen("btn-proj2", "https://github.com/robertklee/KITTI-RoadSeg");
+bindOpen("btn-proj3", "https://github.com/DeclanMcIntosh/monodepthV2tf");
 
 // THEME / DARK MODE — handled by the shared HeroChat controller (persists the
 // choice, animates a circular reveal, and cross-fades the Granim backdrop).
@@ -1392,7 +1384,8 @@ HeroChat.initThemeToggle(granimInstance);
   var reduceMotion = window.matchMedia &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  cue.addEventListener('click', function () {
+  // A link cue (the homepage) is routed by the page's own anchor navigation.
+  if (cue.tagName !== 'A') cue.addEventListener('click', function () {
     var y = hero
       ? hero.getBoundingClientRect().bottom + window.pageYOffset
       : window.innerHeight;

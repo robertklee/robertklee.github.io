@@ -22,7 +22,7 @@ body[data-study="hero-editorial"] {
 }
 body[data-study="hero-editorial"] .editorial-wallpaper {
   visibility: visible;
-  background: linear-gradient(var(--editorial-gradient-top), var(--editorial-gradient-bottom)), url("../snow.jpg") center / cover no-repeat;
+  background: linear-gradient(var(--editorial-gradient-top), var(--editorial-gradient-bottom)), url("../../assets/snow.jpg") center / cover no-repeat;
   background-blend-mode: multiply;
   filter: blur(2px);
   opacity: calc((1 - var(--hero-paper-progress, 0)) * var(--editorial-wallpaper-strength));

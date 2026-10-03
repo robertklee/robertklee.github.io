@@ -65,7 +65,7 @@
         stateTransitionSpeed: 1500,
         defaultStateName: document.documentElement.getAttribute('data-theme') === 'dark' ? 'sunset' : 'day',
         image: {
-          source: new URL('../snow.jpg', scriptURL).href,
+          source: new URL('../../assets/snow.jpg', scriptURL).href,
           position: ['center', 'center'],
           stretchMode: ['none', 'none'],
           blendingMode: 'multiply'
