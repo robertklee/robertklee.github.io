@@ -642,11 +642,7 @@ em { font-style: italic; }
   background: var(--amber-strong);
   box-shadow: 0 0 0 2px var(--surface), 0 0 14px 2px var(--amber-soft);
   transform: translateY(-50%);
-  transition: top .12s ease-out;
 }
-/* FP32 tracks the slider continuously, so easing would only make it trail;
-   the stepped formats keep a short snap between levels. */
-.quantization-marker[data-quantization-marker="float"] { transition: none; }
 .quantization-marker::before {
   content: "";
   position: absolute;
