@@ -288,6 +288,150 @@
     return centres;
   }
 
+  // A region is a small organic network rather than a tidy star. It grows by
+  // preferential attachment, so a hub emerges naturally, and sometimes closes
+  // a triangle with a neighbour's neighbour. A loose force layout with uneven
+  // link lengths spaces it, then a stretch and a little jitter keep it from
+  // looking drawn by hand. The hub is index 0; offsets are in px.
+  function regionGraph(rand, docs, size, len) {
+    const n = Math.max(size, docs + 1);
+    const deg = new Array(n).fill(0);
+    const nbr = Array.from({ length: n }, () => []);
+    const links = [];
+    const link = (a, b) => {
+      if (a === b || nbr[a].includes(b)) return;
+      links.push([a, b]);
+      nbr[a].push(b); nbr[b].push(a);
+      deg[a]++; deg[b]++;
+    };
+    // Branches stop three links out, so a region never trails off in a chain.
+    const hops = new Array(n).fill(0);
+    const pull = j => (hops[j] < 3 ? deg[j] + 0.6 : 0);
+    for (let i = 1; i < n; i++) {
+      let total = 0;
+      for (let j = 0; j < i; j++) total += pull(j);
+      let pick = rand() * total;
+      let t = 0;
+      while (t < i - 1 && (!pull(t) || (pick -= pull(t)) > 0)) t++;
+      if (!pull(t)) t = 0;
+      hops[i] = hops[t] + 1;
+      link(i, t);
+      if (i > 2 && rand() < 0.3) {
+        const near = nbr[t].filter(j => j !== i);
+        if (near.length) link(i, near[Math.floor(rand() * near.length)]);
+      }
+    }
+    // Make the best-connected node index 0.
+    const hub = deg.indexOf(Math.max(...deg));
+    const swap = i => (i === hub ? 0 : i === 0 ? hub : i);
+    let edges = links.map(([a, b]) => [swap(a), swap(b)]);
+
+    // Documents sit mostly near the hub, some further out; leaves fill the rest.
+    const depth = new Array(n).fill(Infinity);
+    depth[0] = 0;
+    const queue = [0];
+    const adjL = Array.from({ length: n }, () => []);
+    edges.forEach(([a, b]) => { adjL[a].push(b); adjL[b].push(a); });
+    for (let h = 0; h < queue.length; h++) {
+      for (const j of adjL[queue[h]]) if (depth[j] === Infinity) { depth[j] = depth[queue[h]] + 1; queue.push(j); }
+    }
+    const order = queue.slice(1).map(i => ({ i, key: depth[i] + rand() * 1.4 })).sort((a, b) => a.key - b.key).map(o => o.i);
+    const docAt = order.slice(0, docs);
+    const kind = new Array(n).fill('leaf');
+    kind[0] = 'hub';
+    docAt.forEach(i => { kind[i] = 'doc'; });
+
+    // Seed a radial tree layout (each branch gets a wedge sized to its subtree)
+    // so the force pass relaxes a start with few crossings.
+    const parent = new Array(n).fill(-1);
+    const kids = Array.from({ length: n }, () => []);
+    queue.slice(1).forEach(i => {
+      parent[i] = adjL[i].filter(j => depth[j] === depth[i] - 1).sort((a, b) => a - b)[0];
+      kids[parent[i]].push(i);
+    });
+    const weight = new Array(n).fill(1);
+    for (let h = queue.length - 1; h > 0; h--) weight[parent[queue[h]]] += weight[queue[h]];
+    const pts = new Array(n);
+    pts[0] = { x: 0, y: 0 };
+    const place = (i, a0, a1) => {
+      let a = a0;
+      for (const k of kids[i]) {
+        const share = (a1 - a0) * weight[k] / (weight[i] - 1);
+        const mid = a + share * (0.5 + (rand() - 0.5) * 0.4);
+        const r = len * depth[k] * (0.85 + rand() * 0.3);
+        pts[k] = { x: Math.cos(mid) * r, y: Math.sin(mid) * r };
+        place(k, a, a + share);
+        a += share;
+      }
+    };
+    const a0 = rand() * TAU;
+    place(0, a0, a0 + TAU);
+    const rest = edges.map(([a, b]) => len * (kind[a] === 'leaf' || kind[b] === 'leaf' ? 0.6 : 0.85) * (0.75 + rand() * 0.6));
+    const fx = new Float64Array(n);
+    const fy = new Float64Array(n);
+    for (let it = 0; it < 160; it++) {
+      fx.fill(0);
+      fy.fill(0);
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const dx = pts[j].x - pts[i].x;
+          const dy = pts[j].y - pts[i].y;
+          const d = Math.max(Math.hypot(dx, dy), 1);
+          const f = len * len * 0.8 / (d * d);
+          fx[i] -= dx / d * f; fy[i] -= dy / d * f;
+          fx[j] += dx / d * f; fy[j] += dy / d * f;
+        }
+        fx[i] -= pts[i].x * 0.012; fy[i] -= pts[i].y * 0.012;
+      }
+      edges.forEach(([a, b], k) => {
+        const dx = pts[b].x - pts[a].x;
+        const dy = pts[b].y - pts[a].y;
+        const d = Math.max(Math.hypot(dx, dy), 1);
+        const f = (d - rest[k]) * 0.3;
+        fx[a] += dx / d * f; fy[a] += dy / d * f;
+        fx[b] -= dx / d * f; fy[b] -= dy / d * f;
+      });
+      const heat = 0.55 * (1 - it / 160) + 0.04;
+      for (let i = 0; i < n; i++) {
+        pts[i].x += clamp(fx[i] * heat, -len * 0.25, len * 0.25);
+        pts[i].y += clamp(fy[i] * heat, -len * 0.25, len * 0.25);
+      }
+    }
+    const stretch = 1 + rand() * 0.45;
+    const mx = pts.reduce((s, p) => s + p.x, 0) / n;
+    const my = pts.reduce((s, p) => s + p.y, 0) / n;
+    pts.forEach(p => {
+      p.x = (p.x - mx) * stretch + gauss(rand) * len * 0.07;
+      p.y = (p.y - my) / Math.sqrt(stretch) + gauss(rand) * len * 0.07;
+    });
+    // A triangle link the layout had to stretch would cut across the region.
+    edges = edges.filter(([a, b]) => parent[a] === b || parent[b] === a || Math.hypot(pts[a].x - pts[b].x, pts[a].y - pts[b].y) < len * 1.35);
+    const degree = new Array(n).fill(0);
+    edges.forEach(([a, b]) => { degree[a]++; degree[b]++; });
+    return { pts, kind, links: edges, degree, docAt };
+  }
+  // Turn (and if need be shrink) a region so it stays on screen and as clear
+  // of the hero copy as it can.
+  function fitRegion(pts, at, turn) {
+    let best = null;
+    for (const s of [1, 0.88, 0.76]) {
+      for (let r = 0; r < 12; r++) {
+        const a = turn + r * TAU / 12;
+        const ca = Math.cos(a);
+        const sa = Math.sin(a);
+        let score = (1 - s) * 30;
+        for (const p of pts) {
+          const x = at.x + (p.x * ca - p.y * sa) * s;
+          const y = at.y + (p.x * sa + p.y * ca) * s;
+          if (x < 12 || y < 12 || x > width - 12 || y > height - 12) score += 100;
+          else if (insideAny(x, y)) score += 10;
+        }
+        if (!best || score < best.score) best = { score, s, ca, sa };
+      }
+    }
+    return best;
+  }
+
   function layout() {
     const box = backdrop.getBoundingClientRect();
     width = Math.max(1, Math.round(box.width));
@@ -313,40 +457,32 @@
     sigma = compact ? clamp(width * 0.032, 11, 22) : Math.max(16, Math.min(40, Math.min(width, height) * 0.042));
     ui = clamp(Math.min(width, height) / 600, 0.75, 1);
     nodes = [];
-    const add = (p, cluster) => nodes.push({ x: p.x, y: p.y, z: p.z, cluster, label: '', level: 0 }) - 1;
-    const tmp = {};
+    const add = (p, cluster) => nodes.push({ x: p.x, y: p.y, z: p.z, cluster, label: '', level: 0, kind: '', deg: 0 }) - 1;
 
-    // 1. Focus regions on the focal plane: the topics the chat can reference.
+    // 1. Focus regions on the focal plane: the topics the chat can reference,
+    //    each a small network turned to fit around the hero copy.
     const centres = pickCentres(rand);
-    const perCluster = wide ? 13 : compact && width < 600 ? 7 : 9;
+    const perCluster = wide ? 12 : compact && width < 600 ? 7 : 9;
+    const span = Math.max(sigma * 1.3, 18);
     docIndex = new Map();
     clusterInfo = CLUSTERS.map((cluster, ci) => {
       const centre = unproject(centres[ci].x, centres[ci].y, 0);
-      const angle = rand() * Math.PI;
-      const ca = Math.cos(angle);
-      const sa = Math.sin(angle);
-      const members = [];
-      for (let i = 0; i < perCluster; i++) {
-        let p = null;
-        for (let tries = 0; tries < 24; tries++) {
-          const u = gauss(rand) * sigma * 1.2;
-          const v = gauss(rand) * sigma * 0.72;
-          const q = { x: centre.x + u * ca - v * sa, y: centre.y + u * sa + v * ca, z: gauss(rand) * sigma * 0.8 };
-          project(q.x, q.y, q.z, tmp);
-          if (tmp.sx < 10 || tmp.sy < 10 || tmp.sx > width - 10 || tmp.sy > height - 10) continue;
-          p = q;
-          if (!insideAny(tmp.sx, tmp.sy)) break;
-        }
-        members.push(add(p || centre, ci));
-      }
-      // Nearest-to-centre points carry the region's document labels.
-      const byCentre = members.slice().sort((a, b) => dist3(nodes[a], centre) - dist3(nodes[b], centre));
-      byCentre.forEach((idx, j) => {
-        nodes[idx].label = cluster.docs[j] || '';
-        if (cluster.docs[j]) docIndex.set(cluster.docs[j], idx);
+      const size = perCluster + (wide ? Math.floor(rand() * 4) - 1 : 0);
+      const shape = regionGraph(rand, cluster.docs.length, size, span);
+      const fit = fitRegion(shape.pts, centres[ci], rand() * TAU);
+      const members = shape.pts.map((p, k) => add({
+        x: centre.x + (p.x * fit.ca - p.y * fit.sa) * fit.s,
+        y: centre.y + (p.x * fit.sa + p.y * fit.ca) * fit.s,
+        z: k ? gauss(rand) * sigma * 0.2 : 0
+      }, ci));
+      members.forEach((idx, k) => { nodes[idx].kind = shape.kind[k]; nodes[idx].deg = shape.degree[k]; });
+      cluster.docs.forEach((doc, j) => {
+        const idx = members[shape.docAt[j]];
+        nodes[idx].label = doc;
+        docIndex.set(doc, idx);
       });
-      const radius = Math.sqrt(dist3(nodes[byCentre[Math.floor(byCentre.length * 0.8)]], centre));
-      return { id: cluster.id, label: cluster.label, centre, members, hub: byCentre[0], radius, f: 1 };
+      const links = shape.links.map(([a, b]) => [members[a], members[b]]);
+      return { id: cluster.id, label: cluster.label, centre, members, links, hub: members[0], f: 1, spot: null };
     });
 
     // 2. The background: anisotropic groups at every depth, filaments between
@@ -380,17 +516,22 @@
     }
     for (let i = 0, n = Math.round(nBg * 0.12); i < n; i++) add(anywhere(depth()), -1);
 
-    // 3. Tendrils tie each focus region back into the graph behind it.
+    // 3. Tendrils tie each focus region back into the graph behind it, leaving
+    //    from the member that faces the group they run to.
     const tendril = wide ? 8 : 5;
     const middle = groups.filter(g => g.c.z < F * 1.4);
     clusterInfo.forEach(c => {
       const g = (middle.length ? middle : groups).reduce((best, h) => (dist3(h.c, c.centre) < dist3(best.c, c.centre) ? h : best));
-      const ctrl = { x: (c.centre.x + g.c.x) / 2 + gauss(rand) * 90 * unit, y: (c.centre.y + g.c.y) / 2 + gauss(rand) * 90 * unit, z: g.c.z * 0.4 };
+      const toward = i => (nodes[i].x - c.centre.x) * (g.c.x - c.centre.x) + (nodes[i].y - c.centre.y) * (g.c.y - c.centre.y);
+      c.exit = c.members.reduce((a, b) => (toward(b) > toward(a) ? b : a));
+      const from = nodes[c.exit];
+      const ctrl = { x: (from.x + g.c.x) / 2 + gauss(rand) * 90 * unit, y: (from.y + g.c.y) / 2 + gauss(rand) * 90 * unit, z: g.c.z * 0.4 };
       const ids = [];
       for (let i = 0; i < tendril; i++) {
-        const p = bezier(c.centre, ctrl, g.c, (i + 0.6 + rand() * 0.6) / (tendril + 1));
+        const p = bezier(from, ctrl, g.c, (i + 0.6 + rand() * 0.6) / (tendril + 1));
         ids.push(add({ x: p.x + gauss(rand) * 10 * unit, y: p.y + gauss(rand) * 10 * unit, z: Math.max(F * 0.14, p.z + gauss(rand) * 10 * unit) }, -1));
       }
+      c.anchor = ids[0];
       // Midway along the tendril, behind the region: where searches drop to L0.
       c.gate = ids[Math.floor(tendril / 2)];
     });
@@ -466,7 +607,15 @@
   }
   function buildGraph(rand) {
     const all = nodes.map((_, i) => i);
-    adj = [buildLayer(all, 12, 5)];
+    // Background vectors link by the HNSW heuristic; each focus region keeps
+    // its own hub-and-spoke links and joins the rest through its tendril.
+    const base = buildLayer(all.filter(i => nodes[i].cluster < 0), 12, 5);
+    adj = [all.map(i => base[i] || [])];
+    const link = (a, b) => { adj[0][a].push(b); adj[0][b].push(a); };
+    clusterInfo.forEach(c => {
+      c.links.forEach(([a, b]) => link(a, b));
+      link(c.exit, c.anchor);
+    });
     edges = [];
     adj[0].forEach((nb, i) => nb.forEach(j => { if (i < j) edges.push(i, j); }));
 
@@ -524,11 +673,13 @@
       if (l === 1 && ci != null) cur = route(1, cur, clusterInfo[ci].gate, steps);
       steps.push({ descend: true, at: cur, layer: l - 1 });
     }
-    cur = greedy(0, cur, target, steps);
-    if (ci != null && nodes[cur].cluster !== ci) {
-      cur = route(0, cur, clusterInfo[ci].hub, steps);
-      cur = greedy(0, cur, target, steps);
-    }
+    if (ci == null) return { steps, end: greedy(0, cur, target, steps) };
+    // A region joins the graph only through its tendril: ride it in, then walk
+    // the region's own links to the member nearest the query.
+    const c = clusterInfo[ci];
+    cur = route(0, cur, c.exit, steps);
+    const near = c.members.reduce((a, b) => (dist3(nodes[b], target) < dist3(nodes[a], target) ? b : a));
+    cur = route(0, cur, near, steps);
     return { steps, end: cur };
   }
   // Long upper-layer jumps take longer; every hop first scans its neighbours.
@@ -847,6 +998,69 @@
     return null;
   }
 
+  // Focus regions cross-fade between the sharp and soft planes (rack focus).
+  // Each node punches a gap through the links that meet it, so the regions
+  // read as discs joined by links rather than points on a mesh. Hovering a
+  // node lights its links.
+  function drawRegion(c, dark) {
+    const dim = 0.35 + 0.65 * c.f;
+    for (const [plane, k] of [[NEAR, c.f], [MID, 1 - c.f]]) {
+      if (k < 0.01) continue;
+      const ctx = plane.ctx;
+      const alpha = dim * k;
+      ctx.lineCap = 'round';
+      for (const [a, b] of c.links) {
+        const A = nodes[a];
+        const B = nodes[b];
+        const v = Math.min(A.vis, B.vis) * alpha;
+        if (v < 0.01) continue;
+        const lit = hover === a || hover === b;
+        const spoke = a === c.hub;
+        ctx.strokeStyle = rgba(lit ? colors.accent : colors.point, (lit ? 0.9 : (spoke ? 0.44 : 0.32) * (dark ? 1.2 : 1)) * v);
+        ctx.lineWidth = (lit ? 1.8 : spoke ? 1.4 : 1.1) * ui;
+        ctx.beginPath();
+        ctx.moveTo(A.sx, A.sy);
+        ctx.lineTo(B.sx, B.sy);
+        ctx.stroke();
+      }
+      for (const i of c.members) {
+        const n = nodes[i];
+        const v = n.vis * alpha;
+        if (v < 0.01) continue;
+        const grow = Math.min(n.deg - 1, 4);
+        const r = (n.kind === 'hub' ? 4.6 + 0.3 * grow : n.kind === 'doc' ? 2.8 + 0.45 * grow : 1.9 + 0.35 * grow) * ui * (0.75 + 0.25 * n.s);
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,' + v + ')';
+        ctx.beginPath();
+        ctx.arc(n.sx, n.sy, r + 2.2 * ui, 0, TAU);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        if (n.kind === 'hub') {
+          ctx.fillStyle = rgba(colors.point, 0.08 * v);
+          ctx.beginPath();
+          ctx.arc(n.sx, n.sy, r * 2.2, 0, TAU);
+          ctx.fill();
+          ctx.fillStyle = rgba(colors.point, 0.22 * v);
+          ctx.strokeStyle = rgba(colors.point, 0.92 * v);
+          ctx.lineWidth = 1.5 * ui;
+          ctx.beginPath();
+          ctx.arc(n.sx, n.sy, r, 0, TAU);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = rgba(colors.point, 0.95 * v);
+          ctx.beginPath();
+          ctx.arc(n.sx, n.sy, r * 0.48, 0, TAU);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = rgba(n.kind === 'doc' ? colors.point : colors.edge, 0.95 * v);
+          ctx.beginPath();
+          ctx.arc(n.sx, n.sy, r, 0, TAU);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
   function focusTarget(i, now, still) {
     const q = query;
     if (!q || !q.focus) return 1;
@@ -883,9 +1097,7 @@
 
     const dark = colors.dark;
     const bgEdge = dark ? 0.34 : 0.4;
-    const fgEdge = dark ? 0.46 : 0.5;
     const bgDot = dark ? 0.72 : 0.6;
-    const fgDot = dark ? 0.92 : 0.85;
     const depthA = s => 0.3 + 0.7 * s;
 
     for (let e = 0; e < edges.length; e += 2) {
@@ -893,33 +1105,20 @@
       const B = nodes[edges[e + 1]];
       const v = Math.min(A.vis, B.vis);
       if (v < 0.02) continue;
-      if (A.cluster >= 0 && A.cluster === B.cluster) {
-        // Focus regions cross-fade between the sharp and soft planes (rack focus).
-        const f = clusterInfo[A.cluster].f;
-        const a = fgEdge * v * (0.35 + 0.65 * f);
-        line(NEAR, 1, a * f, A.sx, A.sy, B.sx, B.sy);
-        line(MID, 1, a * (1 - f), A.sx, A.sy, B.sx, B.sy);
-        continue;
-      }
+      if (A.cluster >= 0 && A.cluster === B.cluster) continue;
       // Everything off the focal plane, including links out of a region, is soft.
       const deep = A.zz > B.zz ? A : B;
       const plane = planeFor(deep.zz) === FAR ? FAR : MID;
       line(plane, plane === FAR ? 0 : 1, bgEdge * v * depthA(deep.s) * (plane === FAR ? 1.6 : 0.7), A.sx, A.sy, B.sx, B.sy);
     }
     for (const n of nodes) {
-      if (n.vis < 0.02) continue;
-      if (n.cluster >= 0) {
-        const f = clusterInfo[n.cluster].f;
-        const a = fgDot * n.vis * (0.35 + 0.65 * f);
-        dot(NEAR, 1, a * f, n.sx, n.sy, n.r * 2.1);
-        dot(MID, 1, a * (1 - f), n.sx, n.sy, n.r * 2.4);
-      } else {
-        const plane = planeFor(n.zz) === FAR ? FAR : MID;
-        const r = n.r * (0.6 + 1.4 * n.s) * (n.level ? 1.35 : 1) * (plane === FAR ? 1.5 : 1);
-        dot(plane, plane === FAR ? 0 : 1, bgDot * n.vis * depthA(n.s) * (plane === FAR ? 1.4 : 1), n.sx, n.sy, r);
-      }
+      if (n.vis < 0.02 || n.cluster >= 0) continue;
+      const plane = planeFor(n.zz) === FAR ? FAR : MID;
+      const r = n.r * (0.6 + 1.4 * n.s) * (n.level ? 1.35 : 1) * (plane === FAR ? 1.5 : 1);
+      dot(plane, plane === FAR ? 0 : 1, bgDot * n.vis * depthA(n.s) * (plane === FAR ? 1.4 : 1), n.sx, n.sy, r);
     }
     flush();
+    clusterInfo.forEach(c => drawRegion(c, dark));
 
     // The answer's documents claim label space first; region names fit around.
     const placed = [];
@@ -927,25 +1126,39 @@
     const ctx = NEAR.ctx;
     ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
     ctx.textBaseline = 'middle';
-    clusterInfo.forEach((c, ci) => {
-      const p = project(c.centre.x, c.centre.y, 0, tmpC);
+    clusterInfo.forEach(c => {
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (const i of c.members) {
+        const n = nodes[i];
+        x0 = Math.min(x0, n.sx); x1 = Math.max(x1, n.sx);
+        y0 = Math.min(y0, n.sy); y1 = Math.max(y1, n.sy);
+      }
       const text = c.label.toUpperCase();
       const w = ctx.measureText(text).width;
-      const cx = clamp(p.sx - w / 2, 10, width - 10 - w);
+      const mx = (x0 + x1) / 2;
+      const my = (y0 + y1) / 2;
+      const cx = clamp(mx - w / 2, 10, width - 10 - w);
+      // Just outside the region's drawn bounds: above, below, then beside.
       const spots = [
-        { x: cx, y: p.sy - c.radius - 18 },
-        { x: cx, y: p.sy + c.radius + 18 }
+        { x: cx, y: y0 - 15 },
+        { x: cx, y: y1 + 15 },
+        { x: x1 + 12, y: my },
+        { x: x0 - 12 - w, y: my }
       ];
-      if (compact) spots.push({ x: p.sx + c.radius + 14, y: p.sy }, { x: p.sx - c.radius - 14 - w, y: p.sy });
-      for (const s of spots) {
+      // Keep last frame's spot while it stays clear, so names don't hop as nodes drift.
+      const order = c.spot != null ? [c.spot, 0, 1, 2, 3].filter((k, j, a) => a.indexOf(k) === j) : [0, 1, 2, 3];
+      c.spot = null;
+      for (const k of order) {
+        const s = spots[k];
         const box = { x: s.x - 4, y: s.y - 8, w: w + 8, h: 16 };
         if (box.x < 6 || box.y < 6 || box.x + box.w > width - 6 || box.y + box.h > height - 6) continue;
         if (protectedRects.some(r => overlaps(box, r)) || placed.some(r => overlaps(box, r))) continue;
-        // Never letter over another region's points.
-        const hit = n => n.sx > box.x - 3 && n.sx < box.x + box.w + 3 && n.sy > box.y - 3 && n.sy < box.y + box.h + 3;
-        if (clusterInfo.some((o, oi) => oi !== ci && o.members.some(i => hit(nodes[i])))) continue;
+        // Never letter over a region's nodes.
+        const hit = n => n.sx > box.x - 9 && n.sx < box.x + box.w + 9 && n.sy > box.y - 9 && n.sy < box.y + box.h + 9;
+        if (clusterInfo.some(o => o.members.some(i => hit(nodes[i])))) continue;
         placed.push(box);
-        ctx.fillStyle = rgba(colors.faint, 0.8 * viewFade(p.sx, p.sy) * (0.3 + 0.7 * c.f));
+        c.spot = k;
+        ctx.fillStyle = rgba(colors.faint, 0.8 * viewFade(mx, my) * (0.3 + 0.7 * c.f));
         ctx.fillText(text, s.x, s.y);
         break;
       }
