@@ -4,7 +4,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
 
 ## Page structure
 
-1. **Hero:** a scripted chat over an embedding-field backdrop. Each prompt animates a query reaching its nearest neighbours, and answers cite their sources.
+1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on its nearest neighbours; answers cite their sources.
 2. **About:** a portrait and a short introduction.
 3. **Work:** three chapters, each with a figure:
    - **Diversity:** shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.
@@ -23,7 +23,7 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
   - **`site.css`:** the design system.
   - **`hero.css`:** hero and chat styles.
   - **`site.js`:** navigation, theme sync, the career-map readout, scroll reveals, and count-ups.
-  - **`field.js`:** the hero's embedding field.
+  - **`field.js`:** the hero's embedding field, a 3D HNSW-style graph drawn across three blurred depth planes.
   - **`diversity.js`**, **`agentic.js`**, and **`quantization.js`:** the Work figures.
   - The self-hosted fonts, with their OFL licences.
 - **`index.js`** authors the hero's prompts, thoughts, answers, and citations. **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. Neither calls a model or a backend.

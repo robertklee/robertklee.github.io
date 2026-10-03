@@ -37,13 +37,16 @@
   background: linear-gradient(to bottom, transparent, var(--bg));
 }
 
-/* Embedding field (field.js): drawn above the grid; fades its own edges. */
+/* Embedding field (field.js): drawn above the grid; fades its own edges.
+   Three stacked planes give depth of field: far and mid are softened here. */
 .field-canvas {
   position: absolute;
   inset: 0;
   z-index: 1;
   display: block;
 }
+.field-far { filter: blur(1.8px); }
+.field-mid { filter: blur(.9px); }
 
 .field-readout {
   position: absolute;
