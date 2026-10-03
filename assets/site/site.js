@@ -101,33 +101,6 @@
     sync();
   });
 
-  // Career map: echo the hovered or focused bar, and start scrolled to the present.
-  document.querySelectorAll('.career-map').forEach(map => {
-    const readout = map.querySelector('[data-cm-readout]');
-    if (!readout) return;
-    const idle = readout.textContent;
-    const show = bar => {
-      const title = document.createElement('strong');
-      const meta = document.createElement('span');
-      title.textContent = bar.dataset.cmTitle;
-      meta.textContent = bar.dataset.cmMeta;
-      readout.replaceChildren(title, meta);
-      readout.classList.add('is-active');
-    };
-    const reset = () => {
-      const span = document.createElement('span');
-      span.textContent = idle;
-      readout.replaceChildren(span);
-      readout.classList.remove('is-active');
-    };
-    map.querySelectorAll('[data-cm-title]').forEach(bar => {
-      bar.addEventListener('pointerenter', () => show(bar));
-      bar.addEventListener('focus', () => show(bar));
-      bar.addEventListener('pointerleave', () => { if (document.activeElement !== bar) reset(); });
-      bar.addEventListener('blur', reset);
-    });
-  });
-  document.querySelectorAll('[data-scroll-end]').forEach(el => { el.scrollLeft = el.scrollWidth; });
 
   // Scroll reveals and count-ups. Only content that starts below the fold is hidden,
   // so nothing already on screen flickers; reduced motion skips all of it.
