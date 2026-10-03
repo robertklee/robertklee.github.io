@@ -658,6 +658,22 @@ em { font-style: italic; }
 .quantization-control label { color: var(--heading); font-size: 14px; font-weight: 500; }
 .quantization-control output { color: var(--accent); font: 500 14px var(--font-mono); }
 .quantization-control input { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); cursor: ew-resize; }
+.qm { display: flex; flex-direction: column; gap: 16px; padding-top: 22px; border-top: 1px solid var(--line); }
+.qm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.qm-head h4 { color: var(--faint); font: 500 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.qm-head p { color: var(--heading); font: 400 22px/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+.qm-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.qm-controls input { flex: 1 1 200px; min-height: 40px; margin: 0; accent-color: var(--accent); cursor: ew-resize; }
+.qm-bars { display: grid; gap: 10px; padding: 0; list-style: none; }
+.qm-bars li { display: grid; grid-template-columns: 52px minmax(0, 1fr) 76px 92px; align-items: center; gap: 12px; }
+.qm-name { color: var(--heading); font: 500 12.5px var(--font-mono); }
+.qm-track { height: 14px; border-radius: 4px; background: var(--bg); }
+.qm-bar { display: block; width: var(--w); min-width: 3px; height: 100%; border-radius: 4px; background: linear-gradient(to right, var(--art-fill), var(--art-strong)); }
+.qm-bars li strong { color: var(--heading); font: 500 14px var(--font-mono); text-align: right; white-space: nowrap; }
+.qm-ratio { color: var(--faint); font: 500 11.5px var(--font-mono); white-space: nowrap; }
+.qm-bars li:last-child .qm-bar { background: var(--amber-strong); }
+.qm-bars li:last-child .qm-ratio { color: var(--amber); }
+.qm-note { color: var(--faint); font-size: 12px; }
 .quantization-study figcaption { padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.6; }
 .quantization-method { margin-top: 6px; }
 .quantization-method summary { width: fit-content; min-height: 44px; padding-block: 12px; color: var(--accent); font-size: 13px; cursor: pointer; }
@@ -790,6 +806,8 @@ em { font-style: italic; }
   .metrics { gap: 16px; }
   .quantization-chart { gap: 8px; padding-left: 22px; }
   .quantization-result > span { font-size: 12px; }
+  .qm-bars li { grid-template-columns: 46px minmax(0, 1fr) auto; gap: 4px 10px; }
+  .qm-ratio { grid-column: 3; text-align: right; }
   .figure-heading h3 { font-size: 28px; }
   .segmented { display: flex; }
   .segmented button { flex: 1 1 auto; padding-inline: clamp(6px, 2.5vw, 14px); font-size: 12.5px; white-space: nowrap; }

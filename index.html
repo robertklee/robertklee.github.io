@@ -269,6 +269,28 @@
               <input id="quantization-input" type="range" min="-1" max="1" step="0.001" value="0.37" aria-describedby="quantization-caption">
               <p class="cv-sr-only" id="quantization-announcement" aria-live="polite" aria-atomic="true"></p>
             </div>
+            <section class="qm" data-quant-meter aria-labelledby="qm-title" hidden>
+              <div class="qm-head">
+                <h4 id="qm-title">At scale</h4>
+                <p><span data-qm-count>1 billion</span> vectors &#215; <span data-qm-dims>1,024</span> dimensions</p>
+              </div>
+              <div class="qm-controls">
+                <input id="qm-count" type="range" min="6" max="10" step="0.05" value="9" aria-label="Number of vectors">
+                <div class="segmented" role="group" aria-label="Dimensions">
+                  <button type="button" aria-pressed="false" data-qm-dim="768">768</button>
+                  <button type="button" aria-pressed="true" data-qm-dim="1024">1,024</button>
+                  <button type="button" aria-pressed="false" data-qm-dim="1536">1,536</button>
+                  <button type="button" aria-pressed="false" data-qm-dim="3072">3,072</button>
+                </div>
+              </div>
+              <ul class="qm-bars">
+                <li><span class="qm-name">FP32</span><span class="qm-track"><span class="qm-bar" style="--w: 100%"></span></span><strong data-qm-size="4">4.10 TB</strong><span class="qm-ratio">baseline</span></li>
+                <li><span class="qm-name">INT8</span><span class="qm-track"><span class="qm-bar" style="--w: 25%"></span></span><strong data-qm-size="1">1.02 TB</strong><span class="qm-ratio">4&#215; smaller</span></li>
+                <li><span class="qm-name">Binary</span><span class="qm-track"><span class="qm-bar" style="--w: 3.125%"></span></span><strong data-qm-size="0.125">128 GB</strong><span class="qm-ratio">32&#215; smaller</span></li>
+              </ul>
+              <p class="qm-note">Raw vector bytes only, before index structures, metadata, or retained originals.</p>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-qm-live></p>
+            </section>
             <figcaption id="quantization-caption">
               <p>Dense levels &#8594; chunky steps &#8594; just the sign.<br>INT8 motion is exaggerated into 8 blocks; readouts use all 256 codes.</p>
               <details class="quantization-method">
