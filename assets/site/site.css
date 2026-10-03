@@ -695,10 +695,63 @@ em { font-style: italic; }
 .cv-details > summary { position: relative; display: flex; gap: 24px; padding: 24px 28px; list-style: none; cursor: pointer; }
 .cv-details > summary::-webkit-details-marker { display: none; }
 .cv-summary-copy { display: block; flex: 1; min-width: 0; }
-.cv-record-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 18px; }
+.cv-record-heading { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 18px; }
+
+/* Career map */
+.career-map { margin-bottom: 28px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow); }
+.career-map-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; margin-bottom: 26px; }
+.career-map-head h3 { color: var(--heading); font: 400 clamp(26px, 2.6vw, 32px)/1.1 var(--font-display); letter-spacing: -.01em; }
+.career-map-head p:not(.career-map-org) { max-width: 60ch; margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.career-map-org { display: inline-flex; align-items: center; gap: 8px; color: var(--heading); font-size: 13px; font-weight: 600; }
+.career-map-org img { width: 16px; height: 16px; }
+.cm-scroll { overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.cm-grid { --label-w: 92px; --gap: 16px; position: relative; display: grid; grid-template-columns: var(--label-w) minmax(0, 1fr); align-items: center; gap: 14px var(--gap); min-width: 780px; padding-top: 26px; }
+.cm-guides { position: absolute; inset: 0 0 0 calc(var(--label-w) + var(--gap)); pointer-events: none; }
+.cm-guide { position: absolute; top: 0; bottom: 22px; left: var(--l); border-left: 1px dashed var(--line-strong); }
+.cm-guide > span { position: absolute; top: 0; left: 6px; color: var(--faint); font: 500 10.5px/1 var(--font-mono); letter-spacing: .03em; white-space: nowrap; }
+.cm-now { border-left: 1.5px solid var(--amber-strong); }
+.cm-now > span { right: 6px; left: auto; color: var(--amber); }
+.cm-label { position: sticky; left: 0; z-index: 2; align-self: stretch; display: flex; align-items: center; margin-right: calc(-1 * var(--gap)); padding-right: var(--gap); background: linear-gradient(to right, var(--surface) 85%, transparent); color: var(--faint); font: 500 10.5px/1.2 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.cm-track { position: relative; height: 30px; padding: 0; list-style: none; }
+.cm-track > li { position: absolute; top: 0; bottom: 0; left: var(--l); width: var(--w); }
+.cm-roles > li { width: calc(var(--w) - 3px); }
+.cm-band { display: flex; align-items: center; padding-inline: 10px; overflow: hidden; color: var(--heading); font-size: 12.5px; font-weight: 500; white-space: nowrap; }
+.cm-band > span { overflow: hidden; text-overflow: ellipsis; }
+.cm-band-1 { border-radius: 6px 0 0 6px; background: linear-gradient(to right, transparent, color-mix(in srgb, var(--accent) 10%, transparent) 30%); }
+.cm-band-2 { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.cm-band-3 { border-radius: 0 6px 6px 0; background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.cm-roles { height: 34px; margin-top: 18px; }
+.cm-seg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-inline: 10px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.cm-seg:hover, .cm-seg:focus-visible { box-shadow: 0 0 0 3px var(--accent-soft), 0 6px 16px -6px color-mix(in srgb, var(--accent) 60%, transparent); transform: translateY(-1px); }
+.cm-seg.is-short { justify-content: center; padding: 0; }
+.cm-seg.is-short .cm-seg-label { position: absolute; bottom: calc(100% + 5px); left: 50%; color: var(--muted); font-size: 11.5px; font-weight: 500; transform: translateX(-50%); }
+.cm-seg.is-garage { border: 1px solid var(--line-strong); background: repeating-linear-gradient(-45deg, var(--line-strong) 0 1.5px, transparent 1.5px 5px); }
+.cm-seg.is-garage:hover, .cm-seg.is-garage:focus-visible { border-color: var(--muted); box-shadow: none; }
+.cm-edu { height: 26px; }
+.cm-seg-edu { background: var(--surface-2); color: var(--muted); font-weight: 500; }
+.cm-seg-edu:hover, .cm-seg-edu:focus-visible { box-shadow: 0 0 0 3px var(--line); }
+.cm-seg-label { overflow: hidden; text-overflow: ellipsis; }
+.cm-axis { position: relative; grid-column: 2; height: 18px; padding: 0; border-top: 1px solid var(--line); list-style: none; }
+.cm-axis li { position: absolute; top: 0; left: var(--l); padding: 4px 0 0 5px; color: var(--faint); font: 500 10.5px/1 var(--font-mono); }
+.cm-axis li::before { content: ""; position: absolute; top: -4px; left: 0; height: 8px; border-left: 1px solid var(--line-strong); }
+.cm-readout { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-height: 24px; margin-top: 16px; color: var(--faint); font-size: 13px; }
+.cm-readout.is-active strong { color: var(--heading); font-weight: 600; }
+.cm-readout.is-active span { color: var(--muted); }
 .cv-record-title { display: block; color: var(--heading); font-size: 19px; font-weight: 600; line-height: 1.35; letter-spacing: -.012em; }
-.cv-employer { display: inline-flex; align-items: center; gap: 8px; padding-top: 3px; color: var(--heading); font-size: 13px; font-weight: 600; white-space: nowrap; }
-.cv-employer img { flex: none; width: 16px; height: 16px; }
 .cv-record-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: 8px; }
 .cv-date { display: block; margin-bottom: 10px; color: var(--faint); font: 500 12px/1.5 var(--font-mono); letter-spacing: .02em; }
 .cv-record-meta .cv-date { margin-bottom: 0; }
@@ -798,7 +851,6 @@ em { font-style: italic; }
   .cv-about-copy { font-size: 16px; }
   .cv-details > summary { gap: 14px; padding: 20px; }
   .cv-record-heading { grid-template-columns: 1fr; gap: 6px; }
-  .cv-employer { justify-content: flex-start; }
   .cv-record-meta { flex-direction: column; gap: 4px; }
   .cv-employer-team { text-align: left; }
   .cv-record-body { margin-inline: 20px; font-size: 15px; }
