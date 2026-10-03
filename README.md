@@ -75,5 +75,25 @@ Configure Cloudflare Workers Builds with:
 The version command uploads an unpromoted preview version. The deploy command
 publishes the production version.
 
+Set the **`SITE_URL` build environment variable** to the public origin of a
+preview deployment. For the current feature-branch Worker, use
+`https://website-v3-robertklee-website.robert-k-lee.workers.dev`.
+The build writes absolute `og:url`, `og:image`, and `twitter:image` URLs for that
+origin, so Messages and other sharing clients fetch the social card from the
+same deployment rather than falling back to a project image when the production
+asset is missing. Without `SITE_URL`, these tags use `https://www.robertkl.com/`.
+The canonical URL, structured identity, and sitemap remain production URLs.
+Use an HTTP(S) origin only, with no path, query, fragment, or credentials.
+
+For a local build check:
+
+```sh
+SITE_URL=https://website-v3-robertklee-website.robert-k-lee.workers.dev npm run build
+```
+
+Configure the variable in the feature Worker's **build variables**, not just its
+runtime bindings. Redeploy after changing it. Messages may retain an old link
+preview; use a fresh URL query string when checking the redeployed metadata.
+
 For local development, install dependencies with `npm ci`, build with
 `npm run build`, and preview the Worker with `npm run preview`.
