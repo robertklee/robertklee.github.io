@@ -59,15 +59,15 @@
     },
     grounding: {
       label: 'Question',
-      query: 'What makes great engineers stay?',
+      query: 'How can we lower our cloud bill?',
       anchor: 'question',
       flip: [true, false],
-      groups: { a: 'Compensation', b: 'Growth', c: 'Flexibility', d: 'Team culture', e: 'Managers', f: 'Tangential', g: 'Tangential', h: 'Tangential' },
+      groups: { a: 'Compute', b: 'Storage', c: 'Reservations', d: 'Autoscaling', e: 'Networking', f: 'Tangential', g: 'Tangential', h: 'Tangential' },
       titles: [
-        'Engineering salary survey', 'Salary survey, summary', 'Salary survey, slide deck', 'Salary survey, FAQ', 'Pay benchmarks, last year',
-        'Career ladder guide', 'Mentorship program review', 'Hybrid work policy', 'Remote work survey',
-        'Engagement survey results', 'Team health check', 'What great managers do',
-        'Office snack vendors', 'Parking permit update', 'Holiday party logistics'
+        'Compute rightsizing guide', 'Rightsizing guide, summary', 'Rightsizing guide, slide deck', 'Rightsizing guide, FAQ', 'Rightsizing guide, last year',
+        'Storage tiering playbook', 'Blob lifecycle policies', 'Reserved capacity planner', 'Savings plan comparison',
+        'Autoscaling best practices', 'Scale dev environments to zero', 'Reducing data egress',
+        'Cloud certification study group', 'Datacenter tour photos', 'Holiday party logistics'
       ]
     },
     feed: {
