@@ -1,25 +1,3 @@
-// ---------------------------------------------------------------------------
-// EASTER EGG (the decoy "API key"). Did you grep for "API_KEY"?.
-// This whole "chat" has no backend and no model behind it -- it's a few hundred 
-// lines of hand-written JavaScript pretending to reason. Hard-coding a real 
-// secret in client-side source is incorrect anyways. ;)
-// ---------------------------------------------------------------------------
-function revealDecoyKey(stashed) {
-  // Runtime-only decode of the UTF-8 bytes (handles the emoji in the payload);
-  // deliberately not a plain string literal so the "key" resists a quick grep.
-  try {
-    return decodeURIComponent(
-      atob(stashed)
-        .split('')
-        .map(function (c) { return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); })
-        .join('')
-    );
-  } catch (e) {
-    return '';
-  }
-}
-var FAKE_API_KEY = revealDecoyKey('Q1RGe3RoaXNfaXNfZGVmaW5pdGVseV9ub3RfYW5fYXBpX2tleS3wn6qkfQ==');
-
 var app = document.getElementById('app');
 
 // Turn the hero into a mini "reasoning model" moment: a user prompt, a brief
@@ -28,14 +6,13 @@ var app = document.getElementById('app');
 (function heroChat() {
   if (!app || !window.HeroChatContent) return;
 
-  // The scripted copy (prompts, intro answers, follow-up topics, and the
-  // easter egg) lives in chat-content.js as HeroChatContent.
+  // The scripted copy lives in chat-content.js as HeroChatContent.
   var CONTENT = window.HeroChatContent;
   var PROMPTS = CONTENT.PROMPTS;
   var PROMPT = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
   var VARIANTS = CONTENT.VARIANTS;
   var TOPICS = CONTENT.TOPICS;
-  var EASTER_EGG = CONTENT.EASTER_EGG;
+  var BEHIND_SCENES = CONTENT.BEHIND_SCENES;
 
   // The shared chat engine (streaming, retry/model menu, fold logic, timing
   // helpers, theme toggle) lives in chat-core.js as HeroChat.
@@ -382,14 +359,14 @@ var app = document.getElementById('app');
 
   var activeSuggestRow = null;
   var lastFollowTurn = null; // only the newest follow-up turn is retryable
-  var eggShown = false; // the prompt-injection easter egg appears at most once
+  var discoveryShown = false;
   var turnCount = 0; // completed follow-up turns (drives the "reach out" nudge)
   // Once the chat runs long, nudge visitors toward reaching Robert directly:
   // the CTA appears from CTA_AFTER turns on, chips continue for a couple more
   // turns, then from CHIPS_UNTIL on we show only the CTA and let it wind down.
   var CTA_AFTER = 3;
   var CHIPS_UNTIL = 10;
-  var EGG_MIN_TURN = 3; // the easter egg never appears before this many turns
+  var DISCOVERY_MIN_TURN = 3;
 
   function scrollChatToBottom() {
     if (convoMode && stickBottom) chat.scrollTop = chat.scrollHeight;
@@ -707,7 +684,7 @@ var app = document.getElementById('app');
         chipsWrap.appendChild(chip);
       });
       row.appendChild(chipsWrap);
-      maybeAddEasterEgg(row);
+      maybeAddDiscovery(row);
     }
     if (turnCount >= CTA_AFTER) row.appendChild(buildContactCta());
     chat.appendChild(row);
@@ -762,49 +739,32 @@ var app = document.getElementById('app');
     }
   }
 
-  // EASTER EGG (chip tampering). The chips are the only "input" on the page, so
-  // the natural way to attempt a prompt injection is to crack open devtools and
-  // rewrite a chip's text before clicking it. We honour that: if the chip's live
-  // text no longer matches the phrasing we rendered, we treat it as an injection
-  // attempt and route it to EASTER_EGG's good-natured refusal (streaming the
-  // visitor's own edited text back as the prompt), instead of the canned topic.
   function runChip(chip, topic, phrasing, row) {
     // Picking any chip past the first means the visitor already found the
     // horizontally-scrolling row, so we can retire the "more chips" nudge.
     var chipsParent = chip.parentNode;
     if (chipsParent && chipsParent.firstElementChild !== chip) chipScrollKnown = true;
-    var el = chip.querySelector('.suggest-text');
-    var live = el ? el.textContent.trim() : phrasing;
-    if (live && live !== phrasing) {
-      askTopic(EASTER_EGG, live, row);
-    } else {
-      askTopic(topic, phrasing, row);
-    }
+    askTopic(topic, phrasing, row);
   }
 
-  // Rarely swap the last suggestion chip for the prompt-injection easter egg
-  // (see EASTER_EGG). It only appears once the visitor is a few turns in, fires
-  // at most once per visit, and only some of the time, so it stays a surprise;
-  // clicking it runs the normal chat flow.
-  function maybeAddEasterEgg(row) {
-    if (eggShown || turnCount < EGG_MIN_TURN || Math.random() > 0.10) return;
-    // Never displace the row's plain-language chip unless there's another.
-    var chips = row.querySelectorAll('.suggest-chip:not([data-general])');
-    if (!chips.length) {
-      chips = row.querySelectorAll('.suggest-chip');
-      if (chips.length < 2) return;
-    }
-    var phrasing = EASTER_EGG.prompts[Math.floor(Math.random() * EASTER_EGG.prompts.length)];
+  // The discovery is also a general question, so replacing a general chip
+  // keeps both an accessible option and the row's technical questions.
+  function maybeAddDiscovery(row) {
+    if (discoveryShown || turnCount < DISCOVERY_MIN_TURN || Math.random() > 0.10) return;
+    var chips = row.querySelectorAll('.suggest-chip[data-general]');
+    if (!chips.length) return;
+    var phrasing = BEHIND_SCENES.prompts[pickUnusedIdx(usedPrompts, BEHIND_SCENES.id, BEHIND_SCENES.prompts.length)];
     var chip = document.createElement('button');
     chip.type = 'button';
-    chip.className = 'suggest-chip egg-chip';
-    chip.innerHTML = '<span class="suggest-plus" aria-hidden="true">\u26A1</span>' +
+    chip.className = 'suggest-chip';
+    chip.dataset.general = '';
+    chip.innerHTML = '<span class="suggest-plus" aria-hidden="true">' + H.ICONS.plus + '</span>' +
       '<span class="suggest-text"></span>';
     chip.querySelector('.suggest-text').textContent = phrasing;
-    chip.addEventListener('click', function () { runChip(chip, EASTER_EGG, phrasing, row); });
+    chip.addEventListener('click', function () { runChip(chip, BEHIND_SCENES, phrasing, row); });
     var last = chips[chips.length - 1];
     last.parentNode.replaceChild(chip, last);
-    eggShown = true; // only mark spent once the swap has actually landed
+    discoveryShown = true;
   }
 
   async function askTopic(topic, promptText, sourceRow) {
@@ -821,7 +781,7 @@ var app = document.getElementById('app');
     var variantIdx2 = pickUnusedIdx(usedVariants, topic.id, topic.variants.length);
     var variant = topic.variants[variantIdx2];
     var docs = variant.docs || topic.docs;
-    if (topic !== EASTER_EGG) askedTopics[topic.id] = true;
+    askedTopics[topic.id] = true;
     disableFollowRetry(lastFollowTurn); // spend the previous turn's retry
     var t = createFollowTurn();
     t.topic = topic;
@@ -1009,29 +969,4 @@ HeroChat.initThemeToggle();
     });
   }
   window.addEventListener('scroll', onScroll, { passive: true });
-})();
-
-// EASTER EGG (console): a wink for the friends who crack open devtools hunting
-// for an "API key" or a prompt to inject. There's no backend here \u2014 the whole
-// chat is hand-written JavaScript \u2014 so the only thing to find is this note.
-;(function () {
-  try {
-    if (!window.console || !console.log) return;
-    var title = [
-      'font-size:18px',
-      'font-weight:700',
-      'padding:6px 0',
-      'color:#80d3fe'
-    ].join(';');
-    var body = 'font-size:13px;line-height:1.5;color:inherit';
-    console.log('%cLooking for the API key? \uD83D\uDC40', title);
-    console.log(
-      '%cThere isn\u2019t one \u2014 this "model" is a few hundred lines of hand-written JS. ' +
-      'No backend, no key, no system prompt to inject. (Keys don\u2019t belong in ' +
-      'client-side code anyway.) Thanks for the curiosity!',
-      body
-    );
-    console.log('%cHere\u2019s a clearly-fake one to enjoy: ' + FAKE_API_KEY, body);
-    console.log('%cCurious how real retrieval systems work? That\u2019s Robert\u2019s day job \u2192 https://github.com/robertklee', body);
-  } catch (e) {}
 })();

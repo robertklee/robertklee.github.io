@@ -665,10 +665,6 @@ body.convo-active .hero-scroll-fade.cue-hidden { opacity: 0; }
 
 a.suggest-chip { align-self: flex-start; text-decoration: none; }
 
-.egg-chip { border-color: color-mix(in srgb, var(--amber-strong) 55%, transparent); background: var(--amber-soft); }
-.egg-chip:hover { border-color: var(--amber-strong); }
-.egg-chip .suggest-plus { color: var(--amber); }
-
 .chat-cta {
   display: flex;
   flex-direction: column;

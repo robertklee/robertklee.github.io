@@ -33,6 +33,8 @@ Update CV content in `index.html`; the hero's questions and responses live in `c
 
 Match each answer's depth to its question: technical topics keep mechanisms and tradeoffs, leadership topics explain decisions and ownership, and general topics introduce unfamiliar terms with brief explanations and concrete examples. Every answer variant must fit both of its topic's question phrasings and cover the field documents in `docs`.
 
+A rare behind-the-scenes question can appear once per visit after three follow-up turns. Its copy lives in `BEHIND_SCENES` in `chat-content.js`; it explains the scripted chat and Canvas illustration. The graph switches to an overview for this topic rather than simulating a document search. It replaces a general question, preserving the accessible option and any technical questions in the row.
+
 When you add a new top-level asset, also add it to `publicFiles` in `build.js`. Everything under `assets/site/` is copied automatically. When you add a script, add it to the `check` script in `package.json`.
 
 ## Local preview

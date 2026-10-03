@@ -3,12 +3,12 @@
 // The scene is a 3D point cloud seen in perspective. Most of it is a dense,
 // generic background graph that recedes out of focus (drawn on two canvases
 // that CSS blurs); the seven topic regions sit on the focal plane, sharp and
-// labelled. Each chat question (`herochat:query`) runs a visible HNSW search:
+// labelled. Portfolio questions (`herochat:query`) run a visible HNSW search:
 // it enters at the sparse top layer deep in the background, makes long jumps
 // that arc through depth, descends a layer at a time, and comes into focus as
 // it lands on the exact documents the answer draws on. Answers that span
 // several regions branch to each (diverse retrieval); off-topic questions end
-// on a miss.
+// on a miss. The behind-the-scenes topic shows the scene without a traversal.
 // Illustrative only: generated data, not a real index or embedding model.
 (() => {
   'use strict';
@@ -56,7 +56,7 @@
 
   // Answers name the documents they draw on (`docs` in chat-content.js); a query
   // that names none lands on DEFAULT_DOCS, and MISS topics find nothing.
-  const MISS = new Set(['easter-egg', 'not-found']);
+  const MISS = new Set(['not-found']);
   const DEFAULT_DOCS = ['Diversity capability', 'Filter generation', 'Scalar quantization', 'Pose estimation', 'Digital literacy program'];
 
   const TOP = 2; // layers L2 (sparse entry layer) .. L0 (every vector)
@@ -731,9 +731,17 @@
 
   function planQuery(spec, start) {
     readProtected();
+    const q = { spec, start, mode: 'miss', branches: [], results: [], target: null, land: 0, focusAt: 0, focus: null };
+    // Explaining the illustration should not run a search or produce a miss.
+    if (spec.topic === 'behind-the-scenes') {
+      q.mode = 'overview';
+      q.focus = clusterInfo.map(() => 1);
+      query = q;
+      setReadout('Illustrative graph · scripted chat', false);
+      return;
+    }
     const hits = resolveDocs(spec);
     const regions = [...new Set(hits.map(i => nodes[i].cluster))];
-    const q = { spec, start, mode: 'miss', branches: [], results: [], target: null, land: 0, focusAt: 0, focus: null };
     if (regions.length === 1) {
       q.mode = 'knn';
       const ci = regions[0];
