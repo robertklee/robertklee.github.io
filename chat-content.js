@@ -48,8 +48,8 @@ window.HeroChatContent = (function () {
       docs: ['Distributed execution', 'Team of five', 'Bounded operator set']
     },
     {
-      thought: "Introduce Robert through the systems work. It runs from SIMD-accelerated distance math, to quotas that keep HNSW indexes from overrunning shared resources, to distributed execution for the new diversity capability. The theme is search that holds up at scale.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I like the systems side of search: making distance math fast with SIMD, keeping HNSW indexes within resource quotas, and designing distributed execution for a new diversity capability.",
+      thought: "Introduce Robert through concrete systems work: SIMD distance kernels, resource-based quota enforcement for HNSW indexes, and distributed execution for the diversity capability. Keep the technical terms, but make the intro brief.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My systems work spans SIMD-optimized distance kernels, resource-based quota enforcement for HNSW indexes, and distributed execution for a new vector-search diversity capability.",
       docs: ['SIMD distance', 'HNSW quotas', 'Distributed execution']
     },
     {
@@ -71,9 +71,11 @@ window.HeroChatContent = (function () {
   // `sources` are the page sections cited under the answer. `weight` (default
   // 1) sets how often a topic is offered as a chip: recent work and the
   // standout academic, leadership, and project stories lead. `category` is
-  // 'technical', 'leadership', or 'general'; general topics are asked and
-  // answered in plain language for friends, family, and non-engineers, and
-  // every suggestion row includes at least one (see pickTopics).
+  // 'technical', 'leadership', or 'general'. Match depth to the question:
+  // technical answers retain mechanisms and tradeoffs; leadership answers
+  // explain decisions and ownership; general answers explain unfamiliar terms
+  // without losing substance. Every suggestion row includes at least one
+  // general topic for friends, family, and non-engineers (see pickTopics).
   var TOPICS = [
     {
       id: 'diversity-why',
@@ -87,12 +89,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Start with the problem before the fix. Nearest-neighbour search scores each result on its own, so the top hits can all be slight variations of one idea. That hurts broad questions that span a whole corpus, and it hurts shopping and recommendation pages too. Explain the problem, then where it shows up.",
-          answer: "Nearest-neighbour search scores each result on its own, so the top hits can easily be near-duplicates of one idea. For a broad question that spans a whole corpus, that redundancy leaves gaps in the evidence. In e-commerce or recommendations, it fills the page with nearly identical items. The diversity capability I tech-lead reduces that redundancy in kNN search."
+          thought: "Distinguish query relevance from coverage of the result set. kNN ranks candidates by their distance to the query embedding, so individually relevant hits can still be redundant. Explain the consequences for corpus-spanning grounding and e-commerce, without exposing the diversity algorithm.",
+          answer: "kNN ranks candidates by distance to the query embedding, but proximity alone doesn't tell you whether the results add distinct information. Near-duplicates can dominate the top-k, leaving gaps in grounding for corpus-spanning questions or crowding out alternatives in e-commerce and recommendations. The diversity capability I tech-lead reduces that redundancy, so relevance isn't the only thing the result set delivers."
         },
         {
           thought: "A good way to put it: relevance is judged one result at a time, but usefulness is judged across the whole set. Ten relevant results that repeat each other are worth less than five that each add something. Make that point, then give the corpus-spanning and shopping examples.",
-          answer: "Search judges relevance one result at a time, but you judge usefulness across the whole set. Ten hits that repeat each other leave a corpus-spanning question half answered, and ten near-identical products make a poor e-commerce or recommendation page. Cutting that redundancy is the point of the diversity capability I tech-lead."
+          answer: "A relevant top-k isn't necessarily an informative top-k. Ten highly similar passages may all match the query while offering the same evidence. For corpus-spanning grounding, that redundancy limits coverage; for e-commerce and recommendations, it narrows the choices. I tech-lead a diversity capability that strengthens kNN search by reducing homogeneity across the result set."
         }
       ]
     },
@@ -109,11 +111,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "This is the research-to-production story. Robert analyzed the algorithm stage by stage to understand what made each stage work, then rethought its architecture for distributed execution, adding targeted algorithmic and systems innovations to keep those properties at scale. Describe the process, but keep the internals out.",
-          answer: "The research algorithm wasn't designed for a distributed search engine. So I started by analyzing it stage by stage to pin down the core ideas and strengths of each step. Then we rethought the architecture for distributed execution, with targeted algorithmic and systems innovations to keep those strengths. The diversity capability also had to meet demanding scalability, durability, and performance requirements."
+          answer: "This wasn't a code-porting exercise. I analyzed the research algorithm stage by stage to identify the properties that made each stage effective, then rethought its architecture for distributed execution. We developed targeted algorithmic and systems innovations to preserve those properties at production scale, while meeting scalability, durability, and performance requirements for the diversity capability."
         },
         {
           thought: "The hard part is keeping what makes the algorithm good once it runs across a distributed engine with real production requirements: scalability, durability, and performance. Frame it as preserving properties, not porting code, and stay high level.",
-          answer: "The hard part was keeping what made the algorithm good once it had to run on a distributed engine, with production-grade scalability, durability, and performance. Before redesigning anything, I broke it down stage by stage to understand each stage's strengths. Then we rearchitected the diversity capability for distributed execution, with targeted algorithmic and systems innovations to keep those strengths intact."
+          answer: "The hard part was preserving the algorithm's strengths under distributed execution and production constraints, not just making it run on more machines. I broke it down stage by stage before redesigning the architecture. That analysis guided the algorithmic and systems innovations needed to make the diversity capability scalable, durable, and performant without losing the properties that motivated it."
         }
       ]
     },
@@ -134,7 +136,7 @@ window.HeroChatContent = (function () {
         },
         {
           thought: "Leading a team that mixes engineers and scientists means connecting research thinking with production engineering. Robert set the direction from his own deep analysis of the algorithm, which gave the team common ground. Describe how he leads, using the diversity work.",
-          answer: "My team of five mixes engineers and scientists, so a big part of leading it is bridging research and production. On the diversity capability, I set the technical direction based on a deep analysis of the research algorithm, then carried the work from leadership buy-in through architecture and cross-team alignment to implementation."
+          answer: "With a team of five engineers and scientists, I need to connect the research goals to production constraints. For the diversity capability, my analysis of the algorithm established which properties we needed to preserve. I used that to set the technical direction, shape the distributed architecture, align partner teams, and own delivery from leadership buy-in through implementation."
         }
       ]
     },
@@ -150,12 +152,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Explain the mechanism using the real operator set. A natural-language request becomes filters built from eq, ne, and, and or over categorical, low-cardinality fields, plus Lucene boosts for preferences. Anything outside that set is left to ranking. Make the bounded set the point.",
-          answer: "It turns a natural-language request into structured search controls. Filters come from a bounded operator set: eq, ne, and, and or over categorical, low-cardinality fields. Preferences become Lucene boosts. Anything outside that set, like a price limit, is left to ranking rather than guessed, so every generated filter can be checked against the index schema."
+          thought: "Give the actual field types and operator boundaries, then distinguish hard filters from ranking preferences. The bounded set uses eq/ne with and/or over categorical or low-cardinality string, string[], and bool fields. Boosts are Lucene-style, and unsupported constraints must not be presented as enforced filters.",
+          answer: "It translates a natural-language request into hard filters and ranking preferences. My bounded operator set restricts filters to categorical or low-cardinality string, string[], and bool fields, using eq/ne combined with and/or. Preferences become Lucene-style boosts, which affect ranking rather than eligibility. The filters are schema-verifiable; constraints outside the set aren't enforced as generated filters."
         },
         {
-          thought: "Lead with the design decision. Robert reformulated an unbounded filter-synthesis problem as a bounded, verifiable operator set that excels in specific filter categories, and led it from research to production. Explain why bounding it made it verifiable, then name the operators and the Lucene boosts.",
-          answer: "I led filter and boost generation for agentic retrieval from research to production. Generating arbitrary filters is an open-ended problem, so I reformulated it as a bounded, verifiable operator set: eq, ne, and, and or over categorical fields, with preferences expressed as Lucene boosts. It's very good at the filter categories it covers, and leaves the rest to ranking."
+          thought: "Explain the research-to-production decision through the actual supported set, not a vague promise of simpler filters. Both variants should retain the field types, operator restrictions, and the distinction between filtering and Lucene boosting.",
+          answer: "I led this from research to production by replacing open-ended filter synthesis with a bounded, verifiable operator set: eq/ne and logical and/or over categorical or low-cardinality string, string[], and bool fields. Filters constrain eligibility; Lucene-style boosts express ranking preferences. That boundary lets us validate generated filters against the schema instead of attempting arbitrary query expressions."
         }
       ]
     },
@@ -172,11 +174,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "This is about decision-making. For agentic filter generation, the open question was whether a bounded operator set would cover what customers actually need. Robert answered it with production analysis, which brought research and product to agreement. Keep it about the evidence.",
-          answer: "On agentic filter generation, research and product needed to agree on a direction. I proposed a bounded, verifiable operator set instead of open-ended filter synthesis, then used production analysis to show it covered real customer workloads. With that shared evidence, both teams reached consensus."
+          answer: "The design question was whether we needed open-ended filter synthesis or a bounded, verifiable operator set. I used production analysis to demonstrate that the bounded set covered real customer workloads and excelled in the filter categories it supported. That gave research and product a shared basis for agreeing on the technical direction."
         },
         {
           thought: "The general lesson is to turn a debate into a question data can answer. A smaller design only convinces people if it still covers real usage, so Robert measured that directly from production. Tell it as a repeatable approach, using the filter-generation work.",
-          answer: "I try to turn a design debate into a question the data can answer. For agentic filter generation, the question was whether a bounded, verifiable operator set covered what customers actually ask for. Production analysis showed that it did, and that evidence brought the research and product teams to consensus."
+          answer: "I try to turn a design debate into a testable question. For agentic filter generation, that meant asking whether a bounded, verifiable operator set covered real usage, rather than treating unrestricted synthesis as the goal. Production analysis demonstrated that coverage, and I brought research and product to consensus around the evidence."
         }
       ]
     },
@@ -192,12 +194,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Robert integrated Azure AI Search retrieval into agent workflows: tool calling, multi-agent orchestration, and retrieval-augmented generation. The point is grounding agents in governed, indexed enterprise knowledge. Describe that without claiming he built the whole orchestration platform.",
-          answer: "I've integrated Azure AI Search retrieval into agent workflows, so LLM agents can ground their answers in governed, indexed enterprise knowledge. That covers tool calling, multi-agent orchestration, and retrieval-augmented generation (RAG). Retrieval becomes a step the agent takes, not a separate search box."
+          thought: "Describe the retrieval integration through tool calling, multi-agent orchestration, and RAG. Distinguish supplying evidence from orchestrating agents without turning the answer into a disclaimer about what Robert didn't build.",
+          answer: "I've integrated Azure AI Search retrieval into agent workflows through tool calling, multi-agent orchestration, and retrieval-augmented generation (RAG). Search supplies governed, indexed enterprise knowledge as context for the model's response. Retrieval provides evidence; orchestration determines when and how agents use it."
         },
         {
-          thought: "Start with why it matters: a model can only reason over what retrieval gives it. Then connect that to Robert's work integrating search into tool calling and RAG. Keep the claim about grounding, not about answer correctness.",
-          answer: "An agent can only reason over what retrieval hands it, so grounding starts in the search layer. I've integrated Azure AI Search into agent tool calling, multi-agent orchestration, and RAG, so agents work from governed enterprise knowledge. Good retrieval doesn't guarantee a correct answer, but it decides what the model has to work with."
+          thought: "Explain retrieval as the evidence-supply layer for enterprise questions, alongside the model's other context. Connect that to tool calling and RAG without implying that retrieval is the model's only input or guarantees a correct interpretation.",
+          answer: "For questions about enterprise data, retrieval determines which evidence reaches the model. I've connected Azure AI Search to agent tool calling, multi-agent orchestration, and RAG so agents can use governed, indexed knowledge alongside their other context. Grounding gives the model relevant sources; it doesn't by itself guarantee that the model interprets them correctly."
         }
       ]
     },
@@ -217,8 +219,8 @@ window.HeroChatContent = (function () {
           answer: "Agentic retrieval workloads vary a lot from one request to the next, so I built a benchmarking system from scratch to profile them: CPU, memory, and throughput, plus latency distributions, tool-calling iterations, and dependency patterns. I used those measurements to propose and ship the production billing model for agentic retrieval, which launched with a new serverless enterprise search offering."
         },
         {
-          thought: "Lead with the product outcome. Robert proposed and shipped the agentic retrieval billing model during a serverless search launch, backed by benchmarks he built. Leave out pricing details, and mention the memory optimizations the profiling turned up.",
-          answer: "I proposed and shipped the production billing model for agentic retrieval when a new serverless enterprise search offering launched. It's based on a benchmarking system I built from scratch to characterize highly variable workloads across CPU, memory, throughput, and latency. The same profiling also turned up memory optimizations, which I made along the way."
+          thought: "Keep the workload dimensions and dependency patterns, then connect those measurements to the billing model and memory optimizations. Don't imply a particular pricing formula.",
+          answer: "I built workload benchmarks that modeled CPU, memory, throughput, latency distributions, tool-calling iterations, and dependency patterns. Those measurements informed the production billing model I proposed and shipped with a serverless enterprise search launch. The same profiling also identified memory optimizations, which I implemented."
         }
       ]
     },
@@ -234,12 +236,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "The clearest shipped result is vector quantization, which Robert drove from public preview to general availability. The techniques were binary vectors, scalar and binary quantization, and SIMD-accelerated distance computation, for 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency. Give the result and note that it depends on the workload.",
-          answer: "I drove vector quantization on Azure AI Search from public preview to general availability, and customers have adopted it widely. Scalar and binary quantization store each vector in far fewer bits, and SIMD-accelerated distance computation keeps search fast. Together that delivered 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency, depending on the workload."
+          thought: "Connect scalar and binary quantization and SIMD distance kernels to the shipped cost and latency improvements. Include the approximation tradeoff as well as the workload-dependent numbers, rather than presenting compression as free.",
+          answer: "I drove vector quantization from public preview to general availability on Azure AI Search. Scalar and binary quantization reduce vector storage precision, while SIMD-accelerated distance kernels make comparisons efficient. The work delivered 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency, depending on the workload. The tradeoff is approximation: savings need to be evaluated alongside retrieval quality."
         },
         {
-          thought: "Explain it simply: a full-precision embedding uses 32 bits per dimension, scalar quantization brings that down to 8, and binary quantization to 1. Fewer bits means less memory and faster comparisons, especially with SIMD. Then give the results.",
-          answer: "Embeddings normally use 32 bits per dimension. Scalar quantization cuts that to 8 and binary quantization to just 1, and SIMD-accelerated distance computation makes comparing the smaller vectors fast. Taking that from public preview to general availability delivered 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency, depending on the workload."
+          thought: "Use the 32-to-8-to-1-bit comparison, but retain the precision tradeoff. Smaller representations save storage and support efficient comparisons; they approximate the original vectors, so retrieval quality and workload matter alongside cost and latency.",
+          answer: "For float32 embeddings, scalar quantization reduces each dimension from 32 bits to 8, and binary quantization to 1. Those smaller representations trade precision for lower storage cost and efficient SIMD distance computation. I drove the capability from preview to general availability, delivering 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency, with results depending on the workload."
         }
       ]
     },
@@ -256,11 +258,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "This is about the inner loop. Robert optimized the vector distance kernel with SIMD, loop unrolling, multiple independent accumulators, and fused multiply-add. Explain what each one buys, without crediting the whole quantization speedup to one kernel.",
-          answer: "I optimized the vector distance kernel with SIMD, loop unrolling, multiple independent accumulators, and fused multiply-add (FMA). SIMD compares several dimensions per instruction, while unrolling and independent accumulators keep the CPU busy instead of waiting on one long chain of additions. Distance math runs for every candidate a search visits, so small wins add up."
+          answer: "I optimized vector distance kernels with SIMD, loop unrolling, multiple independent accumulators, and fused multiply-add (FMA). SIMD processes several dimensions per instruction; independent accumulators break up the serial dependency chain so the CPU can overlap work. FMA combines multiplication and accumulation. Because this kernel runs for every candidate distance evaluation, its efficiency matters across the whole search."
         },
         {
           thought: "Frame it as hardware-aware engineering. Vector search spends much of its time computing distances, so the kernel matters. Robert used SIMD, unrolling, multiple accumulators, and FMA, drawing on an embedded-systems background. Connect those.",
-          answer: "Vector search spends a lot of its time computing distances, so that's where I work close to the hardware: SIMD to process many dimensions at once, loop unrolling and multiple accumulators to avoid stalls, and fused multiply-add to do two operations in one. It comes naturally after an embedded-systems background in ARM assembly and VHDL."
+          answer: "The distance kernel is a hot path in vector search. I used SIMD to process dimensions in parallel, loop unrolling to expose more work, and independent accumulators to reduce dependency bottlenecks. Fused multiply-add combines multiplication and accumulation in one instruction. That hardware-aware approach builds on my embedded-systems background in ARM assembly and VHDL."
         }
       ]
     },
@@ -276,12 +278,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Hybrid search blends keyword and vector retrieval, and each scores results on its own scale. Robert designed subscore fusion and score thresholding to improve result quality across that blend. Explain both in plain terms.",
-          answer: "Hybrid search blends keyword and vector retrieval, which score results in very different ways. I designed subscore fusion and score thresholding for Azure AI Search: fusion improves how each signal contributes to the final ranking, and thresholds keep weak matches out of the results. Both raise result quality across the blend."
+          thought: "Keep the distinction between ranking and eligibility. Hybrid search combines keyword and vector retrieval signals; subscore fusion shapes their contribution to the final ranking, while score thresholds exclude insufficient matches. Don't invent a fusion formula or internal implementation.",
+          answer: "Hybrid search combines keyword and vector retrieval signals, which have different scoring semantics. I designed subscore fusion to improve how those signals contribute to the final ranking, and score thresholding to exclude insufficient matches. These address different parts of relevance: how candidates are ranked, and whether they're strong enough to return at all."
         },
         {
           thought: "Connect the features to why they matter now. When results become an LLM's evidence, a weak match can be worse than none. Subscore fusion and score thresholding were Robert's designs for blended vector and keyword search. Tie both to grounding.",
-          answer: "When search results become the evidence an LLM reads, a weak match can do more harm than good. For hybrid search, which blends vector and keyword retrieval, I designed subscore fusion to improve how those signals combine, and score thresholding to drop results that don't clear the bar."
+          answer: "I worked on two controls for blended vector and keyword retrieval: subscore fusion for combining ranking signals, and score thresholds for filtering out weak matches. They're especially useful when results become an LLM's grounding context: a high position in the ranking isn't, by itself, evidence that a passage is a sufficiently strong match."
         }
       ]
     },
@@ -298,11 +300,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Reliability has two sides: prevention and recovery. For prevention, HNSW indexes are resource-hungry, and Robert built a data-driven quota mechanism tied to physical resource use that cut limit overshoot by 100\u00d7. For recovery, he root-causes hard incidents across teams. Cover both.",
-          answer: "I think about prevention and recovery. On prevention, HNSW vector indexes are resource-hungry, so I designed a data-driven quota-enforcement mechanism tied to actual resource use, which cut limit overshoot by 100\u00d7. On recovery, I root-cause difficult production incidents across teams, restore service quickly, and push for durable fixes."
+          answer: "I work on both prevention and incident response. For HNSW indexes, I designed quota enforcement tied to physical resource utilization, cutting limit overshoot by 100\u00d7 through cross-team design work. I also root-cause production incidents across teams and review distributed-systems and vector-algorithm changes, with the goal of restoring service quickly and preventing recurrence."
         },
         {
           thought: "Start with incidents, then the structural fix. Robert root-causes cross-team incidents and reviews distributed-systems and vector-algorithm changes, and the HNSW quota work fixed one class of problem at the source. Keep incident details private.",
-          answer: "When something deep goes wrong, I root-cause the production incident across teams, restore service, and push for a durable fix. I also review distributed-systems and vector-algorithm changes to help prevent the next one. Some fixes are structural, like the HNSW quota enforcement I designed: tying limits to physical resource use cut limit overshoot by 100\u00d7."
+          answer: "Incident response means tracing failures across team and system boundaries, restoring service, and following through with a durable fix. I also work on structural prevention: the HNSW quota enforcement I designed ties limits to physical resource use and cut overshoot by 100\u00d7. Reviews of distributed-systems and vector-algorithm changes are another part of preventing the next incident."
         }
       ]
     },
@@ -339,12 +341,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Skip the jargon and start from something everyone knows: typing into a search box. Robert works on the search service businesses build into their apps and AI assistants, helped grow vector search, which matches by meaning, and now leads a team of five. Keep every term plain.",
-          answer: "I work on search at Microsoft. Businesses use Azure AI Search to help people, and AI assistants, find the right information in their own documents. I helped grow vector search, which finds things by meaning instead of exact words, so a search for \u201ccheap flights\u201d can also find \u201cbudget airfare\u201d. Today I lead a team of five engineers and scientists building new search features."
+          thought: "Explain the service and Robert's own scope without replacing them with an analogy. Define vector search briefly, keep the scale and team leadership, and avoid claiming that the search engine literally understands a request.",
+          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search, a service businesses use to search their documents and power AI apps. I helped scale vector search, which compares numerical representations of text to find related meanings, not just matching words. Today I tech-lead a team of five engineers and scientists, taking new search capabilities from research into production."
         },
         {
-          thought: "An everyday comparison will help: a very fast librarian who understands what you mean, not just the words you typed. That's the search engine Robert works on, and vector search is the part that understands meaning. Then mention that he now leads a team of five.",
-          answer: "Think of a very fast librarian. You ask a question, and the search engine I work on at Microsoft finds the few pages that answer it in a huge collection of documents. I helped grow vector search, the part that understands what you mean instead of matching exact words, and today I lead a team of five engineers and scientists working on what comes next."
+          thought: "Keep a concrete example, but pair it with the engineering work. Vector search can match related meanings rather than exact words; Robert helped scale it across billions of embeddings and now leads five engineers and scientists. No librarian analogy is needed.",
+          answer: "I build the search technology behind business apps and AI assistants at Microsoft. With vector search, a query for \u201ccheap flights\u201d can find \u201cbudget airfare\u201d without sharing the same words. I helped scale that capability across billions of embeddings, the numerical representations used for matching. Now I lead five engineers and scientists on new search capabilities."
         }
       ]
     },
@@ -360,12 +362,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Start with a shopping example everyone has seen: search for running shoes and get ten nearly identical pairs. Robert's team is building a diversity capability that keeps results relevant but varied. Leave out how it works.",
-          answer: "My team and I are building a new diversity capability for Azure AI Search. Search for running shoes in an online store and the top results can easily be ten nearly identical pairs. Our work keeps results relevant but varied, so shopping pages and recommendations show real choices, and AI assistants get a well-rounded set of sources instead of the same one five times."
+          thought: "Use product choice as a concrete example of result redundancy, then connect it to broader evidence for AI grounding. Keep Robert's research-to-production scope, but don't expose the diversity algorithm.",
+          answer: "I tech-lead a new diversity capability for Azure AI Search. It reduces redundant results: an online store should offer meaningful choices, not ten near-identical products. The same issue matters for AI grounding, where a broad question may need evidence from different parts of a document collection. Our work spans research and production engineering, with applications in e-commerce and recommendations."
         },
         {
-          thought: "Use a familiar frustration: searching and getting the same thing over and over. Robert leads the diversity capability that fixes that, which matters most for online shopping and recommendations. Explain why it matters and leave the internals out.",
-          answer: "Have you ever searched for something and gotten the same answer over and over? I lead the team building a diversity capability for Azure AI Search to fix that, so the top results cover different options instead of repeating each other. It makes shopping and recommendations less repetitive, and gives AI assistants a broader set of sources."
+          thought: "Explain diversity as reducing redundancy, not guaranteeing a complete or correct answer. Connect the product goal to Robert's research-to-production responsibility, with both recommendations and broad AI grounding as examples.",
+          answer: "My current focus is search-result diversity: reducing repetition without losing sight of relevance. I lead the diversity capability on Azure AI Search, taking it from research toward production. It can give shoppers and recommendation users more distinct choices, and provide AI assistants with broader evidence for questions that span a document collection."
         }
       ]
     },
@@ -381,12 +383,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Most people picture a chatbot simply knowing things. For questions about a company's own documents, it first looks them up, then answers from what it found. Robert works on that look-up step, which AI agents call as a tool. Explain it without acronyms.",
-          answer: "A chatbot doesn't automatically know what's in a company's documents. So before it answers, it can run a search and read what comes back, a bit like checking your notes before you reply to an email. I work on that search step: I've connected Azure AI Search to AI agents as a tool they can call, so their answers are grounded in the company's real information."
+          thought: "Explain retrieval-augmented generation by its sequence: search for relevant sources, then use them as context. Include the actual term with its explanation, connect it to agent tool calling, and keep the limits of grounding clear.",
+          answer: "For questions about a company's documents, an assistant can search for relevant passages and use them as context when writing its response. That's retrieval-augmented generation, or RAG. I've integrated Azure AI Search into agent workflows as a tool they can call. It helps ground responses in company information, though the model can still misinterpret a source."
         },
         {
-          thought: "Lead with why it matters to anyone who uses AI: an assistant's answer is only as good as the information it finds first. Robert builds the search that AI agents call as a tool to ground their answers. Be honest that good search helps but doesn't guarantee a right answer.",
-          answer: "An AI assistant's answer is only as good as the information it finds first. A lot of my work is on that finding step: I've connected Azure AI Search to AI agents as a tool they can call, so answers about a company's documents are grounded in real sources rather than guesswork. Good search doesn't guarantee a right answer, but it gives the assistant the right material."
+          thought: "Separate retrieval from generation without treating either as infallible. Robert's work supplies indexed enterprise information through a search tool; the model uses those results to compose a response. Define grounding through that connection.",
+          answer: "There are two different jobs: finding relevant information and composing an answer from it. I work on the first, integrating Azure AI Search into AI agents through tool calling. The search results give the model sources from a company's indexed documents. That connection is called grounding; it helps, but neither finding the right sources nor interpreting them correctly is automatic."
         }
       ]
     },
@@ -402,12 +404,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Tell it as growing scope. It starts with a Microsoft Garage internship in 2018, a separate team from search, then search internships in 2019 and 2020, full-time on Azure AI Search from 2021, scaling vector search as a Software Engineer II, and leading a team as a senior engineer since 2025. Keep the terms plain.",
-          answer: "Each step took on more scope. I started at Microsoft Garage in 2018, helping build a mobile app that classified chest X-rays, then interned on the search team in 2019 and 2020 and joined full-time in 2021. I helped grow vector search, which finds things by meaning, into something customers rely on at scale, and since 2025 I've been a Senior Software Engineer leading a team of five."
+          thought: "Tell it as growing scope: Garage in 2018, search internships in 2019 and 2020, full-time from 2021, scaling vector search, then tech-leading since 2025. Keep Garage distinct and retain the engineering responsibilities rather than repeating a definition of vector search.",
+          answer: "I've moved from owning parts of an app to leading whole technical efforts. At Microsoft Garage in 2018, I helped build a chest X-ray classification app; that was separate from my search internships in 2019 and 2020. I joined Azure AI Search full-time in 2021, helped scale vector search for broad adoption, and since 2025 have been a Senior Software Engineer tech-leading a team of five."
         },
         {
-          thought: "Show the arc from small pieces to whole efforts: parts of an app, then individual features, then a major search capability at scale, then leading a team. Anchor three points in plain words: the Garage chest X-ray app, vector search, and the team he leads now.",
-          answer: "My path at Microsoft has been about taking on bigger pieces of work. It started with parts of a chest X-ray mobile app at Microsoft Garage, followed by internships on the search team. Full-time, I went from shipping individual features to helping grow vector search, which finds things by meaning, for customers at scale. Today I'm a Senior Software Engineer leading a team of five."
+          thought: "Use the progression to show breadth as well as ownership: mobile ML at Garage, production search features, vector search at scale, and leading a mixed research and engineering team. Don't reduce the story to title changes.",
+          answer: "The growth has been in both breadth and ownership: mobile ML in a chest X-ray app at Microsoft Garage, production features on the search team, then vector storage, quantization, and relevance at scale. I helped take vector search to broad production adoption, and now tech-lead five engineers and scientists, owning work from technical direction and partner alignment through implementation."
         }
       ]
     },
@@ -427,8 +429,8 @@ window.HeroChatContent = (function () {
           answer: "The most ambitious was human pose estimation: I led a student team that trained the network from randomly initialized weights on COCO-2017, and I owned the model architecture, cloud training pipeline, and data augmentation. I've also trained a U-Net for road segmentation on KITTI Road, reaching up to 99.1% F1, and a self-supervised monocular depth model based on Monodepth2."
         },
         {
-          thought: "Three projects, each with a different learning signal: heatmap-based pose estimation trained from random weights, supervised road segmentation, and depth learned from stereo pairs without labels. Each one meant building the training pipeline. Give the honest numbers.",
-          answer: "Three stand out, each learning in a different way. Human pose estimation on COCO-2017 predicted joint heatmaps and was trained from random weights. Road segmentation on KITTI Road used a U-Net, reaching up to 99.1% F1 and 91% in the worst case. Monocular depth was self-supervised from stereo image pairs, with no depth labels. Each one meant building the training pipeline too."
+          thought: "Make the second variant technically distinct: pose heatmaps rather than direct joint-coordinate regression, supervised road segmentation, and self-supervised depth from photometric reconstruction. These are public project details; keep all three field documents represented.",
+          answer: "Human pose estimation on COCO-2017 used joint heatmaps rather than direct coordinate regression, trained from random weights. Road segmentation used a U-Net on KITTI Road, with F1 up to 99.1% and 91% in the worst case. For monocular depth, I implemented a limited Monodepth2 variant in TensorFlow, using stereo photometric reconstruction and edge-aware smoothness loss without ground-truth depth labels."
         }
       ]
     },
@@ -486,12 +488,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Mentoring shows up at work and at the university. At Microsoft, Robert mentors and onboards engineers and leads design reviews. He's also an industry mentor for SENG 321 at the University of Victoria, coaching a student team from a vague brief to a prototype. Cover both.",
-          answer: "At Microsoft I mentor and onboard engineers and lead design reviews. I'm also an industry mentor for SENG 321, a third-year software engineering course at the University of Victoria: I wrote a real-world challenge about where AI chatbots still fall short, and I coach a student team from a vague brief to a clickable prototype."
+          thought: "Keep the current mentoring work distinct from the 2024 chatbot challenge. At Microsoft Robert mentors engineers and leads design reviews; in SENG 321 he coaches requirements and design reasoning using an open-ended challenge drawn from production AI systems.",
+          answer: "At Microsoft I mentor and onboard engineers and lead design reviews. At the University of Victoria, I mentor a SENG 321 requirements-engineering team using a challenge drawn from production AI systems. I help students identify stakeholder needs, choose a workable scope, and justify their design as they move from an ambiguous brief to a clickable prototype."
         },
         {
           thought: "Focus on how Robert coaches: he looks at the quality of the reasoning, not just the output. In SENG 321 he holds biweekly reviews on scope and design rationale; in 2024 he was one of 18 mentors for a 120-student cohort. At work he mentors and onboards engineers. Make the coaching style the point.",
-          answer: "I coach the reasoning, not just the result. As an industry mentor for SENG 321 at the University of Victoria, I hold biweekly reviews on how a student team scopes and justifies its design; in 2024 I was one of 18 mentors for a 120-student cohort. At Microsoft I bring the same approach to mentoring and onboarding engineers and leading design reviews."
+          answer: "I focus on the reasoning behind a design: whose needs it serves, what assumptions it makes, and how the team justifies its scope. As a SENG 321 industry mentor at the University of Victoria, I review that reasoning biweekly; in 2024 I was one of 18 mentors for 120 students. At Microsoft I bring the same focus to mentoring engineers, onboarding, and design reviews."
         }
       ]
     },
@@ -528,12 +530,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Robert studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a 97% cumulative average. He received the Jamie Cassels Undergraduate Research Award for research on hardware that runs neural networks faster, and won engineering design competitions. Keep it short and plain.",
-          answer: "I studied Electrical and Computer Engineering at the University of Victoria and graduated in 2021 with a 97% cumulative average. A Jamie Cassels Undergraduate Research Award let me research hardware that runs neural networks faster, and I won design competitions along the way, including first place at the Western Engineering Competition."
+          thought: "State the degree, result, research area, and design competitions directly. Hardware acceleration is a useful technical term here, not jargon that needs to be replaced with a vague description.",
+          answer: "I earned a Bachelor of Electrical and Computer Engineering at the University of Victoria in 2021, with a 97% cumulative average. Through the Jamie Cassels Undergraduate Research Award, I researched hardware acceleration for neural networks. I also won engineering design competitions, including first place at the Western Engineering Competition."
         },
         {
-          thought: "Lead with the breadth of the degree, from hardware to software to machine learning, in everyday words. Then the research award and the most fun competition: a robot that collected Martian artifacts. University of Victoria, 97% average, graduated 2021.",
-          answer: "I did Electrical and Computer Engineering at the University of Victoria, which ran from hardware to software to machine learning, and graduated in 2021 with a 97% average. A research award let me study hardware that runs neural networks faster, and I won design competitions too, including one where we built a robot to collect Martian artifacts."
+          thought: "Show the degree's breadth with concrete fields, but keep the answer approachable. Retain the research award and hardware acceleration, then the competition robot as a tangible example of hands-on engineering.",
+          answer: "I studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a 97% average. The degree spanned software, embedded systems, signal processing, and ML. A research award supported my work on hardware acceleration for neural networks, and design competitions gave me hands-on challenges, including a robot built to collect Martian artifacts."
         }
       ]
     },
@@ -550,11 +552,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Skills are clearest through the work they produced. Robert writes C++, C#, Java, and Python, and his range runs from SIMD distance kernels to distributed execution, agentic filter generation, and training vision models. Name the languages, then one example per area.",
-          answer: "I mostly write C++, C#, Java, and Python, and the work covers a wide range: low-level SIMD distance kernels, distributed execution for new search capabilities, agentic filter generation, and on the ML side, vision models like human pose estimation trained from scratch."
+          answer: "I mainly work in C++, C#, Java, and Python, across systems engineering and applied ML: SIMD distance-kernel optimization, distributed execution for retrieval algorithms, bounded filter generation for agents, and computer vision. On the ML side, I led a human pose estimation project trained from random initialization, owning the architecture and cloud training pipeline."
         },
         {
           thought: "Frame Robert as someone who bridges systems engineering and applied ML, with 10+ years of coding behind it. One end is SIMD and distributed execution, the middle is retrieval for agents, and the other end is training models from scratch. One example each.",
-          answer: "My strengths sit where systems engineering meets applied ML, built on 10+ years of coding in C++, C#, Java, Python, and more. On the systems side: SIMD-optimized distance math and distributed execution for new search capabilities. In between: retrieval for agents, like filter generation. On the ML side: models trained from scratch, like human pose estimation."
+          answer: "My strength is connecting algorithmic ideas to production systems, backed by 10+ years of coding in C++, C#, Java, and Python. That ranges from SIMD distance kernels to distributed execution for search, and from a bounded operator set for agentic filter generation to training human pose estimation models from scratch. I work across algorithm design, implementation, and delivery."
         }
       ]
     }

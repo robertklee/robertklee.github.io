@@ -31,6 +31,8 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
 
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
+Match each answer's depth to its question: technical topics keep mechanisms and tradeoffs, leadership topics explain decisions and ownership, and general topics introduce unfamiliar terms with brief explanations and concrete examples. Every answer variant must fit both of its topic's question phrasings and cover the field documents in `docs`.
+
 When you add a new top-level asset, also add it to `publicFiles` in `build.js`. Everything under `assets/site/` is copied automatically. When you add a script, add it to the `check` script in `package.json`.
 
 ## Local preview
