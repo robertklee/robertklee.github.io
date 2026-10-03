@@ -4,7 +4,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
 
 ## Page structure
 
-1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on its nearest neighbours; answers cite their sources.
+1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on its nearest neighbours; answers cite their sources. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
 2. **About:** a portrait and a short introduction.
 3. **Work:** three chapters, each with a figure:
    - **Diversity:** shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.

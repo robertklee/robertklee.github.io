@@ -88,6 +88,8 @@
   let oy = 0;
   let unit = 1;
   let sigma = 24;
+  let compact = false; // the chat card spans the hero: no side gutters
+  let ui = 1; // stroke and marker scale for small screens
   let nodes = [];
   let edges = [];
   let adj = [];
@@ -165,18 +167,30 @@
   }
   function readProtected() {
     const sel = '.hero-eyebrow, .hero-viewport > h1, .hero-tagline, .hero-chat, .scroll-cue, .field-readout';
-    protectedRects = [...hero.querySelectorAll(sel)].map(el => relRect(el, 10)).filter(Boolean);
+    protectedRects = [...hero.querySelectorAll(sel)].map(el => {
+      const r = relRect(el, 10);
+      if (r) r.glass = el.classList.contains('hero-chat');
+      return r;
+    }).filter(Boolean);
   }
   // The chat grows as it streams, so reserve room for a full answer up front.
+  // When the card spans the hero (phones, narrow windows) it grows to nearly
+  // the bottom, and the field composes around the copy instead of beside it.
   function layoutProtected() {
     readProtected();
     const chat = hero.querySelector('.hero-chat');
     const r = chat && relRect(chat, 16);
-    if (r) protectedRects.push({ x: r.x, y: r.y, w: r.w, h: Math.max(r.h, Math.min(340, height - r.y - 90)) });
+    compact = !!r && Math.min(r.x, width - r.x - r.w) < 90;
+    if (!r) return;
+    const reserve = compact ? Math.min(420, height - r.y - 40) : Math.min(340, height - r.y - 90);
+    protectedRects.push({ x: r.x, y: r.y, w: r.w, h: Math.max(r.h, reserve), glass: true, reserve: true });
   }
-  function freeDist(x, y) {
+  // Distance to the nearest hero copy. `throughGlass` ignores the chat card,
+  // whose frosted surface already softens whatever passes behind it.
+  function freeDist(x, y, throughGlass) {
     let d = Infinity;
     for (const r of protectedRects) {
+      if (throughGlass && r.glass) continue;
       const dx = Math.max(r.x - x, 0, x - (r.x + r.w));
       const dy = Math.max(r.y - y, 0, y - (r.y + r.h));
       d = Math.min(d, Math.hypot(dx, dy));
@@ -184,8 +198,15 @@
     return d;
   }
   const insideAny = (x, y) => protectedRects.some(r => x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.h);
+  // Inside the card itself (its rect is padded by 10px), not its reserved space.
+  const underGlass = (x, y) => compact && protectedRects.some(r => r.glass && !r.reserve && x > r.x + 10 && x < r.x + r.w - 10 && y > r.y + 10 && y < r.y + r.h - 10);
   const overlaps = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-  const viewFade = (x, y) => clamp(Math.min(x / 70, (width - x) / 70, y / 60, (height - y) / (height * 0.22)), 0, 1);
+  const viewFade = (x, y) => (compact
+    ? clamp(Math.min(x / 18, (width - x) / 18, y / 20, (height - y) / (height * 0.1)), 0, 1)
+    : clamp(Math.min(x / 70, (width - x) / 70, y / 60, (height - y) / (height * 0.22)), 0, 1));
+  // The search dims where it passes beneath hero copy. On compact screens most
+  // of it runs behind the card, so there it stays lit and shows through.
+  const clearAt = (x, y, floor) => floor + (1 - floor) * smooth(freeDist(x, y, compact) / 40);
 
   // --- Camera ----------------------------------------------------------------
   // A slow sway (plus a little pointer parallax) pivots about the focal plane,
@@ -248,14 +269,20 @@
   }
 
   // Well-separated focus-region centres, inset from the edges and clear of the
-  // hero copy where the viewport allows.
+  // hero copy where the viewport allows. Compact screens only have thin bands
+  // around the copy, so they search those finely and keep regions on screen.
   function pickCentres(rand) {
     const margin = Math.max(28, sigma * 1.8);
-    const box = { l: Math.max(margin, width * 0.06), r: width - Math.max(margin, width * 0.06), t: Math.max(margin, height * 0.1), b: height - Math.max(margin * 1.6, height * 0.17) };
+    const inset = sigma * 2.4 + 6;
+    const box = compact
+      ? { l: inset, r: width - inset, t: sigma * 1.8 + 6, b: height - sigma * 1.8 - 6 }
+      : { l: Math.max(margin, width * 0.06), r: width - Math.max(margin, width * 0.06), t: Math.max(margin, height * 0.1), b: height - Math.max(margin * 1.6, height * 0.17) };
+    const GX = 28;
+    const GY = compact ? 48 : 18;
     let candidates = [];
-    for (let gx = 0; gx <= 28; gx++) {
-      for (let gy = 0; gy <= 18; gy++) {
-        const p = { x: box.l + (box.r - box.l) * gx / 28, y: box.t + (box.b - box.t) * gy / 18 };
+    for (let gx = 0; gx <= GX; gx++) {
+      for (let gy = 0; gy <= GY; gy++) {
+        const p = { x: box.l + (box.r - box.l) * gx / GX, y: box.t + (box.b - box.t) * gy / GY };
         candidates.push({ p, free: Math.min(freeDist(p.x, p.y), sigma * 3) });
       }
     }
@@ -297,14 +324,15 @@
 
     const rand = rng(width * 7919 + height * 104729);
     const wide = width >= 900;
-    sigma = Math.max(16, Math.min(40, Math.min(width, height) * 0.042));
+    sigma = compact ? clamp(width * 0.032, 11, 22) : Math.max(16, Math.min(40, Math.min(width, height) * 0.042));
+    ui = clamp(Math.min(width, height) / 600, 0.75, 1);
     nodes = [];
     const add = (p, cluster) => nodes.push({ x: p.x, y: p.y, z: p.z, cluster, label: '', level: 0 }) - 1;
     const tmp = {};
 
     // 1. Focus regions on the focal plane: the topics the chat can reference.
     const centres = pickCentres(rand);
-    const perCluster = wide ? 13 : 9;
+    const perCluster = wide ? 13 : compact && width < 600 ? 7 : 9;
     clusterInfo = CLUSTERS.map((cluster, ci) => {
       const centre = unproject(centres[ci].x, centres[ci].y, 0);
       const angle = rand() * Math.PI;
@@ -669,7 +697,7 @@
     return project(A.wx + (B.wx - A.wx) * u, A.wy + (B.wy - A.wy) * u, A.z + (B.z - A.z) * u + bulge * Math.sin(Math.PI * u), out);
   }
   const bulgeOf = (A, B, layer) => (layer ? Math.sqrt(dist3(A, B)) * 0.3 : 0);
-  function strokeLink(A, B, layer, from, to, color, a, lineWidth, dash) {
+  function strokeLink(A, B, layer, from, to, color, a, lineWidth, dash, soften) {
     const bulge = bulgeOf(A, B, layer);
     const n = Math.max(1, Math.ceil(16 * (to - from)));
     let prev = linkPoint(A, B, from, bulge, linkA);
@@ -678,11 +706,15 @@
     for (let k = 1; k <= n; k++) {
       const cur = linkPoint(A, B, from + (to - from) * k / n, bulge, next);
       const s = (prev.s + cur.s) / 2;
+      const mx = (prev.sx + cur.sx) / 2;
+      const my = (prev.sy + cur.sy) / 2;
       const ctx = pathPlane((prev.zz + cur.zz) / 2).ctx;
-      const clear = 0.15 + 0.85 * smooth(freeDist((prev.sx + cur.sx) / 2, (prev.sy + cur.sy) / 2) / 40);
-      ctx.strokeStyle = rgba(color, a * clear * (0.4 + 0.6 * s));
-      ctx.lineWidth = lineWidth * (0.55 + 0.45 * s);
-      ctx.setLineDash(dash || []);
+      // Behind the frosted card a fine or dashed line would blur away, so the
+      // path widens into a soft streak; `soften` sets how bright it stays.
+      const glass = soften > 0 && underGlass(mx, my);
+      ctx.strokeStyle = rgba(color, a * clearAt(mx, my, 0.15) * (0.4 + 0.6 * s) * (glass ? soften : 1));
+      ctx.lineWidth = lineWidth * (0.55 + 0.45 * s) * (glass ? 2 : 1);
+      ctx.setLineDash(glass ? [] : dash || []);
       ctx.lineDashOffset = -travelled;
       ctx.beginPath();
       ctx.moveTo(prev.sx, prev.sy);
@@ -698,7 +730,8 @@
   const pathPlane = zz => (zz < F * 0.3 ? NEAR : MID);
   function glow(p, color, radius, core, coreColor) {
     const ctx = NEAR.ctx;
-    ctx.globalAlpha = 0.2 + 0.8 * smooth(freeDist(p.sx, p.sy) / 40);
+    if (underGlass(p.sx, p.sy)) { radius *= 2; core *= 1.5; }
+    ctx.globalAlpha = clearAt(p.sx, p.sy, 0.2);
     const g = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, radius);
     g.addColorStop(0, rgba(color, 0.6));
     g.addColorStop(1, rgba(color, 0));
@@ -722,7 +755,7 @@
   }
   function disc(p, color, a, r) {
     const ctx = pathPlane(p.zz).ctx;
-    ctx.fillStyle = rgba(color, a * (0.2 + 0.8 * smooth(freeDist(p.sx, p.sy) / 40)));
+    ctx.fillStyle = rgba(color, a * clearAt(p.sx, p.sy, 0.2));
     ctx.beginPath();
     ctx.arc(p.sx, p.sy, r, 0, TAU);
     ctx.fill();
@@ -733,17 +766,33 @@
     ctx.font = (strong ? '500 ' : '400 ') + '11px "IBM Plex Mono", ui-monospace, monospace';
     const w = ctx.measureText(text).width + 14;
     const h = 20;
+    // Centred placements slide along the edge rather than fall off screen.
+    const cx = clamp(p.sx - w / 2, 6, width - 6 - w);
     const options = [
       { x: p.sx + 10, y: p.sy - h / 2 },
       { x: p.sx - 10 - w, y: p.sy - h / 2 },
-      { x: p.sx - w / 2, y: p.sy - 14 - h },
-      { x: p.sx - w / 2, y: p.sy + 14 }
+      { x: cx, y: p.sy - 14 - h },
+      { x: cx, y: p.sy + 14 }
     ];
+    // Compact screens have only slivers beside the copy: a label may sit a
+    // little further off, tied back to its point by a leader line.
+    if (compact) for (let d = 40; d <= 112; d += 24) options.push({ x: cx, y: p.sy - d - h, lead: true }, { x: cx, y: p.sy + d, lead: true });
     for (const o of options) {
       const box = { x: o.x, y: o.y, w, h };
       if (box.x < 6 || box.y < 6 || box.x + w > width - 6 || box.y + h > height - 6) continue;
       if (protectedRects.some(r => overlaps(box, r)) || placed.some(r => overlaps(box, r))) continue;
+      const lx = clamp(p.sx, box.x + 8, box.x + w - 8);
+      const ly = box.y > p.sy ? box.y : box.y + h;
+      if (o.lead && [0.25, 0.5, 0.75].some(k => insideAny(p.sx + (lx - p.sx) * k, p.sy + (ly - p.sy) * k))) continue;
       placed.push(box);
+      if (o.lead) {
+        ctx.strokeStyle = rgba(color, 0.55);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(p.sx, p.sy + Math.sign(ly - p.sy) * 5);
+        ctx.lineTo(lx, ly);
+        ctx.stroke();
+      }
       ctx.fillStyle = rgba(colors.bg, 0.86);
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(box.x, box.y, w, h, 6);
@@ -835,15 +884,23 @@
     const ctx = NEAR.ctx;
     ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
     ctx.textBaseline = 'middle';
-    clusterInfo.forEach(c => {
+    clusterInfo.forEach((c, ci) => {
       const p = project(c.centre.x, c.centre.y, 0, tmpC);
       const text = c.label.toUpperCase();
       const w = ctx.measureText(text).width;
-      const spots = [{ x: p.sx - w / 2, y: p.sy - c.radius - 18 }, { x: p.sx - w / 2, y: p.sy + c.radius + 18 }];
+      const cx = clamp(p.sx - w / 2, 10, width - 10 - w);
+      const spots = [
+        { x: cx, y: p.sy - c.radius - 18 },
+        { x: cx, y: p.sy + c.radius + 18 }
+      ];
+      if (compact) spots.push({ x: p.sx + c.radius + 14, y: p.sy }, { x: p.sx - c.radius - 14 - w, y: p.sy });
       for (const s of spots) {
         const box = { x: s.x - 4, y: s.y - 8, w: w + 8, h: 16 };
         if (box.x < 6 || box.y < 6 || box.x + box.w > width - 6 || box.y + box.h > height - 6) continue;
         if (protectedRects.some(r => overlaps(box, r)) || placed.some(r => overlaps(box, r))) continue;
+        // Never letter over another region's points.
+        const hit = n => n.sx > box.x - 3 && n.sx < box.x + box.w + 3 && n.sy > box.y - 3 && n.sy < box.y + box.h + 3;
+        if (clusterInfo.some((o, oi) => oi !== ci && o.members.some(i => hit(nodes[i])))) continue;
         placed.push(box);
         ctx.fillStyle = rgba(colors.faint, 0.8 * viewFade(p.sx, p.sy) * (0.3 + 0.7 * c.f));
         ctx.fillText(text, s.x, s.y);
@@ -869,8 +926,9 @@
         const k = (age - st.t0) / (st.t1 - st.t0);
         const at = nodes[st.at];
         if (!still && k < 1) ring(at, colors.accent, (1 - k) * 0.8 * fade, 3 + 16 * (1 - ease(k)), 1.2);
-        // A brief layer tag marks each step down the hierarchy.
-        const tag = still ? 0 : clamp(Math.min((age - st.t0) / 200, (st.t0 + 1600 - age) / 500), 0, 1) * fade;
+        // A brief layer tag marks each step down the hierarchy, kept off the copy.
+        let tag = still ? 0 : clamp(Math.min((age - st.t0) / 200, (st.t0 + 1600 - age) / 500), 0, 1) * fade;
+        if (tag > 0) tag *= smooth(freeDist(at.sx + 14, at.sy - 9, compact) / 16);
         if (tag > 0) {
           const c = NEAR.ctx;
           c.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
@@ -892,14 +950,14 @@
       const f = still ? 1 : clamp((age - st.tm) / (st.t1 - st.tm), 0, 1);
       if (f <= 0) continue;
       const e = easeInOut(f);
-      strokeLink(A, B, st.layer, 0, e, colors.accent, 0.9 * fade, 2, st.layer ? dash : null);
-      disc(A, colors.accent, 0.85 * fade, 1.2 + 1.6 * A.s);
+      strokeLink(A, B, st.layer, 0, e, colors.accent, 0.9 * fade, 2 * ui, st.layer ? dash : null, 0.35);
+      disc(A, colors.accent, 0.85 * fade, (1.2 + 1.6 * A.s) * ui);
       if (f < 1) {
-        strokeLink(A, B, st.layer, Math.max(0, e - 0.25), e, colors.accent, fade, 3.2, null);
+        strokeLink(A, B, st.layer, Math.max(0, e - 0.25), e, colors.accent, fade, 3.2 * ui, null, 0.8);
         const head = linkPoint(A, B, e, bulgeOf(A, B, st.layer), tmpC);
-        glow(head, colors.accent, 9 + 13 * head.s, 2.2 + 1.8 * head.s, colors.dark ? '#ffffff' : colors.accent);
+        glow(head, colors.accent, (9 + 13 * head.s) * ui, (2.2 + 1.8 * head.s) * ui, colors.dark ? '#ffffff' : colors.accent);
       } else {
-        disc(B, colors.accent, 0.85 * fade, 1.2 + 1.6 * B.s);
+        disc(B, colors.accent, 0.85 * fade, (1.2 + 1.6 * B.s) * ui);
       }
     }
   }
@@ -918,10 +976,10 @@
       const landed = age >= q.land;
       const color = q.mode === 'miss' ? colors.faint : colors.amber;
       const k = still ? 1 : ease(age / 400);
-      ring(p, color, (landed ? 0.95 : 0.45) * markFade, 7 * k, 1.6);
+      ring(p, color, (landed ? 0.95 : 0.45) * markFade, 7 * k * ui, 1.6);
       if (!still && age < q.land + 1600) {
         const pulse = (age % 1400) / 1400;
-        ring(p, color, (1 - pulse) * 0.5 * markFade, 7 + pulse * 18, 1.2);
+        ring(p, color, (1 - pulse) * 0.5 * markFade, (7 + pulse * 18) * ui, 1.2);
       }
       if (q.mode === 'miss' && landed) {
         const steps = q.branches[0];
@@ -953,8 +1011,8 @@
         c.lineTo(from.sx + (p.sx - from.sx) * k, from.sy + (p.sy - from.sy) * k);
         c.stroke();
       }
-      disc(p, colors.amber, markFade, 3.4 * k);
-      ring(p, colors.amber, 0.35 * markFade, 8 * k, 1);
+      disc(p, colors.amber, markFade, 3.4 * k * ui);
+      ring(p, colors.amber, 0.35 * markFade, 8 * k * ui, 1);
       if (k > 0.6 && p.label && markFade > 0.5) {
         NEAR.ctx.globalAlpha = Math.min(1, (k - 0.6) / 0.4);
         drawLabel(p.label, p, colors.amberText, placed, true);
