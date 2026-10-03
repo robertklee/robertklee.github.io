@@ -895,6 +895,9 @@ var app = document.getElementById('app');
   }
 
   // Size the scroll panel to the room left in the hero below the chat's top.
+  // On wider screens it stops at ~62% of the viewport, leaving a band of the
+  // hero's HNSW backdrop visible so each retrieval can be seen behind the chat.
+  var wideQuery = window.matchMedia ? window.matchMedia('(min-width: 761px)') : null;
   function updateConvoHeight() {
     if (!convoMode) return;
     var box = app.parentElement;
@@ -903,6 +906,9 @@ var app = document.getElementById('app');
     // compact chevron never overlaps the chat's chips/CTA in conversation mode.
     var avail = Math.floor(box.getBoundingClientRect().bottom -
       chat.getBoundingClientRect().top - 40);
+    if (wideQuery && wideQuery.matches) {
+      avail = Math.min(avail, Math.max(440, Math.round(window.innerHeight * 0.62)));
+    }
     chat.style.maxHeight = Math.max(220, avail) + 'px';
   }
 
