@@ -143,19 +143,20 @@
             <header class="figure-heading">
               <p class="eyebrow">Try it · Relevance vs. diversity</p>
               <h3 id="diversity-figure-title">Same query, broader evidence.</h3>
-              <p>Pure nearest-neighbour ranking can fill the top six with near-copies. Slide toward diversity and watch them give way.</p>
+              <p>Pure nearest-neighbour ranking can fill the top six with near-copies from one neighbourhood. Turn up diversity and the results spread across clusters.</p>
             </header>
             <div class="dv-body" hidden>
               <div class="segmented" role="group" aria-label="Example">
-                <button type="button" aria-pressed="true" data-scenario="product">Product search</button>
-                <button type="button" aria-pressed="false" data-scenario="corpus">Corpus question</button>
+                <button type="button" aria-pressed="true" data-scenario="product">Shopping</button>
+                <button type="button" aria-pressed="false" data-scenario="grounding">Grounding</button>
+                <button type="button" aria-pressed="false" data-scenario="feed">Your feed</button>
               </div>
-              <p class="dv-query"><span>Query</span><span data-dv-query>running shoes</span></p>
+              <p class="dv-query"><span data-dv-query-label>Query</span><span data-dv-query>running shoes</span></p>
               <svg class="dv-plot" viewBox="0 0 560 300" aria-hidden="true" focusable="false" data-dv-plot></svg>
               <div class="dv-control">
-                <div><label for="dv-lambda">Diversity</label><output for="dv-lambda" data-dv-lambda>&#955; = 1.00</output></div>
-                <input id="dv-lambda" type="range" min="0" max="1" step="0.01" value="0" aria-describedby="diversity-caption">
-                <div class="dv-scale" aria-hidden="true"><span>Relevance only</span><span>Diversity only</span></div>
+                <div><label for="dv-diversity">Diversity</label><output for="dv-diversity" data-dv-value>Off</output></div>
+                <input id="dv-diversity" type="range" min="0" max="1" step="0.01" value="0" aria-describedby="diversity-caption">
+                <div class="dv-scale" aria-hidden="true"><span>Relevance only</span><span>Maximum spread</span></div>
               </div>
               <dl class="dv-stats">
                 <div><dt>Distinct groups</dt><dd data-dv-groups>2 of 6</dd></div>
@@ -165,7 +166,7 @@
               <ol class="dv-results" data-dv-results aria-label="Top six results"></ol>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-dv-live></p>
             </div>
-            <figcaption id="diversity-caption">Illustration using maximal marginal relevance (Carbonell &amp; Goldstein, 1998) on hand-made data: score = &#955; &#183; relevance &minus; (1 &minus; &#955;) &#183; similarity to results already chosen. Not the production algorithm.</figcaption>
+            <figcaption id="diversity-caption">A simplified illustration on hand-made data. Lines link each result to its nearest neighbours; shaded regions are the clusters they form. It conveys the idea, not the production algorithm.</figcaption>
           </figure>
         </article>
 

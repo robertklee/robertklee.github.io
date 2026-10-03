@@ -483,17 +483,19 @@ em { font-style: italic; }
 .dv-body[hidden] { display: none; }
 .dv-query { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; color: var(--heading); font-size: 15px; }
 .dv-query > span:first-child { color: var(--faint); font: 500 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
-.dv-plot { display: block; width: 100%; height: auto; overflow: visible; border-radius: 14px; background: var(--bg); }
+.dv-plot { display: block; width: 100%; height: auto; overflow: hidden; border-radius: 14px; background: var(--bg); }
 .dv-rings ellipse { fill: none; stroke: var(--line); stroke-dasharray: 3 5; }
-.dv-rings text, .dv-group-labels text, .dv-query-mark text { fill: var(--faint); font: 500 9.5px var(--font-mono); letter-spacing: .04em; }
-.dv-group-labels text { text-transform: uppercase; }
+.dv-region { fill: var(--art-fill); fill-opacity: .07; stroke: var(--line-strong); stroke-width: 1; transition: fill .25s ease, fill-opacity .25s ease, stroke .25s ease; }
+.dv-region.is-covered { fill: var(--amber-strong); fill-opacity: .1; stroke: color-mix(in srgb, var(--amber-strong) 55%, transparent); }
+.dv-graph line { stroke: var(--art-fill); stroke-opacity: .35; stroke-width: 1; }
+.dv-group-labels text, .dv-query-mark text { fill: var(--faint); font: 500 9.5px var(--font-mono); letter-spacing: .04em; }
+.dv-group-labels text { text-transform: uppercase; transition: fill .25s ease; }
+.dv-group-labels text.is-covered { fill: var(--amber); }
 .dv-link { stroke: var(--amber-strong); stroke-width: 1.2; opacity: 0; transition: opacity .25s ease; }
 .dv-link.is-picked { opacity: .5; }
 .dv-dot { fill: var(--art-fill); stroke: var(--surface); stroke-width: 1.5; transition: fill .25s ease; }
-.dv-halo { fill: var(--amber-soft); opacity: 0; transition: opacity .25s ease; }
 .dv-point.is-picked .dv-dot { fill: var(--amber-strong); }
-.dv-point.is-picked .dv-halo { opacity: 1; }
-.dv-rank { fill: #fff; font: 600 10px var(--font-mono); pointer-events: none; }
+.dv-rank { fill: #fff; font: 600 9.5px var(--font-mono); pointer-events: none; }
 [data-theme="dark"] .dv-rank { fill: #1a1206; }
 .dv-query-mark circle { fill: none; stroke: var(--accent); stroke-width: 1.6; }
 .dv-query-mark .dv-query-core { fill: var(--accent); stroke: none; }
@@ -725,7 +727,10 @@ em { font-style: italic; }
   .quantization-result > span { font-size: 12px; }
   .figure-heading h3 { font-size: 28px; }
   .segmented { display: flex; }
-  .segmented button { flex: 1; padding-inline: 8px; }
+  .segmented button { flex: 1 1 auto; padding-inline: clamp(6px, 2.5vw, 14px); font-size: 12.5px; white-space: nowrap; }
+  .dv-plot { margin-inline: -8px; width: calc(100% + 16px); }
+  .dv-group-labels text, .dv-query-mark text { font-size: 15px; letter-spacing: 0; }
+  .dv-rank { font-size: 12px; }
   .dv-stats { gap: 8px; }
   .dv-stats > div { padding: 10px; }
   .dv-stats dd { font-size: 22px; }
