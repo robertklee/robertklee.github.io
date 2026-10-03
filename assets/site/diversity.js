@@ -44,6 +44,19 @@
   // Every scenario reuses the same geometry, reflected about the query, so the
   // trade-off plays out identically whichever story is on screen.
   const SCENARIOS = {
+    travel: {
+      label: 'Prompt',
+      query: 'Plan my first trip to Japan',
+      anchor: 'prompt',
+      flip: [true, true],
+      groups: { a: 'Tokyo', b: 'Rail', c: 'Beyond Tokyo', d: 'Food', e: 'Seasons', f: 'Tangential', g: 'Tangential', h: 'Tangential' },
+      titles: [
+        'Tokyo in 3 days', 'Tokyo in 4 days', 'Tokyo in 5 days', 'Tokyo on a budget', 'Tokyo for first-timers',
+        'Japan Rail Pass explained', 'Booking the bullet train', 'Kyoto temples and shrines', 'Hiroshima and Miyajima',
+        'Ramen and izakaya guide', 'Depachika food halls', 'When to see cherry blossoms',
+        'Anime box set sale', 'Sushi delivery near you', 'Cast-iron teapots'
+      ]
+    },
     product: {
       label: 'Query',
       query: 'running shoes',
@@ -82,23 +95,10 @@
         'Kimchi for beginners', 'Homemade kombucha', 'Choosing a Dutch oven',
         'Kitchen remodel tour', 'Weekly grocery haul', 'Celebrity chef drama'
       ]
-    },
-    travel: {
-      label: 'Prompt',
-      query: 'Plan my first trip to Japan',
-      anchor: 'prompt',
-      flip: [true, true],
-      groups: { a: 'Tokyo', b: 'Rail', c: 'Beyond Tokyo', d: 'Food', e: 'Seasons', f: 'Tangential', g: 'Tangential', h: 'Tangential' },
-      titles: [
-        'Tokyo in 3 days', 'Tokyo in 4 days', 'Tokyo in 5 days', 'Tokyo on a budget', 'Tokyo for first-timers',
-        'Japan Rail Pass explained', 'Booking the bullet train', 'Kyoto temples and shrines', 'Hiroshima and Miyajima',
-        'Ramen and izakaya guide', 'Depachika food halls', 'When to see cherry blossoms',
-        'Anime box set sale', 'Sushi delivery near you', 'Cast-iron teapots'
-      ]
     }
   };
 
-  let scenario = 'product';
+  let scenario = 'travel';
   let docs = [];
   let nodes = [];
   let regions = [];

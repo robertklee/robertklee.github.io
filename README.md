@@ -7,7 +7,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
 1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus, each a small organic network of linked documents. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on the documents the answer draws on, branching across regions when the answer spans several; answers cite their sources. Every row of suggested follow-ups includes at least one plain-language question for friends, family, and other non-engineers. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
 2. **About:** a portrait and a short introduction.
 3. **Work:** three chapters, each with a figure:
-   - **Diversity:** shopping, grounding, feed, and travel-planning scenarios with a diversity slider over a neighbourhood graph.
+   - **Diversity:** travel-planning, shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.
    - **Agentic retrieval:** a natural-language request becomes OData filters (`eq`, `ne`, `and`, `or` over categorical fields) and Lucene boosts; anything outside that set is left to ranking.
    - **Quantization:** a value ladder and a memory-at-scale meter.
 4. **Experience:** a scope ladder showing how each role widened in scope and breadth (Microsoft Garage set apart from Azure AI Search), then expandable role records.
