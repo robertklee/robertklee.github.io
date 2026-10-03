@@ -470,10 +470,37 @@ var app = document.getElementById('app');
     ]
   };
 
+  // Where each follow-up answer is grounded on this page, shown as citations
+  // under the answer. Targets that don't exist on the page are skipped.
+  var SOURCES = {
+    search: [['work-diversity', 'Diversity'], ['work-agentic', 'Agentic retrieval'], ['profile-work-entry-1', 'Senior Software Engineer']],
+    relevance: [['profile-work-entry-2', 'Software Engineer II'], ['work-diversity', 'Diversity'], ['work-agentic', 'Agentic retrieval']],
+    diversity: [['work-diversity', 'Diversity'], ['profile-work-entry-1', 'Senior Software Engineer']],
+    distributed: [['profile-work-entry-1', 'Senior Software Engineer'], ['profile-work-entry-2', 'Software Engineer II'], ['profile-work-entry-3', 'Software Engineer']],
+    performance: [['work-quantization', 'Quantization'], ['profile-work-entry-2', 'Software Engineer II']],
+    rag: [['work-agentic', 'Agentic retrieval'], ['profile-work-entry-1', 'Senior Software Engineer']],
+    benchmarking: [['profile-work-entry-1', 'Senior Software Engineer']],
+    experience: [['profile-work', 'Experience']],
+    projects: [['profile-projects', 'Projects']],
+    vision: [['profile-projects-entry-1', 'Pose estimation'], ['profile-projects-entry-2', 'Road segmentation'], ['profile-projects-entry-3', 'Monocular depth']],
+    leadership: [['profile-leadership', 'Community']],
+    awards: [['profile-awards', 'Awards'], ['profile-education', 'Education']],
+    skills: [['profile-about', 'About'], ['profile-work', 'Experience']]
+  };
+
   // The shared chat engine (streaming, retry/model menu, fold logic, timing
   // helpers, theme toggle) lives in chat-core.js as HeroChat.
   var H = window.HeroChat;
   var reduceMotion = H.reduceMotion;
+
+  // Let the hero's embedding field (assets/site/field.js) visualise each
+  // question as a retrieval. The last topic is kept for late listeners.
+  function emitQuery(topicId) {
+    window.HeroChatLastQuery = topicId;
+    try {
+      document.dispatchEvent(new CustomEvent('herochat:query', { detail: { topic: topicId } }));
+    } catch (e) {}
+  }
   var CHEVRON_SVG = H.CHEVRON_SVG;
   var MODELS = H.MODELS;
 
@@ -718,6 +745,7 @@ var app = document.getElementById('app');
     activeTurnTop = prompt.line;
     stickBottom = true;
     prompt.txt.textContent = PROMPT;
+    emitQuery('intro');
     think.line.classList.remove('chat-pending');
     answer.line.classList.remove('chat-pending');
     think.txt.textContent = THOUGHT;
@@ -750,6 +778,7 @@ var app = document.getElementById('app');
     think.line.classList.remove('chat-pending');
     think.line.classList.add('line-enter');
     think.line.classList.add('is-thinking');
+    emitQuery('intro');
     introGenModel.textContent = MODELS[modelIdx];
     introGen.classList.add('on'); // glowing "generating" orb, as on follow-ups
     think.txt.style.maxHeight = cotCap(false) + 'px'; // keep the live trace inside the hero
@@ -942,6 +971,10 @@ var app = document.getElementById('app');
     t.answer = makeLineIn(wrap, 'chat-answer');
     t.think.line.classList.add('chat-pending');
     t.answer.line.classList.add('chat-pending');
+    t.sources = document.createElement('div');
+    t.sources.className = 'chat-sources';
+    t.sources.hidden = true;
+    wrap.appendChild(t.sources);
     var meta = document.createElement('div');
     meta.className = 'follow-meta chat-actions-hidden';
     var retryCtl = buildRetryMenu({
@@ -970,6 +1003,37 @@ var app = document.getElementById('app');
     t.retryCtl = retryCtl;
     t.retryBtn = retryCtl.btn;
     return t;
+  }
+
+  // Cite the page sections behind a finished answer.
+  function showSources(t) {
+    var list = (SOURCES[t.topic.id] || []).filter(function (src) {
+      return document.getElementById(src[0]);
+    });
+    t.sources.textContent = '';
+    t.sources.hidden = !list.length;
+    if (!list.length) return;
+    var label = document.createElement('span');
+    label.className = 'chat-sources-label';
+    label.textContent = 'Sources';
+    t.sources.appendChild(label);
+    list.forEach(function (src, i) {
+      var link = document.createElement('a');
+      link.className = 'source-chip';
+      link.href = '#' + src[0];
+      var n = document.createElement('span');
+      n.className = 'source-n';
+      n.setAttribute('aria-hidden', 'true');
+      n.textContent = String(i + 1);
+      link.appendChild(n);
+      link.appendChild(document.createTextNode(src[1]));
+      t.sources.appendChild(link);
+    });
+    if (!reduceMotion) {
+      t.sources.classList.remove('line-enter');
+      void t.sources.offsetWidth;
+      t.sources.classList.add('line-enter');
+    }
   }
 
   // While a follow-up turn streams, hide its retry/model footer and show an
@@ -1202,6 +1266,7 @@ var app = document.getElementById('app');
 
     if (reduceMotion) {
       t.prompt.txt.textContent = promptText;
+      emitQuery(topic.id);
       t.think.line.classList.remove('chat-pending');
       t.think.txt.textContent = variant.thought;
       t.think.line.classList.add('done');
@@ -1210,6 +1275,7 @@ var app = document.getElementById('app');
       t.answer.line.classList.remove('chat-pending');
       t.answer.txt.textContent = variant.answer;
       t.answer.txt.appendChild(cursor);
+      showSources(t);
       t.modelTag.textContent = MODELS[t.modelIdx];
       t.meta.classList.remove('chat-actions-hidden');
       showSuggestions(topic.id);
@@ -1225,6 +1291,7 @@ var app = document.getElementById('app');
 
     t.think.line.classList.remove('chat-pending');
     t.think.line.classList.add('line-enter', 'is-thinking');
+    emitQuery(topic.id);
     showGenerating(t);
     var t0 = now();
     await stream(t.think, variant.thought, thinkPace(variant.thought));
@@ -1243,6 +1310,7 @@ var app = document.getElementById('app');
     if (myToken !== runToken) return;
     await stream(t.answer, variant.answer, { base: 20, jitter: 18, lead: 260 });
     if (myToken !== runToken) return;
+    showSources(t);
     t.modelTag.textContent = MODELS[t.modelIdx];
     finishGenerating(t);
     scrollChatToBottom();
@@ -1264,6 +1332,7 @@ var app = document.getElementById('app');
     var v = t.topic.variants[t.variantIdx];
 
     if (reduceMotion) {
+      emitQuery(t.topic.id);
       if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
       t.think.txt.textContent = v.thought;
       t.answer.txt.textContent = v.answer;
@@ -1283,6 +1352,7 @@ var app = document.getElementById('app');
     // Reset this turn's thinking + answer for a fresh "regeneration".
     t.think.txt.innerHTML = '';
     t.answer.txt.innerHTML = '';
+    t.sources.hidden = true;
     t.think.line.classList.remove('done', 'folded', 'line-enter');
     t.think.txt.style.maxHeight = '';
     t.thinkEls.head.setAttribute('aria-expanded', 'true');
@@ -1290,6 +1360,7 @@ var app = document.getElementById('app');
     t.modelTag.textContent = '';
     showGenerating(t);
     t.think.line.classList.add('is-thinking');
+    emitQuery(t.topic.id);
 
     var t0 = now();
     await stream(t.think, v.thought, thinkPace(v.thought));
@@ -1306,6 +1377,7 @@ var app = document.getElementById('app');
     if (myToken !== runToken) return;
     await stream(t.answer, v.answer, { base: 20, jitter: 18, lead: 260 });
     if (myToken !== runToken) return;
+    showSources(t);
     t.modelTag.textContent = MODELS[t.modelIdx];
     finishGenerating(t);
     scrollChatToBottom();

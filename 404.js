@@ -147,6 +147,14 @@ var app = document.getElementById('app');
     return H.makeLine(chat, cls, prefix);
   }
 
+  // The backdrop's embedding field (field.js) shows the lookup coming up empty.
+  function emitMiss() {
+    window.HeroChatLastQuery = 'not-found';
+    try {
+      document.dispatchEvent(new CustomEvent('herochat:query', { detail: { topic: 'not-found' } }));
+    } catch (e) {}
+  }
+
   var prompt = makeLine('chat-prompt', '\u276F');
   var think = makeLine('chat-think');
   var thinkHead = document.createElement('button');
@@ -289,6 +297,7 @@ var app = document.getElementById('app');
     resetGeneration();
     applySelection();
     prompt.txt.textContent = PROMPT;
+    emitMiss();
     think.line.classList.remove('chat-pending');
     answer.line.classList.remove('chat-pending');
     think.txt.textContent = THOUGHT;
@@ -316,6 +325,7 @@ var app = document.getElementById('app');
     think.line.classList.remove('chat-pending');
     think.line.classList.add('line-enter');
     think.line.classList.add('is-thinking');
+    emitMiss();
     genModel.textContent = H.MODELS[modelIdx];
     gen.classList.add('on'); // glowing "generating" orb with the responding model
     think.txt.style.maxHeight = fold.cotCap(false) + 'px';

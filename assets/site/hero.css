@@ -37,11 +37,46 @@
   background: linear-gradient(to bottom, transparent, var(--bg));
 }
 
+/* Embedding field (field.js): drawn above the grid; fades its own edges. */
+.field-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+}
+
+.field-readout {
+  position: absolute;
+  z-index: 2;
+  left: var(--page-pad);
+  bottom: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  transition: color .3s ease, opacity .5s ease;
+}
+
+.field-readout-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  transition: background .3s ease, box-shadow .3s ease;
+}
+
+.field-readout.is-active { color: var(--muted); }
+.field-readout.is-active .field-readout-dot { background: var(--amber-strong); box-shadow: 0 0 0 4px var(--amber-soft); }
+
 #hero-dim {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(90% 80% at 50% 40%, color-mix(in srgb, var(--bg) 35%, transparent), color-mix(in srgb, var(--bg) 82%, transparent));
+  background: radial-gradient(90% 80% at 50% 40%, color-mix(in srgb, var(--bg) 30%, transparent), color-mix(in srgb, var(--bg) 55%, transparent));
   opacity: 0;
   pointer-events: none;
   transition: opacity .9s ease;
@@ -380,6 +415,54 @@ body.convo-active .hero-scroll-fade.cue-hidden { opacity: 0; }
   line-height: 1.65;
 }
 
+/* Citations under follow-up answers */
+.chat-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-top: 12px;
+}
+
+.chat-sources[hidden] { display: none; }
+
+.chat-sources-label {
+  margin-right: 2px;
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.source-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 4px 11px 4px 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: color .18s ease, border-color .18s ease;
+}
+
+.source-chip:hover { border-color: var(--accent); color: var(--heading); }
+
+.source-n {
+  display: inline-grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font: 500 10.5px/1 var(--font-mono);
+}
+
 /* Retry toolbar and model label */
 .chat-actions,
 .follow-meta {
@@ -623,6 +706,7 @@ a.suggest-chip { align-self: flex-start; text-decoration: none; }
 }
 
 @media (max-width: 760px) {
+  .field-readout { display: none; }
   .hero-eyebrow { height: auto; min-height: 22px; }
   .hero-eyebrow-note { display: none; }
 }
