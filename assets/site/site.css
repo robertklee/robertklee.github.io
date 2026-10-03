@@ -557,6 +557,11 @@ em { font-style: italic; }
 .ag-field-type { color: var(--faint); font-size: 11px; }
 .ag-field.is-used.ag-filter { border-color: var(--accent); background: var(--accent-soft); }
 .ag-field.is-used.ag-boost { border-color: var(--amber-strong); background: var(--amber-soft); }
+.ag-field[data-out] { border-style: dashed; }
+.ag-field[data-out] .ag-field-name { color: var(--muted); }
+.ag-field.is-used.ag-rank { border-color: var(--muted); }
+.ag-schema-note { margin-top: 10px; color: var(--faint); font-size: 12px; line-height: 1.5; }
+.ag-schema-note code, .figure-heading code { color: var(--heading); font: 500 .92em var(--font-mono); }
 .ag-ops { display: grid; padding: 0; list-style: none; border-top: 1px solid var(--line); }
 .ag-op {
   display: grid;

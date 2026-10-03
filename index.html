@@ -192,7 +192,7 @@
             <header class="figure-heading">
               <p class="eyebrow">Try it · Intent to operators</p>
               <h3 id="agentic-figure-title">Every constraint, checked.</h3>
-              <p>Each phrase maps to one operator from a small, typed set and is validated against the index before it runs. What falls outside the set is left to ranking, not guessed.</p>
+              <p>Filters combine only <code>eq</code>, <code>ne</code>, <code>and</code>, and <code>or</code> over categorical fields, and preferences become Lucene boosts. Each is validated against the index before it runs; anything outside the set is left to ranking, not guessed.</p>
             </header>
             <div class="ag-body" hidden>
               <div class="segmented" role="group" aria-label="Example request">
@@ -208,6 +208,7 @@
               <div class="ag-schema-wrap">
                 <p class="ag-label">Index schema · hotels</p>
                 <ul class="ag-schema" data-ag-schema aria-label="Index fields"></ul>
+                <p class="ag-schema-note">Only low-cardinality <code>string</code>, <code>string[]</code>, and <code>boolean</code> fields are in the operator set; dashed fields are left to ranking.</p>
               </div>
               <ol class="ag-ops" data-ag-ops aria-label="Operators"></ol>
               <div class="ag-output" aria-label="Generated query">
@@ -216,7 +217,7 @@
               </div>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-ag-live></p>
             </div>
-            <figcaption id="agentic-caption">A simplified illustration on a sample hotel index. Operator names and syntax are illustrative, not the production design.</figcaption>
+            <figcaption id="agentic-caption">A simplified illustration on a sample hotel index. Filters are shown in OData syntax and boosts in Lucene syntax.</figcaption>
           </figure>
         </article>
 

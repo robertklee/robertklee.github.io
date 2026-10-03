@@ -1,8 +1,10 @@
 // "Intent to operators" figure. A request is split into phrases; each phrase
-// that fits a small, typed operator vocabulary becomes a filter (must match)
-// or a boost (ranks higher), checked against the index schema before it runs.
-// Anything outside the vocabulary is left to ranking rather than guessed.
-// Sample index, operator names, and syntax are illustrative only.
+// that fits a small, typed operator set becomes a filter (must match) or a
+// boost (ranks higher), checked against the index schema before it runs.
+// Filters are logical combinations of eq, ne, and, or over categorical
+// (low-cardinality string, string[], boolean) fields; boosts are Lucene term
+// boosts. Anything outside the set is left to ranking rather than guessed.
+// The sample index and requests are illustrative only.
 (() => {
   'use strict';
 
@@ -20,35 +22,39 @@
   const buttons = [...figure.querySelectorAll('[data-request]')];
   if (!body || !request || !ops) return;
 
+  // [name, type, in the operator set]: only categorical fields qualify.
   const FIELDS = [
-    ['category', 'string'], ['tags', 'string[]'], ['rate', 'number'], ['rating', 'number'],
-    ['parking', 'boolean'], ['location', 'geo point'], ['renovated', 'date']
+    ['category', 'string', true], ['city', 'string', true], ['district', 'string', true],
+    ['tags', 'string[]', true], ['parking', 'boolean', true],
+    ['description', 'text', false], ['rate', 'number', false], ['location', 'geo point', false]
   ];
-  const TYPES = Object.fromEntries(FIELDS);
+  const TYPES = Object.fromEntries(FIELDS.map(([name, type]) => [name, type]));
 
   // Each request is a list of segments: plain text, or a phrase with the
   // operator it maps to. kind: filter | boost | rank.
   const REQUESTS = {
     constraints: [
-      { text: 'Pet-friendly', kind: 'filter', op: 'Has tag', field: 'tags', expr: "tags/any(t: t eq 'pet-friendly')" },
-      ' hotel ',
-      { text: 'near the Seattle waterfront', kind: 'filter', op: 'Within', field: 'location', expr: 'geo.distance(location, POINT(-122.34 47.61)) le 2' },
-      ' with ',
-      { text: 'free parking', kind: 'filter', op: 'Equals', field: 'parking', expr: 'parking eq true' },
+      { text: 'Pet-friendly', kind: 'filter', op: 'eq', field: 'tags', expr: "tags/any(t: t eq 'pet-friendly')" },
+      ' ',
+      { text: 'boutique or resort', kind: 'filter', op: 'eq \u00B7 or', field: 'category', expr: "(category eq 'Boutique' or category eq 'Resort')" },
+      ' hotel with ',
+      { text: 'free parking', kind: 'filter', op: 'eq', field: 'parking', expr: 'parking eq true' },
       ', ',
-      { text: 'under $200 a night', kind: 'filter', op: 'Range', field: 'rate', expr: 'rate lt 200' }
+      { text: 'away from downtown', kind: 'filter', op: 'ne', field: 'district', expr: "district ne 'Downtown'" }
     ],
     preferences: [
-      { text: 'Boutique', kind: 'filter', op: 'Equals', field: 'category', expr: "category eq 'Boutique'" },
+      { text: 'Seattle', kind: 'filter', op: 'eq', field: 'city', expr: "city eq 'Seattle'" },
       ' hotel, ',
-      { text: 'recently renovated', kind: 'boost', op: 'Prefer recent', field: 'renovated', expr: 'freshness(renovated, P2Y)' },
+      { text: 'ideally boutique', kind: 'boost', op: 'boost ^3', field: 'category', expr: 'category:Boutique^3' },
       ', ',
-      { text: 'ideally with a rooftop bar', kind: 'boost', op: 'Prefer tag', field: 'tags', expr: "tags/any(t: t eq 'rooftop-bar')" }
+      { text: 'bonus points for a rooftop bar', kind: 'boost', op: 'boost ^2', field: 'tags', expr: 'tags:"rooftop-bar"^2' }
     ],
     open: [
-      { text: 'A quiet place my parents would love', kind: 'rank', op: 'No operator', expr: 'Left to semantic ranking' },
+      { text: 'A quiet place my parents would love', kind: 'rank', op: 'no operator', expr: 'Left to semantic ranking' },
       ', ',
-      { text: 'under $250', kind: 'filter', op: 'Range', field: 'rate', expr: 'rate lt 250' }
+      { text: 'with a pool', kind: 'filter', op: 'eq', field: 'tags', expr: "tags/any(t: t eq 'pool')" },
+      ', ',
+      { text: 'under $250', kind: 'rank', op: 'outside set', field: 'rate', expr: 'Numeric range: left to ranking' }
     ]
   };
 
@@ -64,10 +70,12 @@
     return node;
   }
 
-  FIELDS.forEach(([name, type]) => {
+  FIELDS.forEach(([name, type, inSet]) => {
     const chip = make('li', 'ag-field');
     chip.dataset.field = name;
+    if (!inSet) chip.dataset.out = '';
     chip.append(make('span', 'ag-field-name', name), make('span', 'ag-field-type', type));
+    if (!inSet) chip.append(make('span', 'cv-sr-only', '(outside the operator set)'));
     schema.appendChild(chip);
   });
 
@@ -101,7 +109,10 @@
       li.append(badge);
       li.append(make('code', 'ag-op-expr', s.expr));
       const check = make('span', 'ag-op-check');
-      if (s.field) {
+      if (s.field && s.kind === 'rank') {
+        check.textContent = '\u2717 ' + s.field + ' \u00B7 ' + TYPES[s.field];
+        check.setAttribute('aria-label', 'Field ' + s.field + ' is ' + TYPES[s.field] + ', outside the operator set');
+      } else if (s.field) {
         check.textContent = '\u2713 ' + s.field + ' \u00B7 ' + TYPES[s.field];
         check.setAttribute('aria-label', 'Validated: field ' + s.field + ' exists and is ' + TYPES[s.field]);
       } else {

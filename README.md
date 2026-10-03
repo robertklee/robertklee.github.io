@@ -8,7 +8,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
 2. **About:** a portrait and a short introduction.
 3. **Work:** three chapters, each with a figure:
    - **Diversity:** shopping, grounding, feed, and travel-planning scenarios with a diversity slider over a neighbourhood graph.
-   - **Agentic retrieval:** a natural-language request becomes filter, boost, and ranking operators.
+   - **Agentic retrieval:** a natural-language request becomes OData filters (`eq`, `ne`, `and`, `or` over categorical fields) and Lucene boosts; anything outside that set is left to ranking.
    - **Quantization:** a value ladder and a memory-at-scale meter.
 4. **Experience:** a career map (one product, three names), then expandable role records.
 5. **Projects, Community & mentoring, Education, and Awards.**
