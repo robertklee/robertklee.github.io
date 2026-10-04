@@ -22,6 +22,7 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
 - **`assets/site/`** holds the design system and page behaviour:
   - **`site.css`:** the design system.
   - **`hero.css`:** hero and chat styles.
+  - **`entrance.js`** and **`entrance.css`:** the homepage's retrieval-first entrance and content-sized mobile chat.
   - **`site.js`:** navigation, theme sync, scroll reveals, and count-ups.
   - **`field.js`:** the hero's embedding field, a 3D HNSW-style graph drawn across three blurred depth planes.
   - **`diversity.js`**, **`agentic.js`**, and **`quantization.js`:** the Work figures.
@@ -31,9 +32,9 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
 
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
-The homepage graph has a one-time entrance: nodes emerge through the depth layers, existing connections trace into place, and topic labels resolve while the chat border briefly picks up the blue accent. It lasts 820 ms on desktop or 520 ms in the compact layout, without delaying the prompt or hiding the name, navigation, or page content. A query takes priority over any remaining entrance. Resizing and theme changes do not replay it; reduced motion skips it, and the 404 graph keeps its existing behavior.
+The homepage has a one-time retrieval-first entrance. A restrained camera pullback, an activation wave along graph connections, and a rising chat card establish the scene in 1.85 seconds on desktop or 1.25 seconds in compact layouts. The completed question stays on screen with "Retrieving sources..." while the illustrative search descends layers and branches to its documents. The opening traversal takes 3 seconds on desktop or 2.4 seconds in compact layouts, plus 380 ms for the final source marker to settle; only then does a brief card highlight lead into model output. This is scripted dramatic pacing, not a backend request. The name, navigation, and profile remain available throughout. Resizing and theme changes do not replay the entrance. Reduced motion skips the animation and hold. Leaving the hero or hiding the page releases the hold without a payoff, and unavailable Canvas support logs a warning and allows the chat to continue. The 404 graph keeps its existing behavior.
 
-On phones, narrow windows, and short landscape viewports, the homepage uses a compact heading and a scrollable chat from the first answer. Suggested questions sit in a separate bottom strip so long answers, expanded traces, and contact cards cannot hide them. The same chip elements move back into the transcript on wider screens, preserving their handlers and the accessible-question guarantee. Model menus expand inline in the compact transcript to avoid clipped popovers; answers and contact links remain fully available by scrolling.
+On phones, narrow windows, and short landscape viewports, the homepage uses a compact heading and a chat card that starts at its content height and grows as text arrives. It caps at the available hero height, leaving the scroll cue clear, then scrolls internally. Suggested questions sit in a separate bottom strip so long answers, expanded traces, and contact cards cannot hide them. The same chip elements move back into the transcript on wider screens, preserving their handlers and the accessible-question guarantee. Model menus expand inline in the compact transcript to avoid clipped popovers; answers and contact links remain fully available by scrolling.
 
 Match each answer's depth to its question: technical topics keep mechanisms and tradeoffs, leadership topics explain decisions and ownership, and general topics introduce unfamiliar terms with brief explanations and concrete examples. Every answer variant must fit both of its topic's question phrasings and cover the field documents in `docs`.
 
@@ -54,6 +55,10 @@ python3 -m http.server 4173 --bind 127.0.0.1
 Open `http://127.0.0.1:4173/` for the homepage or `http://127.0.0.1:4173/404.html` for the not-found page.
 
 Run `npm run check` to syntax-check the scripts, and `npm run build` to create the production `dist/` directory with the pages and their runtime assets.
+
+Run `npm run test:hero` for the homepage entrance browser checks. The tests build
+the site, serve that output on an ephemeral local port, and exercise retrieval
+ordering, mobile growth, reduced motion, interruptions, and the 404 page.
 
 Playwright is a development dependency for browser checks and screenshots. After `npm ci`, run `npx playwright install chromium` to install its Chromium browser.
 

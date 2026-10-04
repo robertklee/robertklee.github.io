@@ -43,6 +43,8 @@
 
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  // The homepage coordinates retrieval with its entrance; the 404 keeps its own pacing.
+  const entranceEffect = window.HeroFieldEntrance;
 
   const CLUSTERS = [
     { id: 'diversity', label: 'Diversity', docs: ['Diversity capability', 'Redundancy reduction', 'Corpus-spanning grounding', 'E-commerce & recs', 'Distributed execution', 'Team of five'] },
@@ -63,7 +65,8 @@
   const HOLD_MS = 9000;
   const FADE_MS = 1600;
   const FRAME_MS = 1000 / 30;
-  const ENTRANCE_MS = document.body.classList.contains('chat-compact') ? 520 : 820;
+  const compactEntrance = document.body.classList.contains('chat-compact');
+  const ENTRANCE_MS = entranceEffect ? entranceEffect.duration(compactEntrance) : compactEntrance ? 520 : 820;
   const TAU = Math.PI * 2;
 
   let width = 0;
@@ -205,7 +208,8 @@
       cam.px += (cam.tx - cam.px) * 0.05;
       cam.py += (cam.ty - cam.py) * 0.05;
     }
-    const yaw = still ? 0 : 0.075 * Math.sin(t / 16000) + cam.px;
+    const yaw = still ? 0 : 0.075 * Math.sin(t / 16000) + cam.px +
+      (entranceEffect && entranceStart != null ? entranceEffect.cameraYaw(entranceProgress) : 0);
     const pitch = still ? 0 : 0.04 * Math.sin(t / 23000 + 1.3) + cam.py;
     cam.yaw = yaw;
     cam.pitch = pitch;
@@ -219,7 +223,8 @@
     const z1 = x * cam.sy + z * cam.cy;
     const y1 = y * cam.cp - z1 * cam.sp;
     const z2 = Math.max(y * cam.sp + z1 * cam.cp, -F * 0.6);
-    const s = F / (F + z2);
+    const s = F / (F + z2) *
+      (entranceEffect && entranceStart != null ? entranceEffect.cameraScale(entranceProgress) : 1);
     out.sx = ox + x1 * s;
     out.sy = oy + y1 * s;
     out.s = s;
@@ -549,6 +554,7 @@
     });
 
     buildGraph(rand);
+    if (entranceEffect) entranceEffect.layout({ nodes, edges, entry });
     projectNodes(0, true);
 
     if (query) planQuery(query.spec, query.start);
@@ -811,6 +817,17 @@
       q.focus = clusterInfo.map(() => 0.55);
       setReadout('HNSW · ' + countHops(q.branches) + ' hops · 0 results above threshold', true);
     }
+    if (entranceEffect && entranceEffect.queryDuration && q.land > 0) {
+      const scale = entranceEffect.queryDuration(spec, q.land) / q.land;
+      q.branches.forEach(steps => steps.forEach(step => {
+        step.t0 *= scale;
+        step.tm *= scale;
+        step.t1 *= scale;
+      }));
+      q.results.forEach(result => { result.t *= scale; });
+      q.land *= scale;
+      q.focusAt *= scale;
+    }
     query = q;
   }
 
@@ -826,14 +843,16 @@
     farDirty = true;
     hero.classList.remove('field-entering');
     hero.style.removeProperty('--field-enter-duration');
+    if (entranceEffect) entranceEffect.finish();
   }
   function updateEntrance(now, still) {
     if (entranceProgress === 1) return;
-    if (still || query) { finishEntrance(); return; }
+    if (still || (query && !entranceEffect)) { finishEntrance(); return; }
     if (entranceStart == null) {
       entranceStart = now;
       hero.style.setProperty('--field-enter-duration', ENTRANCE_MS + 'ms');
       hero.classList.add('field-entering');
+      if (entranceEffect) entranceEffect.start(hero);
     }
     const progress = clamp((now - entranceStart) / ENTRANCE_MS, 0, 1);
     if (progress === 1) finishEntrance();
@@ -841,11 +860,13 @@
   }
   function nodeEntrance(n) {
     if (entranceProgress === 1) return 1;
+    if (entranceEffect) return entranceEffect.nodeProgress(n, entranceProgress);
     const depth = n.cluster >= 0 ? 0.2 : planeFor(n.zz) === FAR ? 0 : 0.07;
     return smooth((entranceProgress - depth - n.phase / TAU * 0.1) / 0.26);
   }
   function edgeEntrance(A, B) {
     if (entranceProgress === 1) return 1;
+    if (entranceEffect) return entranceEffect.edgeProgress(A, B, entranceProgress);
     const local = A.cluster >= 0 && A.cluster === B.cluster;
     const delay = (local ? 0.4 : 0.24) + (A.phase + B.phase) / (2 * TAU) * 0.1;
     return smooth((entranceProgress - delay) / 0.34);
@@ -1168,6 +1189,9 @@
     }
     flush();
     clusterInfo.forEach(c => drawRegion(c, dark));
+    if (entranceEffect && entranceProgress < 1) {
+      entranceEffect.draw({ ctx: NEAR.ctx, nodes, edges, progress: entranceProgress, colors, compact, clearAt });
+    }
 
     // The answer's documents claim label space first; region names fit around.
     const placed = [];
@@ -1323,6 +1347,13 @@
         NEAR.ctx.globalAlpha = 1;
       }
     });
+    if (entranceEffect && entranceEffect.queryLanded && !q.notified) {
+      const settledAt = Math.max(q.land, ...q.results.map(result => result.t)) + 380;
+      if (still || age >= settledAt) {
+        q.notified = true;
+        entranceEffect.queryLanded(q.spec);
+      }
+    }
   }
 
   // --- Loop and wiring -----------------------------------------------------------
@@ -1348,7 +1379,7 @@
   function onQuery(detail) {
     const spec = typeof detail === 'string' ? { topic: detail } : detail;
     if (!spec || !spec.topic) return;
-    finishEntrance();
+    if (!entranceEffect) finishEntrance();
     planQuery(spec, performance.now());
     kick();
   }
@@ -1357,7 +1388,10 @@
   document.addEventListener('site:themechange', () => { readColors(); kick(); });
   motionQuery.addEventListener('change', () => { lastFrame = 0; kick(); });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && entranceStart != null) finishEntrance();
+    if (document.hidden) {
+      if (entranceStart != null || entranceEffect) finishEntrance();
+      if (entranceEffect && entranceEffect.interrupt) entranceEffect.interrupt();
+    }
     lastDraw = 0;
     kick();
   });
@@ -1376,7 +1410,10 @@
   new IntersectionObserver(entries => {
     visible = entries.some(e => e.isIntersecting);
     if (visible) { lastDraw = 0; kick(); }
-    else if (entranceStart != null) finishEntrance();
+    else {
+      if (entranceStart != null || entranceEffect) finishEntrance();
+      if (entranceEffect && entranceEffect.interrupt) entranceEffect.interrupt();
+    }
   }).observe(hero);
 
   if (finePointer.matches) {

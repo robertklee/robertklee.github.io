@@ -342,19 +342,29 @@ var app = document.getElementById('app');
     applySelection();
     activeTurnTop = prompt.line;
     stickBottom = true;
+    var introQueryStarted = false;
 
     if (streamPrompt) {
       await wait(350);
       await stream(prompt, PROMPT, { base: 34, jitter: 30, subword: false });
       if (myToken !== runToken) return;
-      await wait(320);
+      // Let the opening retrieval land before starting model output.
+      if (window.HeroChatIntro) {
+        if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+        await window.HeroChatIntro.afterPrompt(function () {
+          introQueryStarted = true;
+          emitQuery('intro', VARIANTS[variantIdx].docs);
+        });
+      } else {
+        await wait(320);
+      }
       if (myToken !== runToken) return;
     }
 
     think.line.classList.remove('chat-pending');
     think.line.classList.add('line-enter');
     think.line.classList.add('is-thinking');
-    emitQuery('intro', VARIANTS[variantIdx].docs);
+    if (!introQueryStarted) emitQuery('intro', VARIANTS[variantIdx].docs);
     introGenModel.textContent = MODELS[modelIdx];
     introGen.classList.add('on'); // glowing "generating" orb, as on follow-ups
     think.txt.style.maxHeight = cotCap(false) + 'px'; // keep the live trace inside the hero

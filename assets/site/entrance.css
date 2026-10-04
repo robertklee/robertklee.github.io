@@ -1,0 +1,94 @@
+.hero-entrance-armed #app { opacity: .65; transform: translateY(14px) scale(.975); }
+.hero-entrance-running #app {
+  position: relative;
+  transform-origin: 50% 20%;
+  animation: hero-card-arrive var(--hero-enter-duration) cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.hero-entrance-running .hero-chat { animation: hero-card-charge var(--hero-enter-duration) ease both; }
+.hero-entrance-running .field-near { animation: hero-near-focus var(--hero-enter-duration) ease both; }
+
+.hero-entrance-rim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 0 5px var(--accent));
+}
+
+.hero-entrance-rim rect {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.7;
+  stroke-dasharray: .22 .78;
+  stroke-dashoffset: 1;
+  animation: hero-rim-travel var(--hero-enter-duration) cubic-bezier(.4, 0, .2, 1) both;
+}
+
+@keyframes hero-card-arrive {
+  0% { opacity: .65; transform: translateY(14px) scale(.975); }
+  55%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes hero-card-charge {
+  0%, 25%, 100% { border-color: var(--line); box-shadow: var(--shadow); }
+  66% {
+    border-color: color-mix(in srgb, var(--accent) 72%, var(--line));
+    box-shadow: var(--shadow), 0 0 0 1px var(--accent-soft), 0 0 30px 2px var(--accent-soft);
+  }
+}
+
+@keyframes hero-rim-travel {
+  0%, 28% { opacity: 0; stroke-dashoffset: 1; }
+  40% { opacity: .9; }
+  82% { opacity: .9; stroke-dashoffset: 0; }
+  100% { opacity: 0; stroke-dashoffset: -.15; }
+}
+
+@keyframes hero-near-focus {
+  0% { filter: blur(3px); }
+  60%, 100% { filter: none; }
+}
+
+.hero-retrieval-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--muted);
+  font: 400 11px/1.5 var(--font-mono);
+}
+
+.hero-retrieval-note::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber-strong);
+  box-shadow: 0 0 0 4px var(--amber-soft);
+}
+
+.hero-retrieval-payoff .hero-chat { animation: hero-retrieval-payoff .75s ease both; }
+
+@keyframes hero-retrieval-payoff {
+  0%, 100% { border-color: var(--line); box-shadow: var(--shadow); }
+  25% { border-color: var(--accent); box-shadow: var(--shadow), 0 0 24px 3px var(--accent-soft); }
+}
+
+body.chat-compact #app { flex: 0 1 auto; }
+
+@media (max-height: 500px) and (max-width: 960px) {
+  body.chat-compact #app,
+  body.chat-compact.convo-active #app { align-self: start; max-height: calc(100% - 10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-entrance-armed #app { opacity: 1; transform: none; }
+  .hero-entrance-running #app,
+  .hero-entrance-running .hero-chat,
+  .hero-entrance-running .field-canvas,
+  .hero-retrieval-payoff .hero-chat { animation: none; }
+  .hero-entrance-rim { display: none; }
+}
