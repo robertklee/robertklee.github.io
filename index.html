@@ -55,6 +55,7 @@
     <link rel="stylesheet" href="assets/site/site.css">
     <link rel="stylesheet" href="assets/site/hero.css">
     <link rel="stylesheet" href="assets/site/entrance.css">
+    <link rel="stylesheet" href="assets/site/vector-demos.css">
     <script src="assets/site/entrance.js" defer></script>
     <script src="chat-core.js" defer></script>
     <script src="chat-content.js" defer></script>
@@ -63,6 +64,7 @@
     <script src="assets/site/quantization.js" defer></script>
     <script src="assets/site/diversity.js" defer></script>
     <script src="assets/site/agentic.js" defer></script>
+    <script src="assets/site/vector-demos.js" defer></script>
     <script src="assets/site/field.js" defer></script>
   </head>
   <body>
@@ -131,7 +133,7 @@
         <header class="section-heading">
           <p class="eyebrow">Selected work · From research to production</p>
           <h2 id="work-title">Good answers start with <em>better retrieval.</em></h2>
-          <p class="section-lede">Three engineering stories: broadening what nearest-neighbour search returns, turning open-ended intent into verifiable filters, and making billion-scale vectors affordable.</p>
+          <p class="section-lede">Five engineering stories: broader evidence, verifiable intent, compact vectors, efficient similarity math, and graph search at scale.</p>
         </header>
 
         <article class="chapter" id="work-diversity" aria-labelledby="work-diversity-title">
@@ -306,6 +308,127 @@
                 <summary>The math behind the picture</summary>
                 <p>FP32 and binary markers show reconstructed values on [-1, 1]. The INT8 marker snaps to the center of one of 8 visual blocks, each grouping 32 consecutive codes, to exaggerate the rounding. Its numerical readout still uses code = round((value + 1) &#215; 127.5) &minus; 128, reconstructed as (code + 128) / 127.5 &minus; 1. FP32 uses IEEE 754 rounding and displays nine significant digits, enough to uniquely identify its value, not a claim of nine-digit accuracy. INT8 reconstructed values display five decimal places. Binary stores the sign as a bit and reconstructs it as &minus;1 or +1; zero maps to +1.</p>
                 <p>FP32 and INT8 bars show 64 and 8 divisions for legibility, not their actual value counts or spacing. Floating-point spacing is nonuniform. Eight dimensions use 32 bytes, 8 bytes, or 1 byte respectively, excluding metadata, indexes, and retained originals. Raw storage ratios are not customer cost savings; retrieval quality depends on the data and search strategy.</p>
+              </details>
+            </figcaption>
+          </figure>
+        </article>
+
+        <article class="chapter chapter-flip" id="work-simd" aria-labelledby="work-simd-title">
+          <div class="chapter-copy">
+            <p class="chapter-meta"><span class="chapter-num">04</span><span>Distance kernels</span><span>2022 – 2025</span></p>
+            <h3 id="work-simd-title">More dimensions. <em>Per operation.</em></h3>
+            <p class="chapter-lede">Vector search repeats the same similarity math across candidate after candidate. Making that inner loop efficient matters.</p>
+            <p class="chapter-role"><span class="role-badge">Kernel optimization</span><span>SIMD · loop unrolling · independent accumulators · FMA</span></p>
+            <ul class="chapter-points">
+              <li>SIMD processes several dimensions in parallel instead of one at a time.</li>
+              <li>Unrolling across independent vector accumulator registers breaks the serial dependency chain so the CPU can overlap instructions.</li>
+              <li>Memory access, instruction dependencies, and hardware determine the real speedup—not lane count alone.</li>
+            </ul>
+          </div>
+          <figure class="chapter-figure vector-demo-figure" data-simd-demo aria-labelledby="simd-figure-title" aria-describedby="simd-caption">
+            <header class="figure-heading">
+              <p class="eyebrow">Try it · Inside the distance kernel</p>
+              <h3 id="simd-figure-title">Same dot product. Different machinery.</h3>
+              <p>Multiply, accumulate, reduce. Compare a scalar loop with parallel lanes on two 16-dimensional unit vectors.</p>
+            </header>
+            <p data-vector-fallback>A scalar loop uses 16 multiply-accumulate operations; four SIMD lanes use four vector multiply-accumulate operations plus a final reduction to the same dot product. For unit vectors, that is cosine similarity.</p>
+            <div class="vector-demo-body" hidden>
+              <div class="vector-demo-toolbar">
+                <div class="segmented" role="group" aria-label="SIMD lane count">
+                  <button type="button" data-si-lanes="4" aria-pressed="true">4 lanes</button>
+                  <button type="button" data-si-lanes="8" aria-pressed="false">8 lanes</button>
+                </div>
+                <button type="button" class="vector-demo-replay" data-si-replay>Replay comparison</button>
+              </div>
+              <div class="segmented" role="group" aria-label="Candidate vector">
+                <button type="button" data-si-sample="near" aria-pressed="true">Nearby</button>
+                <button type="button" data-si-sample="far" aria-pressed="false">Different</button>
+                <button type="button" data-si-sample="opposite" aria-pressed="false">Opposite</button>
+              </div>
+              <div class="si-vectors">
+                <p class="vector-demo-label">Query vector · unit norm</p><div class="si-inputs" data-si-query></div>
+                <p class="vector-demo-label">Candidate vector · unit norm</p><div class="si-inputs" data-si-candidate></div>
+              </div>
+              <div class="si-processors">
+                <section class="si-processor" aria-labelledby="si-scalar-title">
+                  <div class="si-head"><h4 id="si-scalar-title">Scalar</h4><span data-si-scalar-ops></span></div>
+                  <div class="si-terms" data-si-scalar-terms aria-label="Scalar component products"></div>
+                  <p class="si-total">Accumulated <strong data-si-scalar-total></strong></p>
+                </section>
+                <section class="si-processor si-parallel" aria-labelledby="si-vector-title">
+                  <div class="si-head"><h4 id="si-vector-title">SIMD</h4><span data-si-vector-ops></span></div>
+                  <div class="si-terms" data-si-vector-terms aria-label="SIMD component products"></div>
+                  <p class="vector-demo-label">Packed accumulator · one vector register</p>
+                  <div class="si-lanes" data-si-accumulators aria-label="Lane sums in one packed accumulator"></div>
+                  <p class="si-reduction"><span>Horizontal reduction</span><strong data-si-reduction></strong></p>
+                  <p class="si-total">Reduced sum <strong data-si-vector-total></strong></p>
+                </section>
+              </div>
+              <p class="vector-demo-status" data-si-status></p>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-si-live></p>
+            </div>
+            <figcaption id="simd-caption">
+              <p>Same 16 component products; fewer packed MAC operations, followed by a horizontal reduction. Unit L2 norm makes this dot product equal to cosine similarity. This is an illustration, not native SIMD or a timing comparison.</p>
+              <details class="vector-demo-details">
+                <summary>The math behind the kernel</summary>
+                <p>Dot product = sum of query[i] × candidate[i]. Both vectors are normalized before computation: +1 means aligned directions and −1 means opposite directions. Tiles and lane sums are rounded for display; hover an input component for full precision.</p>
+                <p>MAC means multiply-accumulate. Starting from zero, the scalar model performs 16 scalar MACs; the packed model performs 4 four-lane or 2 eight-lane vector MACs into one vector register. Each lane accumulates its own dimensions, then the horizontal reduction combines the lane sums. The MAC counts exclude loads, loop overhead, and reduction instructions; the reduction's native instruction count depends on the architecture. Animation ticks are conceptual stages, not CPU cycles.</p>
+                <p>Independent lanes in one register are not separate instruction dependency chains. A production kernel can additionally unroll into multiple independent vector accumulator registers, combine those registers, and reduce their lanes; that optimization is not shown here. JavaScript uses double-precision multiplication followed by addition, not native FP32 fused multiply-add. Hardware FMA rounds once, and different reduction orders can change floating-point results.</p>
+              </details>
+            </figcaption>
+          </figure>
+        </article>
+
+        <article class="chapter" id="work-hnsw" aria-labelledby="work-hnsw-title">
+          <div class="chapter-copy">
+            <p class="chapter-meta"><span class="chapter-num">05</span><span>Vector graph search</span><span>2022 – 2025</span></p>
+            <h3 id="work-hnsw-title">Find neighbours. <em>Skip the scan.</em></h3>
+            <p class="chapter-lede">Navigate progressively denser levels, from long-range shortcuts to a base graph that explores nearby candidates instead of comparing every vector.</p>
+            <p class="chapter-role"><span class="role-badge">Vector search at scale</span><span>HNSW resource enforcement and engine reliability</span></p>
+            <ul class="chapter-points">
+              <li>Navigate greedily across sparse upper levels, descending at the closest point found on each; then explore a candidate pool on the base graph.</li>
+              <li>A wider search can improve recall, at the cost of more distance evaluations.</li>
+              <li>My HNSW work included resource-aware quota enforcement that cut reported limit overshoot by 100×.</li>
+            </ul>
+            <p class="fine-print">The demo explains the search structure; it does not imply authorship of HNSW or reproduce the production index.</p>
+          </div>
+          <figure class="chapter-figure vector-demo-figure" data-hnsw-demo aria-labelledby="hnsw-figure-title" aria-describedby="hnsw-caption">
+            <header class="figure-heading">
+              <p class="eyebrow">Try it · Coarse to fine</p>
+              <h3 id="hnsw-figure-title">Take the graph's shortcuts.</h3>
+              <p>Choose a query, or click the lower graph. Adjust the candidate pool and compare the nearest three results with an exhaustive scan.</p>
+            </header>
+            <p data-vector-fallback>Greedy navigation descends through levels 3, 2, and 1 before best-first search on level 0. Real HNSW indexes have a variable number of levels. Larger candidate pools can find neighbours missed by a narrower search.</p>
+            <div class="vector-demo-body" hidden>
+              <div class="segmented" role="group" aria-label="HNSW query position">
+                <button type="button" data-hn-query="right" aria-pressed="true">Right cluster</button>
+                <button type="button" data-hn-query="middle" aria-pressed="false">Between</button>
+                <button type="button" data-hn-query="left" aria-pressed="false">Left cluster</button>
+              </div>
+              <svg class="hn-plot" viewBox="0 0 560 600" role="img" aria-label="Four-level toy HNSW graph and query" data-hn-plot></svg>
+              <p class="vector-demo-note">Crosshair: query · Blue: distance checked · Amber: returned · Dashed amber: missed exact neighbour</p>
+              <div class="vector-demo-control">
+                <div><label for="hn-ef">Candidate pool · efSearch</label><output id="hn-ef-value" for="hn-ef"></output></div>
+                <input id="hn-ef" type="range" min="3" max="24" step="1" value="3" aria-describedby="hn-ef-note">
+                <p id="hn-ef-note" class="vector-demo-note">efSearch bounds retained nearest candidates, not distance checks or the exploration frontier. It is at least the three requested results.</p>
+              </div>
+              <dl class="dv-stats hn-stats">
+                <div><dt>Distance checks</dt><dd data-hn-checks></dd></div>
+                <div><dt>Recall@3</dt><dd data-hn-recall></dd></div>
+                <div><dt>Exhaustive scan</dt><dd>24 checks</dd></div>
+              </dl>
+              <div class="hn-results"><p><span>Graph results</span><strong data-hn-results></strong></p><p><span>Exact neighbours</span><strong data-hn-exact></strong></p></div>
+              <p class="vector-demo-note" data-hn-ties hidden></p>
+              <div class="vector-demo-toolbar"><p class="vector-demo-status" data-hn-status></p><button type="button" class="vector-demo-replay" data-hn-replay>Replay search</button></div>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-hn-live></p>
+            </div>
+            <figcaption id="hnsw-caption">
+              <p>Four levels of a fixed, hand-made graph illustrate HNSW query traversal—not index construction or a production index. Distances are Euclidean in 2D; recall compares the results with an exhaustive scan.</p>
+              <details class="vector-demo-details">
+                <summary>The search behind the picture</summary>
+                <p>Starting at A, upper levels greedily move only to a closer neighbour, then descend at the closest point found. Level 0 uses a nearest-first exploration frontier and an efSearch-bounded list of retained neighbours. An unseen neighbour enters both lists if the retained list has room or it is closer than the worst retained point. Search stops when the nearest frontier point is farther than the worst retained point, or the frontier is empty; the closest three retained points are returned.</p>
+                <p>Recall@3 credits returned points strictly nearer than the third-neighbour cutoff, plus interchangeable ties filling the remaining places. The exact-neighbour list shows one valid set, ordered by distance then letter; ties within floating-point roundoff receive equal credit. Checks count unique points, caching distances across levels; production systems can evaluate a point more than once. A full pool scans all 24 points in this connected toy graph, but a large efSearch does not universally guarantee exact results on an arbitrary index.</p>
+                <p>Real HNSW construction samples node levels with exponentially decreasing promotion probabilities and selects graph connections; neither is implemented here. Upper levels are nested subsets, and the number of levels varies with the index rather than having a four-level limit. See <a href="https://arxiv.org/abs/1603.09320">Malkov and Yashunin's HNSW paper</a> and <a href="https://github.com/nmslib/hnswlib/blob/master/ALGO_PARAMS.md">hnswlib's search parameters</a>.</p>
               </details>
             </figcaption>
           </figure>

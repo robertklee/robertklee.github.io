@@ -1,15 +1,17 @@
 # Robert Lee's website
 
-A single-page profile that demonstrates retrieval as well as describing it. A scripted chat hero answers over a live embedding field, three engineering stories each carry an interactive figure, and a complete static CV follows. The site supports light and dark themes. The full profile reads without JavaScript; only the interactive parts need it.
+A single-page profile that demonstrates retrieval as well as describing it. A scripted chat hero answers over a live embedding field, five engineering stories each carry an interactive figure, and a complete static CV follows. The site supports light and dark themes. The full profile reads without JavaScript; only the interactive parts need it.
 
 ## Page structure
 
 1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus, each a small organic network of linked documents. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on the documents the answer draws on, branching across regions when the answer spans several; answers cite their sources. Every row of suggested follow-ups includes at least one plain-language question for friends, family, and other non-engineers. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
 2. **About:** a portrait and a short introduction.
-3. **Work:** three chapters, each with a figure:
+3. **Work:** five chapters, each with a figure:
    - **Diversity:** travel-planning, shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.
    - **Agentic retrieval:** a natural-language request becomes OData filters (`eq`, `ne`, `and`, `or` over categorical fields) and Lucene boosts; anything outside that set is left to ranking.
    - **Quantization:** a value ladder and a memory-at-scale meter. On first view, the value sweeps across zero and back, showing FP32 motion, INT8 steps, and the binary sign change; using the value slider cancels autoplay.
+   - **SIMD:** a unit-vector dot product compares scalar MAC operations with four- or eight-lane packed operations, followed by an explicit horizontal reduction.
+   - **HNSW:** four nested graph levels illustrate greedy upper-level navigation and bounded best-first base-level search, with an adjustable `efSearch` pool and recall against an exhaustive scan.
 4. **Experience:** the original spacious career map on desktop, with contribution labels above the exponential-style curve and role, date, team, and area labels below it. When the top of the card enters view, it fades in and slides upward, the SVG stroke draws the curve, its shading fades in, and milestone dots and labels appear staggered from newest to oldest. Stroke dash lengths are measured in screen pixels and updated on resize so the desktop and mobile curves share the same pacing. The animation runs once on desktop and mobile; reduced motion or keyboard focus shows the complete chart immediately. At 860px and below, a compact labeled curve sits above newest-first expandable cards; the current card is highlighted, and contribution labels and area tags move into the cards. Selecting a milestone opens and navigates to its complete experience. Microsoft Garage stays outside the Azure AI Search trajectory: a separate desktop column or a dashed mobile link and card. The curve is qualitative, not a measured performance scale or a time-proportional chart. Keep desktop SVG coordinates, milestone `--column`/`--rise` values, and the CSS plot height in sync; mobile `--x`/`--y` percentages match the mobile path, scaled into the shared SVG viewBox. One milestone list serves both layouts, in newest-first document order; the chart's visual progression runs left to right. Full CV content and newest-first card order are unchanged.
 5. **Projects, Community & mentoring, Education, and Awards.**
 6. **Contact:** a closing call to action.
@@ -26,6 +28,7 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
   - **`site.js`:** navigation, theme sync, scroll reveals, and count-ups.
   - **`field.js`:** the hero's embedding field, a 3D HNSW-style graph drawn across three blurred depth planes.
   - **`diversity.js`**, **`agentic.js`**, and **`quantization.js`:** the Work figures.
+  - **`vector-demos.js`** and **`vector-demos.css`:** the SIMD and HNSW Work figures at `#work-simd` and `#work-hnsw`. SIMD models 16 scalar multiply-accumulate (MAC) operations versus 4 four-lane or 2 eight-lane vector MACs into one packed accumulator, then explicitly reduces its lane sums. Counts exclude loads, loop overhead, and architecture-dependent reduction instructions; animation stages are not CPU cycles or speedup measurements. Independent lanes are not independent vector-register dependency chains: the production optimization of unrolling across multiple accumulator registers is explained, not simulated. Unit L2 normalization makes the dot product equal to cosine similarity. Inputs retain full precision on hover; JavaScript uses double-precision multiply then add, not native FP32 FMA's single rounding. HNSW uses nested levels of 2, 4, 8, and 24 points, greedy upper-level navigation, and base-level nearest-first search. `efSearch` bounds retained neighbours, not the frontier or distance checks, and is at least the requested result count of three. Recall credits interchangeable cutoff-distance ties within floating-point roundoff; the exact list shows one valid set. Cached checks count unique points across levels. A full pool visits all 24 points in this connected toy graph, not a universal exact-recall guarantee. The fixed hierarchy and connections are hand-made, not an implementation of index construction, random node promotions, or a fixed level count in real HNSW. The figure links to the original paper and hnswlib's parameter documentation.
   - The self-hosted fonts, with their OFL licences.
 - **`chat-content.js`** holds the hero's scripted copy: the opening questions, thoughts, answers, citations, and the field documents each answer draws on. **`index.js`** runs the homepage chat: it samples that copy, offers follow-up chips, and tells the field what to search. **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. None of them calls a model or a backend.
 - **`assets/og.png`** is the 1200×630 social card. If the name or role changes, re-render it to match.
@@ -65,6 +68,10 @@ including mobile viewports, user interruption, and reduced motion.
 
 Run `npm run test:career` for the career curve's scroll-animation browser checks,
 including card-triggered reveals, newest-first milestones, mobile stroke scaling, keyboard navigation, and reduced motion.
+
+Run `npm run test:vectors` for the SIMD and HNSW browser checks: unit norms,
+dot-product arithmetic, MAC counts and reduction staging, nested levels and search
+results, recall and distance ties, controls, motion, and responsive layouts.
 
 Playwright is a development dependency for browser checks and screenshots. After `npm ci`, run `npx playwright install chromium` to install its Chromium browser.
 

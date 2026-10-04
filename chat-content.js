@@ -250,7 +250,7 @@ window.HeroChatContent = (function () {
       category: 'technical',
       weight: 1,
       docs: ['SIMD distance'],
-      sources: [['work-quantization', 'Quantization'], ['profile-work-entry-2', 'Software Engineer II']],
+      sources: [['work-simd', 'SIMD distance kernels'], ['profile-work-entry-2', 'Software Engineer II']],
       prompts: [
         "How does Robert make vector distance math fast?",
         "What low-level optimization has Robert done?"
@@ -292,7 +292,7 @@ window.HeroChatContent = (function () {
       category: 'technical',
       weight: 1,
       docs: ['HNSW quotas', 'Incident response'],
-      sources: [['profile-work-entry-2', 'Software Engineer II']],
+      sources: [['work-hnsw', 'HNSW graph search'], ['profile-work-entry-2', 'Software Engineer II']],
       prompts: [
         "How does Robert keep a large search service reliable?",
         "How does Robert approach reliability in production?"
