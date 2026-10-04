@@ -66,59 +66,87 @@ async function showCurve(page) {
 }
 
 async function expectComplete(page) {
-  await expect.poll(() => curveLine(page).evaluate(line => getComputedStyle(line).clipPath)).toMatch(/^(none|inset\(-8px\) fill-box)$/);
+  await expect(curveLine(page)).toHaveCSS('stroke-dashoffset', '0px');
   await expect(page.locator('.cm-step-now .cm-node')).toHaveCSS('transform', 'none');
   await expect(page.locator('.cm-step-now .cm-label')).toHaveCSS('opacity', '1');
 }
 
+async function expectScaledStroke(page) {
+  await expect.poll(() => curveLine(page).evaluate(line => {
+    const length = line.getTotalLength();
+    const matrix = line.getScreenCTM();
+    let previous = line.getPointAtLength(0).matrixTransform(matrix);
+    let renderedLength = 0;
+    for (let i = 1; i <= 256; i++) {
+      const point = line.getPointAtLength(length * i / 256).matrixTransform(matrix);
+      renderedLength += Math.hypot(point.x - previous.x, point.y - previous.y);
+      previous = point;
+    }
+    return Math.abs(parseFloat(getComputedStyle(line).strokeDasharray) - renderedLength - 2.5);
+  })).toBeLessThan(0.6);
+}
+
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
-  test(`career draws only when the curve enters view at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  test(`career restores the card-triggered stroke and newest-first reveal at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     const plot = page.locator('.cm-plot');
+    const card = page.locator('.career-map');
     await expect(plot).toHaveClass(/is-animated/);
     await expect(plot).not.toHaveClass(/is-drawn/);
-    await expect(curveLine(page)).toHaveCSS('clip-path', 'inset(-8px calc(100% + 8px) -8px -8px) fill-box');
+    await expect(card).toHaveCSS('opacity', '0');
+    await expect(card).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 28)');
+    await expectScaledStroke(page);
+    expect(await curveLine(page).evaluate(line => parseFloat(getComputedStyle(line).strokeDashoffset))).toBeGreaterThan(0);
 
-    // The heading alone must not consume the curve's animation.
-    await page.locator('.career-map').evaluate(card => {
+    // The original style starts at the card's top, before the curve itself is visible.
+    await card.evaluate(card => {
       window.scrollTo({ top: scrollY + card.getBoundingClientRect().top - innerHeight + 100, behavior: 'instant' });
     });
-    await expect(page.locator('.career-map')).toHaveClass(/is-revealed/);
-    expect(await page.locator('.cm-curve').evaluate(curve => curve.getBoundingClientRect().top)).toBeGreaterThan(viewport.height);
-    await expect(plot).not.toHaveClass(/is-drawn/);
-    await expect(curveLine(page)).toHaveCSS('clip-path', 'inset(-8px calc(100% + 8px) -8px -8px) fill-box');
-
-    await showCurve(page);
+    await expect(card).toHaveClass(/is-revealed/);
     await expect(plot).toHaveClass(/is-drawn/);
-    const animatedProperties = await plot.evaluate(element => {
+    const animatedProperties = await card.evaluate(element => {
       const animations = element.getAnimations({ subtree: true });
+      const delay = parseFloat(element.style.getPropertyValue('--reveal-delay'));
       animations.forEach(animation => {
         animation.pause();
-        animation.currentTime = 900;
+        animation.currentTime = delay + 350;
       });
       return animations.map(animation => animation.transitionProperty);
     });
-    expect(animatedProperties).toContain('clip-path');
+    expect(animatedProperties).toContain('stroke-dashoffset');
     expect(animatedProperties).toContain('transform');
-    await expect(curveLine(page)).toHaveCSS('clip-path', 'inset(-8px 50% -8px -8px) fill-box');
-    await expect(page.locator('.cm-step-first .cm-label')).toHaveCSS('opacity', '1');
-    await expect(page.locator('.cm-step-now .cm-label')).toHaveCSS('opacity', '0');
-    await expect(page.locator('.cm-step-now .cm-node')).toHaveCSS('transform', 'matrix(0, 0, 0, 0, 0, 0)');
-    if (viewport.width > 860) {
-      await expect(page.locator('.cm-step-garage .cm-label')).toHaveCSS('opacity', '1');
-      await expect(page.locator('.cm-step-garage .cm-node')).toHaveCSS('transform', 'none');
-    }
+    const opacity = Number(await card.evaluate(element => getComputedStyle(element).opacity));
+    expect(opacity).toBeGreaterThan(0);
+    expect(opacity).toBeLessThan(1);
+    expect(await card.evaluate(element => new DOMMatrix(getComputedStyle(element).transform).m42)).toBeGreaterThan(0);
+    expect(await page.locator('.cm-curve').evaluate(curve => curve.getBoundingClientRect().top)).toBeGreaterThan(viewport.height);
 
-    await plot.evaluate(element => element.getAnimations({ subtree: true }).forEach(animation => animation.finish()));
+    await card.evaluate(element => {
+      const delay = parseFloat(element.style.getPropertyValue('--reveal-delay'));
+      element.getAnimations({ subtree: true }).forEach(animation => { animation.currentTime = delay + 750; });
+    });
+    const ratio = await curveLine(page).evaluate(line => {
+      const style = getComputedStyle(line);
+      return parseFloat(style.strokeDashoffset) / parseFloat(style.strokeDasharray);
+    });
+    expect(ratio).toBeGreaterThan(0.1);
+    expect(ratio).toBeLessThan(0.3);
+    expect(Number(await page.locator('.cm-step-now .cm-label').evaluate(label => getComputedStyle(label).opacity))).toBeGreaterThan(0);
+    await expect(page.locator('.cm-step-first .cm-label')).toHaveCSS('opacity', '0');
+    expect(await page.locator('.cm-step-now .cm-node').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m11)).toBe(1);
+    expect(await page.locator('.cm-step-first .cm-node').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m11)).toBeLessThan(1);
+
+    await card.evaluate(element => element.getAnimations({ subtree: true }).forEach(animation => animation.finish()));
     await expectComplete(page);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
     await expect.poll(() => page.locator('.cm-curve').evaluate(curve => curve.getBoundingClientRect().top)).toBeGreaterThan(viewport.height);
     await showCurve(page);
     await expectComplete(page);
     expect(await plot.evaluate(element => element.getAnimations({ subtree: true }).length)).toBe(0);
-    await page.locator('#theme-toggle').evaluate(button => button.click());
+    await page.locator('html').evaluate(root => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; });
     await page.setViewportSize({ width: viewport.width > 860 ? 390 : 1440, height: 1000 });
     await expectComplete(page);
+    await expectScaledStroke(page);
   });
 }
 

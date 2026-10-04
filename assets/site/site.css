@@ -908,26 +908,21 @@ em { font-style: italic; }
   transform: none;
   transition: opacity .7s ease var(--reveal-delay, 0s), transform .9s cubic-bezier(.2, .7, .2, 1) var(--reveal-delay, 0s);
 }
-/* Observe the curve itself, independently of the card's earlier scroll reveal. */
-.cm-plot.is-animated .cm-curve-line { clip-path: inset(-8px calc(100% + 8px) -8px -8px) fill-box; }
+.cm-plot.is-animated .cm-curve-line { stroke-dasharray: var(--curve-length); stroke-dashoffset: var(--curve-length); }
 .cm-plot.is-animated .cm-curve-fill { opacity: 0; }
-.cm-plot.is-animated .cm-step:not(.cm-step-garage) { --milestone-delay: calc(.1s + (4 - var(--i)) * .4s); }
-.cm-plot.is-animated .cm-step:not(.cm-step-garage) .cm-node { transform: scale(0); }
-.cm-plot.is-animated .cm-step:not(.cm-step-garage) .cm-label,
-.cm-plot.is-animated .cm-step:not(.cm-step-garage) .cm-scope { opacity: 0; }
-.cm-plot.is-animated.is-drawn .cm-curve-line { clip-path: inset(-8px) fill-box; transition: clip-path 1.6s linear .1s; }
-.cm-plot.is-animated.is-drawn .cm-curve-fill { opacity: 1; transition: opacity .9s ease .5s; }
-.cm-plot.is-animated.is-drawn .cm-step:not(.cm-step-garage) .cm-node { transform: none; transition: transform .45s cubic-bezier(.2, .7, .2, 1) var(--milestone-delay), background .2s ease, box-shadow .2s ease; }
-.cm-plot.is-animated.is-drawn .cm-step:not(.cm-step-garage) .cm-label,
-.cm-plot.is-animated.is-drawn .cm-step:not(.cm-step-garage) .cm-scope { opacity: 1; transition: opacity .4s ease calc(var(--milestone-delay) + .15s); }
+.cm-plot.is-animated .cm-node { transform: scale(0); }
+.cm-plot.is-animated .cm-label, .cm-plot.is-animated .cm-scope { opacity: 0; }
+.cm-plot.is-animated.is-drawn .cm-curve-line { stroke-dashoffset: 0; transition: stroke-dashoffset 1.2s ease calc(var(--reveal-delay, 0s) + .15s); }
+.cm-plot.is-animated.is-drawn .cm-curve-fill { opacity: 1; transition: opacity .8s ease calc(var(--reveal-delay, 0s) + .45s); }
+.cm-plot.is-animated.is-drawn .cm-node { transform: none; transition: transform .6s cubic-bezier(.2, .7, .2, 1) calc(var(--reveal-delay, 0s) + .15s + var(--i) * .12s), background .2s ease, box-shadow .2s ease; }
+.cm-plot.is-animated.is-drawn .cm-label, .cm-plot.is-animated.is-drawn .cm-scope { opacity: 1; transition: opacity .5s ease calc(var(--reveal-delay, 0s) + .45s + var(--i) * .12s); }
 [data-count] { font-variant-numeric: tabular-nums; }
 @media print {
   .reveal { opacity: 1; transform: none; }
-  .cm-plot.is-animated .cm-step:not(.cm-step-garage) .cm-node { transform: none; }
-  .cm-plot.is-animated .cm-step:not(.cm-step-garage) .cm-label,
-  .cm-plot.is-animated .cm-step:not(.cm-step-garage) .cm-scope,
+  .cm-plot.is-animated .cm-node { transform: none; }
+  .cm-plot.is-animated .cm-label, .cm-plot.is-animated .cm-scope,
   .cm-plot.is-animated .cm-curve-fill { opacity: 1; }
-  .cm-plot.is-animated .cm-curve-line { clip-path: none; }
+  .cm-plot.is-animated .cm-curve-line { stroke-dashoffset: 0; }
 }
 
 /* Responsive */
