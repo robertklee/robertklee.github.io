@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Hero entrance experiments</title>
+    <link rel="stylesheet" href="../../assets/site/site.css">
+    <link rel="stylesheet" href="playground.css">
+    <script src="playground.js" defer></script>
+  </head>
+  <body>
+    <header class="lab-header">
+      <div class="lab-heading">
+        <div>
+          <p class="eyebrow">Temporary motion playground</p>
+          <h1>Make an entrance.</h1>
+        </div>
+        <a href="../../">Back to the website</a>
+      </div>
+      <div class="lab-options" role="group" aria-label="Entrance direction">
+        <button type="button" data-effect="baseline" aria-pressed="false">Current</button>
+        <button type="button" data-effect="depth" aria-pressed="false">01 Depth reveal</button>
+        <button type="button" data-effect="signal" aria-pressed="false">02 Signal ignition</button>
+        <button type="button" data-effect="camera" aria-pressed="false">03 Camera arrival</button>
+        <button type="button" data-effect="hybrid" aria-pressed="false">04 Recommended hybrid</button>
+        <button type="button" data-effect="dramatic" aria-pressed="true">05 Retrieval-first hybrid</button>
+      </div>
+      <div class="lab-controls">
+        <label>Viewport
+          <select id="viewport">
+            <option value="desktop">Desktop / available width</option>
+            <option value="mobile">Phone / 390 x 844</option>
+          </select>
+        </label>
+        <label>Theme
+          <select id="theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+        <label>Motion
+          <select id="motion">
+            <option value="system">Follow system</option>
+            <option value="reduce">Reduced motion</option>
+          </select>
+        </label>
+        <label>Mobile card
+          <select id="card">
+            <option value="content">Grow with content</option>
+            <option value="fill">Fill available space (current)</option>
+          </select>
+        </label>
+        <button id="replay" type="button">Replay</button>
+        <button id="shuffle" type="button">New chat sample</button>
+        <a id="full-preview" href="preview.html?effect=dramatic" target="_blank" rel="noopener">Open full page</a>
+      </div>
+      <section class="lab-description" aria-labelledby="idea-title">
+        <h2 id="idea-title"></h2>
+        <p id="idea-summary"></p>
+        <ol id="idea-steps"></ol>
+        <p id="idea-timing"></p>
+      </section>
+      <p class="lab-status" id="status" role="status">Loading preview...</p>
+    </header>
+    <main class="lab-stage" id="stage">
+      <iframe id="preview" title="Retrieval-first hybrid hero entrance preview"></iframe>
+    </main>
+  </body>
+</html>

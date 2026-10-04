@@ -1,0 +1,127 @@
+:root:not([data-spike-effect="baseline"]) .field-entering .hero-chat { animation: none; }
+
+.spike-armed #app { opacity: .65; transform: translateY(14px) scale(.975); }
+:root[data-spike-effect="signal"].spike-armed #app { opacity: 1; transform: none; }
+
+.spike-running #app { position: relative; transform-origin: 50% 20%; }
+.spike-running:not([data-spike-effect="signal"]) #app {
+  animation: spike-card-arrive var(--spike-duration) cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.spike-running[data-spike-effect="camera"] #app {
+  animation-name: spike-camera-card;
+}
+
+.spike-running:is([data-spike-effect="signal"], [data-spike-effect="hybrid"], [data-spike-effect="dramatic"]) .hero-chat {
+  animation: spike-card-charge var(--spike-duration) ease both;
+}
+
+.spike-running[data-spike-effect="depth"] .field-far { animation: spike-far-focus var(--spike-duration) ease both; }
+.spike-running[data-spike-effect="depth"] .field-mid { animation: spike-mid-focus var(--spike-duration) ease both; }
+.spike-running:is([data-spike-effect="camera"], [data-spike-effect="hybrid"], [data-spike-effect="dramatic"]) .field-near {
+  animation: spike-near-focus var(--spike-duration) ease both;
+}
+
+.spike-rim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 0 5px var(--accent));
+}
+
+.spike-rim rect {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.7;
+  stroke-dasharray: .22 .78;
+  stroke-dashoffset: 1;
+  animation: spike-rim-travel var(--spike-duration) cubic-bezier(.4, 0, .2, 1) both;
+}
+
+@keyframes spike-card-arrive {
+  0% { opacity: .65; transform: translateY(14px) scale(.975); }
+  55%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes spike-camera-card {
+  0% { opacity: .65; transform: translateY(22px) scale(.955); }
+  65%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes spike-card-charge {
+  0%, 25%, 100% { border-color: var(--line); box-shadow: var(--shadow); }
+  66% {
+    border-color: color-mix(in srgb, var(--accent) 72%, var(--line));
+    box-shadow: var(--shadow), 0 0 0 1px var(--accent-soft), 0 0 30px 2px var(--accent-soft);
+  }
+}
+
+@keyframes spike-rim-travel {
+  0%, 28% { opacity: 0; stroke-dashoffset: 1; }
+  40% { opacity: .9; }
+  82% { opacity: .9; stroke-dashoffset: 0; }
+  100% { opacity: 0; stroke-dashoffset: -.15; }
+}
+
+@keyframes spike-far-focus {
+  0% { filter: blur(5px); }
+  65%, 100% { filter: blur(1.8px); }
+}
+
+@keyframes spike-mid-focus {
+  0% { filter: blur(3px); }
+  75%, 100% { filter: blur(.9px); }
+}
+
+@keyframes spike-near-focus {
+  0% { filter: blur(3px); }
+  60%, 100% { filter: none; }
+}
+
+:root[data-spike-card="content"] body.chat-compact #app { flex: 0 1 auto; }
+
+.spike-retrieval-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--muted);
+  font: 400 11px/1.5 var(--font-mono);
+}
+
+.spike-retrieval-note::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber-strong);
+  box-shadow: 0 0 0 4px var(--amber-soft);
+}
+
+.spike-payoff .hero-chat { animation: spike-retrieval-payoff .75s ease both; }
+
+@keyframes spike-retrieval-payoff {
+  0%, 100% { border-color: var(--line); box-shadow: var(--shadow); }
+  25% { border-color: var(--accent); box-shadow: var(--shadow), 0 0 24px 3px var(--accent-soft); }
+}
+
+@media (max-height: 500px) and (max-width: 960px) {
+  :root[data-spike-card="content"] body.chat-compact #app { align-self: start; max-height: calc(100% - 10px); }
+}
+
+:root[data-spike-motion="reduce"] *,
+:root[data-spike-motion="reduce"] *::before,
+:root[data-spike-motion="reduce"] *::after { animation: none !important; transition: none !important; }
+:root[data-spike-motion="reduce"] #app { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .spike-armed #app { opacity: 1; transform: none; }
+  .spike-running #app,
+  .spike-running .hero-chat,
+  .spike-running .field-canvas,
+  .spike-payoff .hero-chat { animation: none !important; }
+  .spike-rim { display: none; }
+}
