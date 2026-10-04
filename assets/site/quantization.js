@@ -8,6 +8,8 @@
     marker: document.querySelector(`[data-quantization-marker="${name}"]`),
     result: document.querySelector(`[data-quantization-result="${name}"]`)
   }));
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let touched = false;
 
   function signed(text) {
     return text.startsWith('-') ? text : `+${text}`;
@@ -30,12 +32,37 @@
     });
   }
 
-  slider.addEventListener('input', update);
+  slider.addEventListener('input', () => { touched = true; update(); });
+  ['pointerdown', 'keydown', 'focus'].forEach(event => {
+    slider.addEventListener(event, () => { touched = true; });
+  });
   slider.addEventListener('change', () => {
     announcement.textContent = `FP32: ${formats[0].result.textContent}; INT8 reconstructed: ${formats[1].result.textContent}; binary sign: ${formats[2].result.textContent}.`;
   });
   update();
   slider.closest('.quantization-control').hidden = false;
+
+  // On first view, cross zero and return to the original value to show each format's precision.
+  if (!reduced.matches && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting)) return;
+      io.disconnect();
+      if (touched || reduced.matches) return;
+      const from = slider.valueAsNumber;
+      const start = performance.now() + 500;
+      const step = now => {
+        if (touched || reduced.matches) return;
+        const t = Math.min(1, Math.max(0, (now - start) / 2400));
+        const phase = t < 0.5 ? t * 2 : (1 - t) * 2;
+        const eased = phase < 0.5 ? 2 * phase * phase : 1 - Math.pow(-2 * phase + 2, 2) / 2;
+        slider.value = (from + (-0.65 - from) * eased).toFixed(3);
+        update();
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, { threshold: 0.55 });
+    io.observe(slider.closest('.quantization-study').querySelector('.quantization-chart'));
+  }
 
   // At-scale meter: raw bytes per format for a corpus of n vectors x d dims.
   const meter = document.querySelector('[data-quant-meter]');

@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
-    "check": "node --check build.js && node --check chat-core.js && node --check chat-content.js && node --check index.js && node --check 404.js && node --check assets/site/site.js && node --check assets/site/entrance.js && node --check assets/site/quantization.js && node --check assets/site/field.js && node --check assets/site/diversity.js && node --check assets/site/agentic.js && node --check tests/hero-entrance.spec.js",
+    "check": "node --check build.js && node --check chat-core.js && node --check chat-content.js && node --check index.js && node --check 404.js && node --check assets/site/site.js && node --check assets/site/entrance.js && node --check assets/site/quantization.js && node --check assets/site/field.js && node --check assets/site/diversity.js && node --check assets/site/agentic.js && node --check tests/hero-entrance.spec.js && node --check tests/quantization-scroll.spec.js",
     "test:hero": "npm run build && playwright test tests/hero-entrance.spec.js --workers=1",
+    "test:quantization": "npm run build && playwright test tests/quantization-scroll.spec.js --workers=1",
     "deploy": "wrangler deploy",
     "preview": "wrangler dev"
   },
