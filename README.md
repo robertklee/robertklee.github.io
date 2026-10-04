@@ -10,7 +10,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
    - **Diversity:** travel-planning, shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.
    - **Agentic retrieval:** a natural-language request becomes OData filters (`eq`, `ne`, `and`, `or` over categorical fields) and Lucene boosts; anything outside that set is left to ranking.
    - **Quantization:** a value ladder and a memory-at-scale meter. On first view, the value sweeps across zero and back, showing FP32 motion, INT8 steps, and the binary sign change; using the value slider cancels autoplay.
-4. **Experience:** the original spacious career map on desktop, with contribution labels above the exponential-style curve and role, date, team, and area labels below it. At 860px and below, a compact labeled curve sits above newest-first expandable cards; the current card is highlighted, and contribution labels and area tags move into the cards. Selecting a milestone opens and navigates to its complete experience. Microsoft Garage stays outside the Azure AI Search trajectory: a separate desktop column or a dashed mobile link and card. The curve is qualitative, not a measured performance scale or a time-proportional chart. Keep desktop SVG coordinates, milestone `--column`/`--rise` values, and the CSS plot height in sync; mobile `--x`/`--y` percentages match the mobile path, scaled into the shared SVG viewBox. One milestone list serves both layouts, in newest-first document order; the chart's visual progression runs left to right. Full CV content and newest-first card order are unchanged.
+4. **Experience:** the original spacious career map on desktop, with contribution labels above the exponential-style curve and role, date, team, and area labels below it. On first view of the curve itself, the line draws from left to right, its shading fades in, and Azure AI Search milestones appear from earliest to latest. The animation runs once on desktop and mobile; reduced motion or keyboard focus shows the complete chart immediately. At 860px and below, a compact labeled curve sits above newest-first expandable cards; the current card is highlighted, and contribution labels and area tags move into the cards. Selecting a milestone opens and navigates to its complete experience. Microsoft Garage stays outside the Azure AI Search trajectory: a separate desktop column or a dashed mobile link and card. The curve is qualitative, not a measured performance scale or a time-proportional chart. Keep desktop SVG coordinates, milestone `--column`/`--rise` values, and the CSS plot height in sync; mobile `--x`/`--y` percentages match the mobile path, scaled into the shared SVG viewBox. One milestone list serves both layouts, in newest-first document order; the chart's visual progression runs left to right. Full CV content and newest-first card order are unchanged.
 5. **Projects, Community & mentoring, Education, and Awards.**
 6. **Contact:** a closing call to action.
 
@@ -62,6 +62,9 @@ ordering, mobile growth, reduced motion, interruptions, and the 404 page.
 
 Run `npm run test:quantization` for the quantization scroll-animation browser checks,
 including mobile viewports, user interruption, and reduced motion.
+
+Run `npm run test:career` for the career curve's scroll-animation browser checks,
+including chronological milestones, mobile layouts, keyboard navigation, and reduced motion.
 
 Playwright is a development dependency for browser checks and screenshots. After `npm ci`, run `npx playwright install chromium` to install its Chromium browser.
 

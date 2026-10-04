@@ -106,6 +106,26 @@
   // so nothing already on screen flickers; reduced motion skips all of it.
   if (reducedMotion.matches || !('IntersectionObserver' in window)) return;
 
+  const careerPlot = document.querySelector('.cm-plot');
+  if (careerPlot) {
+    const careerObserver = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.25)) return;
+      careerPlot.classList.add('is-drawn');
+      careerObserver.disconnect();
+    }, { threshold: 0.25, rootMargin: '0px 0px -8% 0px' });
+    careerPlot.classList.add('is-animated');
+    careerObserver.observe(careerPlot.querySelector('.cm-curve'));
+
+    const finishCareer = () => {
+      careerObserver.disconnect();
+      careerPlot.classList.remove('is-animated');
+    };
+    careerPlot.addEventListener('focusin', finishCareer);
+    reducedMotion.addEventListener('change', event => {
+      if (event.matches) finishCareer();
+    });
+  }
+
   const countUp = (el, delay) => {
     const text = el.textContent;
     const parts = text.split(/(\d+(?:\.\d+)?)/);
