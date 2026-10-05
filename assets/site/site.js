@@ -113,6 +113,7 @@
 
   const careerPlot = document.querySelector('.cm-plot');
   const careerCard = careerPlot?.closest('.career-map');
+  const mobileCareer = window.matchMedia('(max-width: 860px)');
 
   const countUp = (el, delay) => {
     const text = el.textContent;
@@ -148,7 +149,7 @@
   const reveal = (el, delay = 0) => {
     el.style.setProperty('--reveal-delay', `${delay}ms`);
     el.classList.add('is-revealed');
-    if (el === careerCard && careerPlot.classList.contains('is-animated')) careerPlot.classList.add('is-drawn');
+    if (el === careerCard && !mobileCareer.matches && careerPlot.classList.contains('is-animated')) careerPlot.classList.add('is-drawn');
     el.querySelectorAll('[data-count]').forEach(counter => countUp(counter, delay + 150));
     revealer.unobserve(el);
   };
@@ -196,8 +197,18 @@
     measureCurve();
     new ResizeObserver(measureCurve).observe(curve);
     careerPlot.classList.add('is-animated');
+    const curveObserver = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.25)) return;
+      if (!careerPlot.classList.contains('is-drawn')) {
+        careerPlot.style.setProperty('--reveal-delay', '0ms');
+        careerPlot.classList.add('is-drawn');
+      }
+      curveObserver.disconnect();
+    }, { threshold: 0.25 });
+    curveObserver.observe(curve);
 
     const finishCareer = () => {
+      curveObserver.disconnect();
       careerPlot.classList.remove('is-animated');
       careerCard.classList.remove('reveal');
       revealer.unobserve(careerCard);

@@ -1,7 +1,6 @@
 (() => {
   'use strict';
 
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const make = (tag, className, text) => {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -21,64 +20,6 @@
   const press = (buttons, selected) => buttons.forEach(button => {
     button.setAttribute('aria-pressed', String(button === selected));
   });
-
-  function playback(paint, announce) {
-    let timer = 0;
-    let frames = [];
-    let index = 0;
-    const stop = () => { clearInterval(timer); timer = 0; };
-    const complete = () => {
-      stop();
-      index = frames.length - 1;
-      paint(frames[index]);
-      announce();
-    };
-    const run = () => {
-      timer = setInterval(() => {
-        index++;
-        if (index === frames.length - 1) complete();
-        else paint(frames[index]);
-      }, 200);
-    };
-    reduced.addEventListener('change', () => {
-      if (reduced.matches && timer) complete();
-    });
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && timer) complete();
-    });
-    return {
-      stop,
-      show(next) { frames = next; complete(); },
-      play(next) {
-        stop();
-        frames = next;
-        index = 0;
-        if (reduced.matches) { complete(); return; }
-        paint(frames[index]);
-        run();
-      },
-      resume() {
-        if (timer) return;
-        if (reduced.matches) { complete(); return; }
-        if (index === frames.length - 1) {
-          index = 0;
-          paint(frames[index]);
-        }
-        run();
-      }
-    };
-  }
-
-  function onFirstView(target, play) {
-    if (reduced.matches || !('IntersectionObserver' in window)) return () => {};
-    const observer = new IntersectionObserver(entries => {
-      if (!entries.some(entry => entry.isIntersecting)) return;
-      observer.disconnect();
-      if (!reduced.matches) play();
-    }, { threshold: 0.5 });
-    observer.observe(target);
-    return () => observer.disconnect();
-  }
 
   const simd = document.querySelector('[data-simd-demo]');
   if (simd) {
@@ -165,78 +106,35 @@
     }
 
     const frames = Array.from({ length: 17 }, (_, i) => i);
-    const pauseButton = simd.querySelector('[data-si-pause]');
-    const loopNote = simd.querySelector('[data-si-loop-note]');
-    let repeatTimer = 0;
-    let inView = false;
-    let paused = false;
-    const clearRepeat = () => { clearTimeout(repeatTimer); repeatTimer = 0; };
-    const canRepeat = () => inView && !paused && !reduced.matches && !document.hidden;
-    const player = playback(paintSIMD, () => {
-      const live = simd.querySelector('[data-si-live]');
-      const message = simd.querySelector('[data-si-status]').textContent +
-        ` Dot product ${simd.querySelector('[data-si-vector-total]').textContent}, equal to cosine similarity for these unit vectors.`;
-      if (live.textContent !== message) live.textContent = message;
-      clearRepeat();
-      if (canRepeat()) repeatTimer = setTimeout(() => {
-        repeatTimer = 0;
-        if (canRepeat()) player.play(frames);
-      }, 2000);
-    });
-    const syncPauseButton = () => {
-      pauseButton.hidden = reduced.matches || !('IntersectionObserver' in window);
-      pauseButton.textContent = paused ? 'Resume animation' : 'Pause animation';
-      loopNote.hidden = reduced.matches || !('IntersectionObserver' in window);
-    };
-    const syncCycle = () => {
-      clearRepeat();
-      syncPauseButton();
-      if (canRepeat()) player.resume();
-      else {
-        player.stop();
-        if (reduced.matches) player.show(frames);
+    const player = window.createDemoPlayback({
+      target: simd.querySelector('.si-processors'),
+      pauseButton: simd.querySelector('[data-si-pause]'),
+      loopNote: simd.querySelector('[data-si-loop-note]'),
+      paint: paintSIMD,
+      announce: () => {
+        const live = simd.querySelector('[data-si-live]');
+        const message = simd.querySelector('[data-si-status]').textContent +
+          ` Dot product ${simd.querySelector('[data-si-vector-total]').textContent}, equal to cosine similarity for these unit vectors.`;
+        if (live.textContent !== message) live.textContent = message;
       }
-    };
-    const playSelection = () => {
-      clearRepeat();
-      if (paused) player.show(frames);
-      else player.play(frames);
-    };
+    });
     buildSIMD();
     player.show(frames);
     revealBody(simd);
-    syncPauseButton();
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(entries => {
-        const visible = entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.5);
-        if (visible === inView) return;
-        inView = visible;
-        syncCycle();
-      }, { threshold: [0, 0.5] });
-      observer.observe(simd.querySelector('.si-processors'));
-    }
-    reduced.addEventListener('change', syncCycle);
-    document.addEventListener('visibilitychange', syncCycle);
-    pauseButton.addEventListener('click', () => {
-      paused = !paused;
-      syncCycle();
-    });
     laneButtons.forEach(button => button.addEventListener('click', () => {
       lanes = Number(button.dataset.siLanes);
       press(laneButtons, button);
       buildSIMD();
-      playSelection();
+      player.play(frames);
     }));
     sampleButtons.forEach(button => button.addEventListener('click', () => {
       sample = button.dataset.siSample;
       press(sampleButtons, button);
       buildSIMD();
-      playSelection();
+      player.play(frames);
     }));
     simd.querySelector('[data-si-replay]').addEventListener('click', () => {
-      paused = false;
-      syncPauseButton();
-      playSelection();
+      player.replay();
     });
   }
 
@@ -463,26 +361,30 @@
       return frames;
     }
 
-    const player = playback(paintHNSW, () => {
-      hnsw.querySelector('[data-hn-live]').textContent = `Search complete. ${hnsw.querySelector('[data-hn-checks]').textContent} vectors compared. ` +
-        `Found ${hnsw.querySelector('[data-hn-recall]').textContent} true nearest neighbours. Results ${hnsw.querySelector('[data-hn-results]').textContent}. ` +
-        hnsw.querySelector('[data-hn-ties]').textContent;
+    const player = window.createDemoPlayback({
+      target: baseLayer,
+      pauseButton: hnsw.querySelector('[data-hn-pause]'),
+      loopNote: hnsw.querySelector('[data-hn-loop-note]'),
+      paint: paintHNSW,
+      announce: () => {
+        const live = hnsw.querySelector('[data-hn-live]');
+        const message = `Search complete. ${hnsw.querySelector('[data-hn-checks]').textContent} vectors compared. ` +
+          `Found ${hnsw.querySelector('[data-hn-recall]').textContent} true nearest neighbours. Results ${hnsw.querySelector('[data-hn-results]').textContent}. ` +
+          hnsw.querySelector('[data-hn-ties]').textContent;
+        if (live.textContent !== message) live.textContent = message;
+      }
     });
     player.show(prepareSearch());
     revealBody(hnsw);
-    const cancelAuto = onFirstView(baseLayer, () => player.play(prepareSearch()));
     buttons.forEach(button => button.addEventListener('click', () => {
-      cancelAuto();
       query = presets[button.dataset.hnQuery];
       press(buttons, button);
       player.play(prepareSearch());
     }));
     efInput.addEventListener('input', () => {
-      cancelAuto();
       player.show(prepareSearch());
     });
     function moveQuery(x, y) {
-      cancelAuto();
       query = { x: Math.max(25, Math.min(535, x)), y: Math.max(25, Math.min(215, y)) };
       press(buttons, null);
       player.play(prepareSearch());
@@ -500,8 +402,7 @@
       moveQuery(query.x + step[0], query.y + step[1]);
     });
     hnsw.querySelector('[data-hn-replay]').addEventListener('click', () => {
-      cancelAuto();
-      player.play(prepareSearch());
+      player.replay(prepareSearch());
     });
   }
 })();

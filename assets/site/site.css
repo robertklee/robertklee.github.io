@@ -754,6 +754,9 @@ em { font-style: italic; }
 .cv-work-current { padding: 2px 8px; border-radius: 100px; background: var(--amber-soft); color: var(--amber); font: 500 10px/1.5 var(--font-mono); }
 .cv-record-work-current .cv-work-scope { color: var(--amber); }
 .cv-record-work-garage .cv-work-scope { color: var(--muted); }
+.cv-record-work-current { border-color: color-mix(in srgb, var(--amber-strong) 55%, var(--line)); background: linear-gradient(135deg, var(--amber-soft), transparent 65%), var(--surface); }
+.cv-record-work-current:hover { border-color: var(--amber-strong); }
+.cv-record-work-garage { border-style: dashed; border-color: var(--line-strong); }
 .cv-work-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 14px; }
 .cv-work-tags > span { max-width: 100%; padding: 3px 7px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; line-height: 1.4; }
 .cv-record-title { display: block; color: var(--heading); font-size: 19px; font-weight: 600; line-height: 1.35; letter-spacing: -.012em; }
@@ -761,6 +764,7 @@ em { font-style: italic; }
 .cv-date { display: block; margin-bottom: 10px; color: var(--faint); font: 500 12px/1.5 var(--font-mono); letter-spacing: .02em; }
 .cv-record-meta .cv-date { margin-bottom: 0; }
 .cv-employer-team { color: var(--muted); font-size: 13px; text-align: right; }
+.cv-employer-team strong { color: var(--heading); font-weight: 600; }
 .cv-teaser { display: block; max-width: 720px; margin-top: 12px; color: var(--muted); font-size: 15px; line-height: 1.6; }
 .cv-teaser strong { color: var(--text); }
 .cv-disclosure { display: block; margin-top: 14px; color: var(--accent); font: 500 12px/1.5 var(--font-mono); letter-spacing: .04em; }
@@ -955,7 +959,6 @@ em { font-style: italic; }
 
 @media (min-width: 861px) {
   .cm-step-scale .cm-scope { left: auto; right: calc(50% + 10px); width: max-content; max-width: calc(100% - 20px); text-align: right; }
-  .cv-work-reading-cue, .cv-work-stage, .cv-work-tags { display: none; }
 }
 
 @media (max-width: 860px) {
@@ -982,9 +985,6 @@ em { font-style: italic; }
   .cm-step-now .cm-role { color: var(--amber); }
   .cm-when { font-weight: 400; font-size: 10px; line-height: 1.4; }
   .cm-caption { margin-top: 16px; padding-top: 0; border-top: 0; }
-  .cv-record-work-current { border-color: color-mix(in srgb, var(--amber-strong) 55%, var(--line)); background: linear-gradient(135deg, var(--amber-soft), transparent 65%), var(--surface); }
-  .cv-record-work-current:hover { border-color: var(--amber-strong); }
-  .cv-record-work-garage { border-style: dashed; border-color: var(--line-strong); }
 }
 
 @media (max-width: 640px) {

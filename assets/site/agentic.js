@@ -58,10 +58,9 @@
     ]
   };
 
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const STEP_MS = 420;
-  let timers = [];
-  let current = 'constraints';
+  let paintFrame;
+  let resultMessage = '';
 
   function make(tag, className, text) {
     const node = document.createElement(tag);
@@ -79,14 +78,7 @@
     schema.appendChild(chip);
   });
 
-  function clearTimers() {
-    timers.forEach(clearTimeout);
-    timers = [];
-  }
-
-  function render(key, animate) {
-    clearTimers();
-    current = key;
+  function prepare(key) {
     const segments = REQUESTS[key];
     const phrases = segments.filter(s => typeof s === 'object');
 
@@ -139,38 +131,34 @@
       const chip = s.field && chips.find(c => c.dataset.field === s.field);
       if (chip) chip.classList.add('is-used', 'ag-' + s.kind);
     };
-    const finish = () => {
-      figure.classList.add('is-done');
-      if (live) {
-        live.textContent = filters.length + ' filter' + (filters.length === 1 ? '' : 's') + ', ' + boosts.length + ' boost' +
-          (boosts.length === 1 ? '' : 's') + (phrases.some(s => s.kind === 'rank') ? '; the rest is left to ranking.' : '; every phrase validated.');
-      }
+    resultMessage = filters.length + ' filter' + (filters.length === 1 ? '' : 's') + ', ' + boosts.length + ' boost' +
+      (boosts.length === 1 ? '' : 's') + (phrases.some(s => s.kind === 'rank') ? '; the rest is left to ranking.' : '; every phrase validated.');
+    paintFrame = tick => {
+      marks.forEach(mark => mark.classList.remove('is-on'));
+      rows.forEach(row => row.classList.remove('is-on'));
+      chips.forEach(chip => { chip.className = 'ag-field'; });
+      phrases.slice(0, tick).forEach((_, i) => reveal(i));
+      figure.classList.toggle('is-done', tick > phrases.length);
     };
-
-    figure.classList.remove('is-done');
-    if (!animate || reduced.matches) {
-      phrases.forEach((_, i) => reveal(i));
-      finish();
-      return;
-    }
-    phrases.forEach((_, i) => timers.push(setTimeout(() => reveal(i), 200 + i * STEP_MS)));
-    timers.push(setTimeout(finish, 200 + phrases.length * STEP_MS));
+    return Array.from({ length: phrases.length + 2 }, (_, i) => i);
   }
 
+  const player = window.createDemoPlayback({
+    target: ops,
+    pauseButton: figure.querySelector('[data-ag-pause]'),
+    loopNote: figure.querySelector('[data-ag-loop-note]'),
+    stepMs: STEP_MS,
+    paint: tick => paintFrame(tick),
+    announce: () => {
+      if (live && live.textContent !== resultMessage) live.textContent = resultMessage;
+    }
+  });
   buttons.forEach(button => button.addEventListener('click', () => {
     buttons.forEach(b => b.setAttribute('aria-pressed', String(b === button)));
-    render(button.dataset.request, true);
+    player.play(prepare(button.dataset.request));
   }));
+  figure.querySelector('[data-ag-replay]').addEventListener('click', () => player.replay());
 
   body.hidden = false;
-  const autoplay = !reduced.matches && 'IntersectionObserver' in window;
-  render(current, false);
-  if (autoplay) {
-    const io = new IntersectionObserver(entries => {
-      if (!entries.some(e => e.isIntersecting)) return;
-      io.disconnect();
-      render(current, true);
-    }, { threshold: 0.5 });
-    io.observe(ops);
-  }
+  player.show(prepare('constraints'));
 })();

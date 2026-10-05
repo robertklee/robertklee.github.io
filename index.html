@@ -45,7 +45,7 @@
         "jobTitle": "Senior Software Engineer",
         "worksFor": {"@type": "Organization", "name": "Microsoft"},
         "sameAs": ["https://www.linkedin.com/in/robert-k-lee/", "https://github.com/robertklee"],
-        "knowsAbout": ["Vector Search", "Information Retrieval", "Retrieval Augmented Generation", "Agentic Retrieval", "Machine Learning", "Computer Vision", "Distributed Systems"]
+        "knowsAbout": ["Vector Search", "Graph Search", "Information Retrieval", "Retrieval Augmented Generation", "Agentic Retrieval", "Machine Learning", "Computer Vision", "Distributed Systems"]
       }
     </script>
     <link rel="icon" href="assets/favicon.png">
@@ -64,6 +64,7 @@
     <script src="assets/site/site.js" defer></script>
     <script src="assets/site/quantization.js" defer></script>
     <script src="assets/site/diversity.js" defer></script>
+    <script src="assets/site/demo-playback.js" defer></script>
     <script src="assets/site/agentic.js" defer></script>
     <script src="assets/site/vector-demos.js" defer></script>
     <script src="assets/site/field.js" defer></script>
@@ -329,6 +330,11 @@
                 <p><span>filter</span><code data-ag-filter></code></p>
                 <p><span>boost</span><code data-ag-boost></code></p>
               </div>
+              <div class="vector-demo-toolbar">
+                <button type="button" class="vector-demo-replay" data-ag-pause hidden>Pause animation</button>
+                <button type="button" class="vector-demo-replay" data-ag-replay>Replay validation</button>
+              </div>
+              <p class="vector-demo-note" data-ag-loop-note hidden>Repeats while in view, with a 2-second pause between validations. Pause the animation to inspect a step.</p>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-ag-live></p>
             </div>
             <figcaption id="agentic-caption">A simplified illustration on a sample hotel index. Filters are shown in OData syntax and boosts in Lucene syntax.</figcaption>
@@ -563,7 +569,8 @@
               <p class="vector-demo-note">A comparison measures how far a stored vector is from the query. Graph search only compares the vectors it visits; comparing all 24 gives the true nearest three below. These are counts, not a speed benchmark.</p>
               <div class="hn-results"><p><span>Graph's nearest 3</span><strong data-hn-results></strong></p><p><span>True nearest 3 · all 24 compared</span><strong data-hn-exact></strong></p></div>
               <p class="vector-demo-note" data-hn-ties hidden></p>
-              <div class="vector-demo-toolbar"><p class="vector-demo-status" data-hn-status></p><button type="button" class="vector-demo-replay" data-hn-replay>Replay search</button></div>
+              <div class="vector-demo-toolbar"><p class="vector-demo-status" data-hn-status></p><button type="button" class="vector-demo-replay" data-hn-pause hidden>Pause animation</button><button type="button" class="vector-demo-replay" data-hn-replay>Replay search</button></div>
+              <p class="vector-demo-note" data-hn-loop-note hidden>Repeats while in view, with a 2-second pause between searches. Pause the animation to inspect a step.</p>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-hn-live></p>
             </div>
             <figcaption id="hnsw-caption">
@@ -597,7 +604,7 @@
       </span>
       <span class="cv-record-meta">
       <span class="cv-date">Mar. 2025 - Present | Redmond, WA</span>
-      <span class="cv-employer-team" aria-hidden="true">Azure AI Search</span>
+      <span class="cv-employer-team" aria-hidden="true"><strong>Microsoft</strong> · Azure AI Search</span>
       </span>
       <span class="cv-teaser">Technical lead for a team of five engineers and scientists building a new <strong>vector-search diversity capability</strong>, with end-to-end delivery ownership from algorithm analysis through hands-on implementation.</span>
       <span class="cv-work-tags"><span>Vector diversity</span><span>Agentic retrieval</span><span>Research to production</span></span>
@@ -636,7 +643,7 @@
       </span>
       <span class="cv-record-meta">
       <span class="cv-date">Jun. 2022 - Feb. 2025 | Redmond, WA</span>
-      <span class="cv-employer-team" aria-hidden="true">Azure AI Search</span>
+      <span class="cv-employer-team" aria-hidden="true"><strong>Microsoft</strong> · Azure AI Search</span>
       </span>
       <span class="cv-teaser">Built and scaled <strong>vector search and quantization</strong> across billions of embeddings, delivering <strong>8–32× customer cost savings</strong> and <strong>up to 20× latency reduction</strong>.</span>
       <span class="cv-work-tags"><span>Vector search</span><span>Quantization</span><span>Hybrid relevance</span><span>Distributed systems</span></span>
@@ -676,7 +683,7 @@
       </span>
       <span class="cv-record-meta">
       <span class="cv-date">Jul. 2021 - May 2022 | Redmond, WA</span>
-      <span class="cv-employer-team" aria-hidden="true">Azure AI Search</span>
+      <span class="cv-employer-team" aria-hidden="true"><strong>Microsoft</strong> · Azure AI Search</span>
       </span>
       <span class="cv-teaser">Delivered the new <strong>index alias feature</strong> to Public Preview, letting customers repoint applications to a different underlying index with <strong>no code changes or downtime</strong>.</span>
       <span class="cv-work-tags"><span>Search APIs</span><span>Data migration</span></span>
@@ -706,7 +713,7 @@
       </span>
       <span class="cv-record-meta">
       <span class="cv-date">Sep. 2020 - Dec. 2020 | Redmond, WA (Remote)</span>
-      <span class="cv-employer-team" aria-hidden="true">Azure Cognitive Search</span>
+      <span class="cv-employer-team" aria-hidden="true"><strong>Microsoft</strong> · Azure Cognitive Search</span>
       </span>
       <span class="cv-teaser">Designed and shipped the <strong>second most requested API and backend feature</strong> on the Azure Cognitive Search team, written in C# and released under a preview API.</span>
       <span class="cv-work-tags"><span>Search APIs</span><span>Backend</span></span>
@@ -736,7 +743,7 @@
       </span>
       <span class="cv-record-meta">
       <span class="cv-date">Jun. 2019 - Aug. 2019 | Bellevue, WA</span>
-      <span class="cv-employer-team" aria-hidden="true">Azure Search (AI Platform)</span>
+      <span class="cv-employer-team" aria-hidden="true"><strong>Microsoft</strong> · Azure Search (AI Platform)</span>
       </span>
       <span class="cv-teaser">Built a <strong>dynamic search-website generator</strong> with query suggestions and filtering options in TypeScript.</span>
       <span class="cv-work-tags"><span>Search UX</span><span>Developer tooling</span></span>
@@ -768,7 +775,7 @@
       </span>
       <span class="cv-record-meta">
       <span class="cv-date">Jan. 2018 - Apr. 2018 | Vancouver, BC</span>
-      <span class="cv-employer-team" aria-hidden="true">Microsoft Garage</span>
+      <span class="cv-employer-team" aria-hidden="true"><strong>Microsoft</strong> Garage</span>
       </span>
       <span class="cv-teaser">Built a cross-platform mobile app leveraging <strong>offline machine learning for chest X-ray classification</strong> in C#.</span>
       <span class="cv-work-tags"><span>On-device ML</span><span>Mobile</span><span>CI</span></span>

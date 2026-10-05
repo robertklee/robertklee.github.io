@@ -50,7 +50,7 @@ const setRange = async (page, selector, value) => {
     input.dispatchEvent(new Event('input', { bubbles: true }));
   }, value);
 };
-const viewSIMD = (page, visible = true) => page.locator('.si-processors').evaluate(async (node, visible) => {
+const viewDemo = (page, selector, visible = true) => page.locator(selector).evaluate(async (node, visible) => {
   await document.fonts.ready;
   // IntersectionObserver uses native rendering, not Playwright's simulated timer clock.
   await new Promise(resolve => {
@@ -64,6 +64,7 @@ const viewSIMD = (page, visible = true) => page.locator('.si-processors').evalua
     else window.scrollTo({ top: 0, behavior: 'instant' });
   });
 }, visible);
+const viewSIMD = (page, visible = true) => viewDemo(page, '.si-processors', visible);
 const setQuery = (page, x, y) => page.locator('[data-hn-plot]').evaluate((plot, query) => {
   plot.scrollIntoView({ block: 'center', behavior: 'instant' });
   const position = new DOMPoint(query.x, 370 + query.y * 0.9).matrixTransform(plot.getScreenCTM());
@@ -320,6 +321,162 @@ test('SIMD input changes and replay replace pending cycles rather than starting 
   await expect(page.locator('[data-si-scalar-ops]')).toHaveText('2 / 16 MAC operations');
   await expect(page.locator('[data-si-vector-ops]')).toHaveText('2 / 2 vector MAC operations');
 });
+
+const repeatingDemos = [
+  {
+    name: 'HNSW', prefix: 'hn', target: '.hn-level[data-level="0"]', state: '[data-hn-status]',
+    change: '[data-hn-query="middle"]', step: 200,
+    done: () => document.querySelector('[data-hn-status]').textContent.includes('Search complete')
+  },
+  {
+    name: 'filter validation', prefix: 'ag', target: '[data-ag-ops]', state: '[data-ag-ops]',
+    change: '[data-request="preferences"]', step: 420,
+    done: () => document.querySelector('[data-agentic-demo]').classList.contains('is-done')
+  }
+];
+
+for (const demo of repeatingDemos) {
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    test(`${demo.name} repeats with a two-second hold and no duplicate announcements at ${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      await page.reload();
+      await page.clock.runFor(10000);
+      expect(await page.evaluate(demo.done)).toBe(true);
+      await viewDemo(page, demo.target);
+      await page.locator(`[data-${demo.prefix}-replay]`).evaluate(button => button.click());
+      await page.evaluate(prefix => {
+        window.demoAnnouncements = 0;
+        new MutationObserver(() => { window.demoAnnouncements++; })
+          .observe(document.querySelector(`[data-${prefix}-live]`), { childList: true });
+      }, demo.prefix);
+      for (let cycle = 0; cycle < 2; cycle++) {
+        expect(await page.evaluate(demo.done)).toBe(false);
+        let steps = 0;
+        while (!await page.evaluate(demo.done) && steps++ < 60) await page.clock.runFor(demo.step);
+        expect(await page.evaluate(demo.done)).toBe(true);
+        await page.clock.runFor(1999);
+        expect(await page.evaluate(demo.done)).toBe(true);
+        await page.clock.runFor(1);
+        expect(await page.evaluate(demo.done)).toBe(false);
+      }
+      expect(await page.evaluate(() => window.demoAnnouncements)).toBe(0);
+    });
+  }
+
+  test(`${demo.name} supports pause, input changes, replay, offscreen suspension and reduced motion`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await viewDemo(page, demo.target);
+    const pause = page.locator(`[data-${demo.prefix}-pause]`);
+    const replay = page.locator(`[data-${demo.prefix}-replay]`);
+    const snapshot = () => page.locator(demo.state).innerHTML();
+    await replay.evaluate(button => button.click());
+    await page.clock.runFor(demo.step * 2);
+    await pause.evaluate(button => button.click());
+    const held = await snapshot();
+    await page.clock.runFor(10000);
+    expect(await snapshot()).toBe(held);
+    await expect(pause).toHaveText('Resume animation');
+    await pause.evaluate(button => button.click());
+    await page.clock.runFor(demo.step);
+    expect(await snapshot()).not.toBe(held);
+    await pause.evaluate(button => button.click());
+    await page.locator(demo.change).evaluate(button => button.click());
+    expect(await page.evaluate(demo.done)).toBe(true);
+    await page.clock.runFor(10000);
+    expect(await page.evaluate(demo.done)).toBe(true);
+    await replay.evaluate(button => button.click());
+    await expect(pause).toHaveText('Pause animation');
+    await page.clock.runFor(demo.step * 2);
+    await viewDemo(page, demo.target, false);
+    const offscreen = await snapshot();
+    await page.clock.runFor(10000);
+    expect(await snapshot()).toBe(offscreen);
+    await viewDemo(page, demo.target);
+    await page.clock.runFor(demo.step);
+    expect(await snapshot()).not.toBe(offscreen);
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(await page.evaluate(demo.done)).toBe(true);
+    await page.clock.runFor(10000);
+    expect(await page.evaluate(demo.done)).toBe(true);
+    await page.evaluate(() => {
+      delete document.hidden;
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(await page.evaluate(demo.done)).toBe(false);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(pause).toBeHidden();
+    await expect(page.locator(`[data-${demo.prefix}-loop-note]`)).toBeHidden();
+    expect(await page.evaluate(demo.done)).toBe(true);
+    await page.clock.runFor(10000);
+    expect(await page.evaluate(demo.done)).toBe(true);
+  });
+
+  test(`${demo.name} remains manually playable without IntersectionObserver`, async ({ page }) => {
+    // Isolate demo fallbacks from unrelated effects that require IntersectionObserver.
+    await page.route(/\/assets\/site\/(?:field|site)\.js$/, route => route.fulfill({ body: '', contentType: 'text/javascript' }));
+    await page.addInitScript(() => { delete window.IntersectionObserver; });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.reload();
+    await expect(page.locator(`[data-${demo.prefix}-pause]`)).toBeHidden();
+    await expect(page.locator(`[data-${demo.prefix}-loop-note]`)).toBeHidden();
+    await page.locator(`[data-${demo.prefix}-replay]`).evaluate(button => button.click());
+    expect(await page.evaluate(demo.done)).toBe(false);
+    await page.clock.runFor(10000);
+    expect(await page.evaluate(demo.done)).toBe(true);
+    await page.clock.runFor(10000);
+    expect(await page.evaluate(demo.done)).toBe(true);
+  });
+}
+
+test('filter validation preserves filters, boosts and ranking-only phrases for every request', async ({ page }) => {
+  const requests = [
+    {
+      key: 'constraints', count: 4,
+      filter: "tags/any(t: t eq 'pet-friendly')\nand (category eq 'Boutique' or category eq 'Resort')\nand parking eq true\nand district ne 'Downtown'",
+      boost: 'none', message: '4 filters, 0 boosts; every phrase validated.'
+    },
+    {
+      key: 'preferences', count: 3, filter: "city eq 'Seattle'",
+      boost: 'category:Boutique^3\ntags:"rooftop-bar"^2', message: '1 filter, 2 boosts; every phrase validated.'
+    },
+    {
+      key: 'open', count: 3, filter: "tags/any(t: t eq 'pool')",
+      boost: 'none', message: '1 filter, 0 boosts; the rest is left to ranking.'
+    }
+  ];
+  for (const request of requests) {
+    await page.locator(`[data-request="${request.key}"]`).evaluate(button => button.click());
+    await expect(page.locator('[data-ag-ops] .is-on')).toHaveCount(request.count);
+    await expect(page.locator('[data-ag-filter]')).toHaveText(request.filter);
+    await expect(page.locator('[data-ag-boost]')).toHaveText(request.boost);
+    await expect(page.locator('[data-ag-live]')).toHaveText(request.message);
+    await page.locator('[data-ag-replay]').evaluate(button => button.click());
+    await expect(page.locator('[data-agentic-demo]')).toHaveClass(/is-done/);
+  }
+});
+
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  test(`detailed roles show scope labels, Microsoft and matching colour coding at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    const records = page.locator('#profile-work-records');
+    await expect(records.locator('.cv-work-stage')).toHaveCount(6);
+    await expect(records.locator('.cv-employer-team strong')).toHaveCount(6);
+    for (const scope of await records.locator('.cv-work-scope').all()) await expect(scope).toBeVisible();
+    for (const employer of await records.locator('.cv-employer-team strong').all()) {
+      await expect(employer).toBeVisible();
+      await expect(employer).toHaveText('Microsoft');
+    }
+    await expect(records.locator('.cv-record-work-current')).not.toHaveCSS('background-image', 'none');
+    await expect(records.locator('.cv-record-work-garage')).toHaveCSS('border-top-style', 'dashed');
+    expect(await records.locator('.cv-record-work-current .cv-work-scope').evaluate(node => getComputedStyle(node).color))
+      .not.toBe(await records.locator('.cv-record-work:not(.cv-record-work-current):not(.cv-record-work-garage) .cv-work-scope').first()
+        .evaluate(node => getComputedStyle(node).color));
+  });
+}
 
 test('HNSW has four nested levels and valid descent points between all adjacent levels', async ({ page }) => {
   const hierarchy = await page.locator('.hn-level').evaluateAll(groups => groups.map(group => ({
@@ -726,7 +883,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 }
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
-  test(`SIMD repeats while HNSW autoplays once, with replay and reduced motion at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  test(`SIMD and HNSW repeat, with replay and reduced motion at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.reload();
@@ -736,15 +893,17 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await expect(page.locator('[data-si-scalar-ops]')).not.toHaveText('16 / 16 MAC operations');
     await page.clock.runFor(3500);
     await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
-    await page.locator('.hn-level[data-level="0"]').evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await viewDemo(page, '.hn-level[data-level="0"]');
     await page.clock.runFor(400);
     await expect(page.locator('[data-hn-status]')).not.toContainText('Search complete');
-    await page.clock.runFor(10000);
+    await page.clock.runFor(1000);
+    await page.locator('[data-hn-pause]').evaluate(button => button.click());
+    await page.locator('[data-hn-query="right"]').evaluate(button => button.click());
     await expect(page.locator('[data-hn-status]')).toContainText('Search complete');
     await viewSIMD(page);
     await page.clock.runFor(500);
     await expect(page.locator('[data-si-scalar-ops]')).not.toHaveText('16 / 16 MAC operations');
-    await page.locator('.hn-level[data-level="0"]').evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await viewDemo(page, '.hn-level[data-level="0"]');
     await page.clock.runFor(300);
     await expect(page.locator('[data-hn-status]')).toContainText('Search complete');
     await page.locator('[data-hn-replay]').click();
@@ -773,6 +932,18 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 1080, height: 90
             const box = node.getBoundingClientRect();
             return box.width > 0 && (box.left < -1 || box.right > innerWidth + 1);
           }).map(node => node.className.baseVal || node.className)
+        }));
+        expect(overflow).toEqual({ page: 0, elements: [] });
+      }
+      await page.locator('[data-agentic-demo]').evaluate(node => node.scrollIntoView({ block: 'start', behavior: 'instant' }));
+      for (const button of await page.locator('[data-request]').all()) {
+        await button.evaluate(node => node.click());
+        const overflow = await page.locator('[data-agentic-demo]').evaluate(card => ({
+          page: document.documentElement.scrollWidth - innerWidth,
+          elements: [...card.querySelectorAll('*')].filter(node => {
+            const box = node.getBoundingClientRect();
+            return box.width > 0 && (box.left < -1 || box.right > innerWidth + 1);
+          }).map(node => node.className)
         }));
         expect(overflow).toEqual({ page: 0, elements: [] });
       }

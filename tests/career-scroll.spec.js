@@ -98,7 +98,7 @@ async function expectScaledStroke(page) {
 }
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 861, height: 1000 }, { width: 860, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
-  test(`career restores the card-triggered stroke and newest-first reveal at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  test(`career draws once with a viewport-aware trigger at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     const plot = page.locator('.cm-plot');
     const card = page.locator('.career-map');
@@ -109,11 +109,19 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 861, height: 100
     await expectScaledStroke(page);
     expect(await curveLine(page).evaluate(line => parseFloat(getComputedStyle(line).strokeDashoffset))).toBeGreaterThan(0);
 
-    // The original style starts at the card's top, before the curve itself is visible.
     await card.evaluate(card => {
       window.scrollTo({ top: scrollY + card.getBoundingClientRect().top - innerHeight + 100, behavior: 'instant' });
     });
     await expect(card).toHaveClass(/is-revealed/);
+    expect(await page.locator('.cm-curve').evaluate(curve => curve.getBoundingClientRect().top)).toBeGreaterThan(viewport.height);
+    if (viewport.width <= 860) {
+      await expect(plot).not.toHaveClass(/is-drawn/);
+      await card.evaluate(element => element.getAnimations().forEach(animation => animation.finish()));
+      await page.waitForTimeout(1500);
+      await expect(plot).not.toHaveClass(/is-drawn/);
+      expect(await curveLine(page).evaluate(line => parseFloat(getComputedStyle(line).strokeDashoffset))).toBeGreaterThan(0);
+      await showCurve(page);
+    }
     await expect(plot).toHaveClass(/is-drawn/);
     const animatedProperties = await card.evaluate(element => {
       const animations = element.getAnimations({ subtree: true });
@@ -126,14 +134,15 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 861, height: 100
     });
     expect(animatedProperties).toContain('stroke-dashoffset');
     expect(animatedProperties).toContain('transform');
-    const opacity = Number(await card.evaluate(element => getComputedStyle(element).opacity));
-    expect(opacity).toBeGreaterThan(0);
-    expect(opacity).toBeLessThan(1);
-    expect(await card.evaluate(element => new DOMMatrix(getComputedStyle(element).transform).m42)).toBeGreaterThan(0);
-    expect(await page.locator('.cm-curve').evaluate(curve => curve.getBoundingClientRect().top)).toBeGreaterThan(viewport.height);
+    if (viewport.width > 860) {
+      const opacity = Number(await card.evaluate(element => getComputedStyle(element).opacity));
+      expect(opacity).toBeGreaterThan(0);
+      expect(opacity).toBeLessThan(1);
+      expect(await card.evaluate(element => new DOMMatrix(getComputedStyle(element).transform).m42)).toBeGreaterThan(0);
+    }
 
     await card.evaluate(element => {
-      const delay = parseFloat(element.style.getPropertyValue('--reveal-delay'));
+      const delay = parseFloat(element.querySelector('.cm-plot').style.getPropertyValue('--reveal-delay') || element.style.getPropertyValue('--reveal-delay'));
       element.getAnimations({ subtree: true }).forEach(animation => { animation.currentTime = delay + 750; });
     });
     const ratio = await curveLine(page).evaluate(line => {
