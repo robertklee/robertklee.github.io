@@ -116,7 +116,8 @@ function exactReference(model) {
     ...point, distance: Math.hypot(point.x - model.query.x, point.y - model.query.y)
   })).sort((a, b) => a.distance - b.distance || a.id - b.id);
   const cutoff = ranked[2].distance;
-  const tied = point => Math.abs(point.distance - cutoff) <= 8 * Number.EPSILON * Math.max(1, cutoff, point.distance);
+  const tied = point => Math.abs(point.distance - cutoff) <= 8 * Number.EPSILON *
+    Math.max(1, cutoff, point.distance, Math.abs(model.query.x) + Math.abs(point.x), Math.abs(model.query.y) + Math.abs(point.y));
   return {
     exact: ranked.slice(0, 3).map(point => point.label),
     required: ranked.filter(point => point.distance < cutoff && !tied(point)).map(point => point.label),
@@ -354,7 +355,11 @@ test('HNSW credits alternative tied neighbour sets without marking a false miss'
 });
 
 test('the chosen demos are permanent Work chapters with valid headings and citations', async ({ page }) => {
-  await expect(page.locator('#work > .chapter')).toHaveCount(5);
+  await expect(page.locator('#work .chapter')).toHaveCount(5);
+  await expect(page.locator('.experience-role').nth(0).locator('.chapter')).toHaveCount(2);
+  await expect(page.locator('.experience-role').nth(1).locator('.chapter')).toHaveCount(3);
+  await expect(page.locator('.chapter-contribution-label')).toHaveCount(5);
+  await expect(page.locator('.figure-illustration-label')).toHaveText(Array(5).fill('Interactive concept illustration'));
   await expect(page.locator('#work .chapter-num')).toHaveText(['01', '02', '03', '04', '05']);
   await expect(page.locator('#vector-spikes, #spike-hybrid, [data-hybrid-spike]')).toHaveCount(0);
   const references = await page.evaluate(() => ({
@@ -379,6 +384,31 @@ test('the chosen demos are permanent Work chapters with valid headings and citat
     .map(topic => ({ id: topic.id, sources: topic.sources })));
   expect(topics.find(topic => topic.id === 'simd').sources).toContainEqual(['work-simd', 'SIMD distance kernels']);
   expect(topics.find(topic => topic.id === 'reliability').sources).toContainEqual(['work-hnsw', 'HNSW graph search']);
+});
+
+test('experience, examples, full role details, and biography stay connected', async ({ page }) => {
+  expect(await page.locator('main > section').evaluateAll(sections => sections.map(section => section.id))).toEqual([
+    'top', 'profile-about', 'profile-work', 'profile-projects', 'profile-leadership', 'profile-education', 'profile-awards', 'contact'
+  ]);
+  expect(await page.locator('#profile-work > .career-map').evaluate(card => card.nextElementSibling.id)).toBe('profile-work-records');
+  await expect(page.locator('[class*="spike"], [href*="/spikes/"]')).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'index, follow');
+  await page.locator('.about-more > summary').click();
+  await expect(page.locator('.about-more')).toHaveAttribute('open', '');
+  await expect(page.locator('.about-more')).toContainText('human pose estimation');
+  const expand = page.locator('[data-expand-all][aria-controls="profile-work-records"]');
+  await expand.click();
+  await expect(page.locator('#profile-work-records details.cv-details[open]')).toHaveCount(6);
+  await expand.click();
+  await expect(page.locator('#profile-work-records details.cv-details[open]')).toHaveCount(0);
+  await page.locator('.site-nav a[href="#work"]').click();
+  await expect(page.locator('.site-nav a[href="#work"]')).toHaveAttribute('aria-current', 'location');
+  await page.locator('#work-simd .chapter-context a').click();
+  await expect(page).toHaveURL(/#profile-work-entry-2$/);
+  await expect(page.locator('#profile-work-entry-2')).toHaveAttribute('open', '');
+  await expect(page.locator('#profile-work-entry-2')).toBeFocused();
+  await page.locator('.site-nav a[href="#profile-work"]').click();
+  await expect(page.locator('.site-nav a[href="#profile-work"]')).toHaveAttribute('aria-current', 'location');
 });
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {

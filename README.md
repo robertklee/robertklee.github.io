@@ -1,20 +1,21 @@
 # Robert Lee's website
 
-A single-page profile that demonstrates retrieval as well as describing it. A scripted chat hero answers over a live embedding field, five engineering stories each carry an interactive figure, and a complete static CV follows. The site supports light and dark themes. The full profile reads without JavaScript; only the interactive parts need it.
+A single-page profile that demonstrates retrieval as well as describing it. A scripted chat hero answers over a live embedding field, a career curve introduces the Microsoft experience, and five engineering stories sit within their associated roles. Full role details and the rest of the CV remain available. The site supports light and dark themes. The full profile reads without JavaScript; only the interactive parts need it.
 
 ## Page structure
 
 1. **Hero:** a scripted chat over an embedding-field backdrop: an illustrative layered HNSW graph receding in depth of field, with topic regions in focus, each a small organic network of linked documents. Each prompt animates a search that enters deep in the graph, descends the layers, and lands on the documents the answer draws on, branching across regions when the answer spans several; answers cite their sources. Every row of suggested follow-ups includes at least one plain-language question for friends, family, and other non-engineers. On phones and narrow windows the regions recompose into the bands around the copy, and the search shows through the frosted chat card.
-2. **About:** a portrait and a short introduction.
-3. **Work:** five chapters, each with a figure:
+2. **About:** a portrait and a short introduction, with the longer biography available under "More about me."
+3. **Experience & selected work:** the original spacious career map on desktop, with contribution labels above the exponential-style curve and role, date, team, and area labels below it. When the top of the card enters view, it fades in and slides upward, the SVG stroke draws the curve, its shading fades in, and milestone dots and labels appear staggered from newest to oldest. Stroke dash lengths are measured in screen pixels and updated on resize so the desktop and mobile curves share the same pacing. The animation runs once on desktop and mobile; reduced motion or keyboard focus shows the complete chart immediately. At 860px and below, the original compact labeled curve sits above the role groups and expandable details; the current card is highlighted. Selecting a milestone opens and navigates to its complete experience. Microsoft Garage stays outside the Azure AI Search trajectory: a separate desktop column or a dashed mobile link and card. The curve is qualitative, not a measured performance scale or a time-proportional chart. Keep desktop SVG coordinates, milestone `--column`/`--rise` values, and the CSS plot height in sync; mobile `--x`/`--y` percentages match the mobile path, scaled into the shared SVG viewBox. One milestone list serves both layouts, in newest-first document order; the chart's visual progression runs left to right. The curve markup, styles, and animation are unchanged.
+
+   The current role introduces Diversity and Agentic retrieval; Software Engineer II introduces Quantization, SIMD, and HNSW. Each role retains expandable full responsibilities and technologies, followed by its examples. Earlier roles remain newest first below the examples. Each chapter prominently distinguishes Robert's contribution from its interactive concept illustration and links back to the role details:
    - **Diversity:** travel-planning, shopping, grounding, and feed scenarios with a diversity slider over a neighbourhood graph.
    - **Agentic retrieval:** a natural-language request becomes OData filters (`eq`, `ne`, `and`, `or` over categorical fields) and Lucene boosts; anything outside that set is left to ranking.
    - **Quantization:** a value ladder and a memory-at-scale meter. On first view, the value sweeps across zero and back, showing FP32 motion, INT8 steps, and the binary sign change; using the value slider cancels autoplay.
    - **SIMD:** a unit-vector dot product compares scalar MAC operations with four- or eight-lane packed operations, followed by an explicit horizontal reduction.
    - **HNSW:** four nested graph levels illustrate greedy upper-level navigation and bounded best-first base-level search, with an adjustable `efSearch` pool and recall against an exhaustive scan.
-4. **Experience:** the original spacious career map on desktop, with contribution labels above the exponential-style curve and role, date, team, and area labels below it. When the top of the card enters view, it fades in and slides upward, the SVG stroke draws the curve, its shading fades in, and milestone dots and labels appear staggered from newest to oldest. Stroke dash lengths are measured in screen pixels and updated on resize so the desktop and mobile curves share the same pacing. The animation runs once on desktop and mobile; reduced motion or keyboard focus shows the complete chart immediately. At 860px and below, a compact labeled curve sits above newest-first expandable cards; the current card is highlighted, and contribution labels and area tags move into the cards. Selecting a milestone opens and navigates to its complete experience. Microsoft Garage stays outside the Azure AI Search trajectory: a separate desktop column or a dashed mobile link and card. The curve is qualitative, not a measured performance scale or a time-proportional chart. Keep desktop SVG coordinates, milestone `--column`/`--rise` values, and the CSS plot height in sync; mobile `--x`/`--y` percentages match the mobile path, scaled into the shared SVG viewBox. One milestone list serves both layouts, in newest-first document order; the chart's visual progression runs left to right. Full CV content and newest-first card order are unchanged.
-5. **Projects, Community & mentoring, Education, and Awards.**
-6. **Contact:** a closing call to action.
+4. **Projects, Community & mentoring, Education, and Awards.**
+5. **Contact:** a closing call to action.
 
 The demos use hand-made, illustrative data. They show the idea behind each piece of work, not production algorithms, schemas, or numbers.
 
@@ -23,6 +24,7 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
 - **`index.html`** is the canonical, directly editable source for the stories, the figures' markup, and the full CV.
 - **`assets/site/`** holds the design system and page behaviour:
   - **`site.css`:** the design system.
+  - **`experience-work.css`:** role-linked examples, contribution and illustration labels, and the expandable biography. Its selectors do not alter the career curve.
   - **`hero.css`:** hero and chat styles.
   - **`entrance.js`** and **`entrance.css`:** the homepage's retrieval-first entrance and content-sized mobile chat.
   - **`site.js`:** navigation, theme sync, scroll reveals, and count-ups.
@@ -32,6 +34,11 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
   - The self-hosted fonts, with their OFL licences.
 - **`chat-content.js`** holds the hero's scripted copy: the opening questions, thoughts, answers, citations, and the field documents each answer draws on. **`index.js`** runs the homepage chat: it samples that copy, offers follow-up chips, and tells the field what to search. **`chat-core.js`** is the shared streaming engine and theme toggle used by the homepage and **`404.html`**/**`404.js`**. None of them calls a model or a backend.
 - **`assets/og.png`** is the 1200×630 social card. If the name or role changes, re-render it to match.
+
+HNSW pointer placement uses double-precision `DOMPoint` coordinates. Its
+cutoff-tie tolerance accounts for coordinate and distance magnitudes, so
+responsive screen-to-graph roundoff does not turn an illustrative tie into a
+miss. The tolerance remains at floating-point-roundoff scale.
 
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
@@ -67,11 +74,13 @@ Run `npm run test:quantization` for the quantization scroll-animation browser ch
 including mobile viewports, user interruption, and reduced motion.
 
 Run `npm run test:career` for the career curve's scroll-animation browser checks,
-including card-triggered reveals, newest-first milestones, mobile stroke scaling, keyboard navigation, and reduced motion.
+including exact curve-markup preservation, card-triggered reveals, newest-first milestones, mobile stroke scaling, keyboard navigation, and reduced motion.
 
 Run `npm run test:vectors` for the SIMD and HNSW browser checks: unit norms,
 dot-product arithmetic, MAC counts and reduction staging, nested levels and search
 results, recall and distance ties, controls, motion, and responsive layouts.
+These checks also cover role grouping, contribution labels, expand-all, and
+navigation between experience details and examples.
 
 Playwright is a development dependency for browser checks and screenshots. After `npm ci`, run `npx playwright install chromium` to install its Chromium browser.
 

@@ -56,6 +56,7 @@
     <link rel="stylesheet" href="assets/site/hero.css">
     <link rel="stylesheet" href="assets/site/entrance.css">
     <link rel="stylesheet" href="assets/site/vector-demos.css">
+    <link rel="stylesheet" href="assets/site/experience-work.css">
     <script src="assets/site/entrance.js" defer></script>
     <script src="chat-core.js" defer></script>
     <script src="chat-content.js" defer></script>
@@ -72,9 +73,9 @@
     <header class="site-header">
       <a class="brand" href="#top" aria-label="Robert Lee, back to the top"><span class="brand-mark" aria-hidden="true">rl.</span><span class="brand-name">Robert Lee</span></a>
       <nav class="site-nav" aria-label="Main navigation">
-        <a href="#profile-about">About</a>
-        <a href="#work">Work</a>
         <a href="#profile-work">Experience</a>
+        <a href="#work">Work examples</a>
+        <a href="#profile-about">About</a>
         <a href="#profile-projects">Projects</a>
         <a href="#profile-leadership">Community</a>
       </nav>
@@ -97,7 +98,7 @@
           <noscript><p class="hero-noscript">I build the retrieval systems that help enterprise AI find the right evidence. The full profile is below.</p></noscript>
           <div class="hero-scroll-fade" aria-hidden="true"></div>
           <a class="scroll-cue" href="#profile-about">
-            <span class="scroll-cue-label">A little more about Robert</span>
+            <span class="scroll-cue-label">The person behind the work</span>
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14m-5-5 5 5 5-5"/></svg>
           </a>
         </div>
@@ -115,10 +116,11 @@
           </figure>
           <div class="cv-about-copy">
               <p><strong>Senior Software Engineer @ Microsoft, Azure AI Search</strong> — building the retrieval that grounds enterprise AI in the right knowledge at billion-vector scale.</p>
-              <p>My work sits at the intersection of <strong>information retrieval</strong>, <strong>vector search</strong>, and <strong>applied machine learning</strong> — improving relevance for complex global queries, grounding LLMs and multi-agent workflows in governed enterprise knowledge, and turning research prototypes into production-grade <strong>agentic retrieval</strong> and <strong>RAG</strong> capabilities. Today I'm the <strong>tech lead for a team of five engineers and scientists</strong> delivering a novel vector-search diversity capability, and I led research-to-production delivery for agentic-retrieval filter and boost generation.</p>
-              <p>Earlier, as a <strong>Software Engineer II</strong>, I was part of the team that took <strong>vector search from 1 to N</strong> and <strong>quantization from 0 to N</strong> — from building the capability to scaling it for broad production adoption. My contributions spanned quantization techniques that cut customer costs by <strong>8–32×</strong> and latency by up to <strong>20×</strong>, a hybrid-search relevance stack, and an extensible facet-aggregation engine built on formal grammar and parsing. I care deeply about <strong>performance, correctness, and distributed systems</strong>, and I'm often the engineer who root-causes the gnarliest production incidents.</p>
-              <p>Beyond shipping code, I love building communities. I graduated with a <strong>B.Eng in Electrical &amp; Computer Engineering</strong> (97% CGPA, 20+ awards worth over $100K), drove a <strong>200+ person conference</strong> from vision to reality, and grew a <strong>Senior's Program</strong> to 180+ volunteers and 650+ participants while delivering technical talks to <strong>250+ engineering students</strong>. I also led a student team to train a deep neural network for <strong>human pose estimation</strong> from randomly initialized weights — check it out <a href="https://share.streamlit.io/robertklee/coco-human-pose/main/human_pose_app.py" target="_blank" rel="noopener noreferrer">on Streamlit.</a></p>
-              <p>Please reach out if you'd like to connect!</p>
+              <p>I lead a team of <strong>five engineers and scientists</strong> on vector-search diversity, and led research-to-production delivery for agentic-retrieval filter and boost generation. Previously, I helped build and scale vector search, quantization, and the systems behind them.</p>
+    <details class="about-more"><summary>More about me</summary><p>My work sits at the intersection of <strong>information retrieval</strong>, <strong>vector search</strong>, and <strong>applied machine learning</strong> — improving relevance for complex global queries, grounding LLMs and multi-agent workflows in governed enterprise knowledge, and turning research prototypes into production-grade <strong>agentic retrieval</strong> and <strong>RAG</strong> capabilities. Today I'm the <strong>tech lead for a team of five engineers and scientists</strong> delivering a novel vector-search diversity capability, and I led research-to-production delivery for agentic-retrieval filter and boost generation.</p>
+<p>Earlier, as a <strong>Software Engineer II</strong>, I was part of the team that took <strong>vector search from 1 to N</strong> and <strong>quantization from 0 to N</strong> — from building the capability to scaling it for broad production adoption. My contributions spanned quantization techniques that cut customer costs by <strong>8–32×</strong> and latency by up to <strong>20×</strong>, a hybrid-search relevance stack, and an extensible facet-aggregation engine built on formal grammar and parsing. I care deeply about <strong>performance, correctness, and distributed systems</strong>, and I'm often the engineer who root-causes the gnarliest production incidents.</p>
+<p>Beyond shipping code, I love building communities. I graduated with a <strong>B.Eng in Electrical &amp; Computer Engineering</strong> (97% CGPA, 20+ awards worth over $100K), drove a <strong>200+ person conference</strong> from vision to reality, and grew a <strong>Senior's Program</strong> to 180+ volunteers and 650+ participants while delivering technical talks to <strong>250+ engineering students</strong>. I also led a student team to train a deep neural network for <strong>human pose estimation</strong> from randomly initialized weights — check it out <a href="https://share.streamlit.io/robertklee/coco-human-pose/main/human_pose_app.py" target="_blank" rel="noopener noreferrer">on Streamlit.</a></p>
+<p>Please reach out if you'd like to connect!</p></details>
               <div class="cv-contact-links">
                 <button type="button" data-profile-resume>Resume <span aria-hidden="true">↗</span></button>
                 <a href="mailto:hello@robertkl.com">Email <span aria-hidden="true">↗</span></a>
@@ -129,320 +131,14 @@
         </div>
       </section>
 
-      <section class="section work" id="work" aria-labelledby="work-title">
-        <header class="section-heading">
-          <p class="eyebrow">Selected work · From research to production</p>
-          <h2 id="work-title">Good answers start with <em>better retrieval.</em></h2>
-          <p class="section-lede">Five engineering stories: broader evidence, verifiable intent, compact vectors, efficient similarity math, and graph search at scale.</p>
-        </header>
-
-        <article class="chapter" id="work-diversity" aria-labelledby="work-diversity-title">
-          <div class="chapter-copy">
-            <p class="chapter-meta"><span class="chapter-num">01</span><span>Relevance</span><span>Current role</span></p>
-            <h3 id="work-diversity-title">Evidence, <em>not echoes.</em></h3>
-            <p class="chapter-lede">A novel diversity capability that strengthens kNN vector search by reducing homogeneous, redundant results.</p>
-            <p class="chapter-role"><span class="role-badge">Tech lead</span><span>Team of five engineers and scientists</span></p>
-            <ul class="chapter-points">
-              <li>Analyzed the research algorithm stage by stage to distill the fundamental concepts and strengths of each.</li>
-              <li>Rethought its architecture for distributed execution, with targeted algorithmic and systems innovations that preserve those properties at production scale.</li>
-              <li>Owned the effort from leadership buy-in through architecture to cross-functional alignment and implementation.</li>
-            </ul>
-            <p class="chapter-uses"><span>Grounding for corpus-spanning questions</span><span>E-commerce</span><span>Recommendations</span></p>
-          </div>
-          <figure class="chapter-figure diversity-demo" data-diversity-demo aria-labelledby="diversity-figure-title" aria-describedby="diversity-caption">
-            <header class="figure-heading">
-              <p class="eyebrow">Try it · Relevance vs. diversity</p>
-              <h3 id="diversity-figure-title">Same query, broader evidence.</h3>
-              <p>Pure nearest-neighbour ranking can fill the top six with near-copies from one neighbourhood. Turn up diversity and the results spread across clusters.</p>
-            </header>
-            <div class="dv-body" hidden>
-              <div class="segmented" role="group" aria-label="Example">
-                <button type="button" aria-pressed="true" data-scenario="travel">Travel</button>
-                <button type="button" aria-pressed="false" data-scenario="product">Shopping</button>
-                <button type="button" aria-pressed="false" data-scenario="grounding">Grounding</button>
-                <button type="button" aria-pressed="false" data-scenario="feed">Your feed</button>
-              </div>
-              <p class="dv-query"><span data-dv-query-label>Prompt</span><span data-dv-query>Plan my first trip to Japan</span></p>
-              <svg class="dv-plot" viewBox="0 0 560 300" aria-hidden="true" focusable="false" data-dv-plot></svg>
-              <div class="dv-control">
-                <div><label for="dv-diversity">Diversity</label><output for="dv-diversity" data-dv-value>Off</output></div>
-                <input id="dv-diversity" type="range" min="0" max="1" step="0.01" value="0" aria-describedby="diversity-caption">
-                <div class="dv-scale" aria-hidden="true"><span>Relevance only</span><span>Maximum spread</span></div>
-              </div>
-              <dl class="dv-stats">
-                <div><dt>Distinct groups</dt><dd data-dv-groups>2 of 6</dd></div>
-                <div><dt>Near-duplicates</dt><dd data-dv-dupes>4</dd></div>
-                <div><dt>Avg. relevance</dt><dd data-dv-rel>0.86</dd></div>
-              </dl>
-              <ol class="dv-results" data-dv-results aria-label="Top six results"></ol>
-              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-dv-live></p>
-            </div>
-            <figcaption id="diversity-caption">A simplified illustration on hand-made data. Lines link each result to its nearest neighbours; shaded regions are the clusters they form. It conveys the idea, not the production algorithm.</figcaption>
-          </figure>
-        </article>
-
-        <article class="chapter chapter-flip" id="work-agentic" aria-labelledby="work-agentic-title">
-          <div class="chapter-copy">
-            <p class="chapter-meta"><span class="chapter-num">02</span><span>Agentic retrieval</span><span>Current role</span></p>
-            <h3 id="work-agentic-title">Open&#8209;ended intent. <em>Well&#8209;defined execution.</em></h3>
-            <p class="chapter-lede">Research-to-production delivery for agentic-retrieval filter and boost generation.</p>
-            <p class="chapter-role"><span class="role-badge">Led delivery</span><span>Research to production</span></p>
-            <ul class="chapter-points">
-              <li>Reformulated an unbounded filter-synthesis problem into a bounded, verifiable operator set that excels in specific filter categories.</li>
-              <li>Leveraged production analysis to demonstrate the operator set covered real customer workloads.</li>
-              <li>Set the technical direction across research and product teams, and brought both to consensus.</li>
-            </ul>
-          </div>
-          <figure class="chapter-figure agentic-demo" data-agentic-demo aria-labelledby="agentic-figure-title" aria-describedby="agentic-caption">
-            <header class="figure-heading">
-              <p class="eyebrow">Try it · Intent to operators</p>
-              <h3 id="agentic-figure-title">Every constraint, checked.</h3>
-              <p>Filters combine only <code>eq</code>, <code>ne</code>, <code>and</code>, and <code>or</code> over categorical fields, and preferences become Lucene boosts. Each is validated against the index before it runs; anything outside the set is left to ranking, not guessed.</p>
-            </header>
-            <div class="ag-body" hidden>
-              <div class="segmented" role="group" aria-label="Example request">
-                <button type="button" aria-pressed="true" data-request="constraints">Constraints</button>
-                <button type="button" aria-pressed="false" data-request="preferences">Preferences</button>
-                <button type="button" aria-pressed="false" data-request="open">Open-ended</button>
-              </div>
-              <div class="ag-request-wrap">
-                <p class="ag-label">Request</p>
-                <p class="ag-request" data-ag-request></p>
-                <p class="ag-legend" aria-hidden="true"><span class="ag-key ag-filter">Filter · must match</span><span class="ag-key ag-boost">Boost · ranks higher</span><span class="ag-key ag-rank">Ranking only</span></p>
-              </div>
-              <div class="ag-schema-wrap">
-                <p class="ag-label">Index schema · hotels</p>
-                <ul class="ag-schema" data-ag-schema aria-label="Index fields"></ul>
-                <p class="ag-schema-note">Only low-cardinality <code>string</code>, <code>string[]</code>, and <code>boolean</code> fields are in the operator set; dashed fields are left to ranking.</p>
-              </div>
-              <ol class="ag-ops" data-ag-ops aria-label="Operators"></ol>
-              <div class="ag-output" aria-label="Generated query">
-                <p><span>filter</span><code data-ag-filter></code></p>
-                <p><span>boost</span><code data-ag-boost></code></p>
-              </div>
-              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-ag-live></p>
-            </div>
-            <figcaption id="agentic-caption">A simplified illustration on a sample hotel index. Filters are shown in OData syntax and boosts in Lucene syntax.</figcaption>
-          </figure>
-        </article>
-
-        <article class="chapter" id="work-quantization" aria-labelledby="work-quantization-title">
-          <div class="chapter-copy">
-            <p class="chapter-meta"><span class="chapter-num">03</span><span>Efficiency</span><span>2022 – 2025</span></p>
-            <h3 id="work-quantization-title">Less memory. <em>More possibility.</em></h3>
-            <p class="chapter-lede">Making billion-scale vector search practical through quantization and efficient distance computation.</p>
-            <p class="chapter-role"><span class="role-badge">Drove Preview → GA</span><span>Vector quantization on Azure AI Search</span></p>
-            <div class="metrics">
-              <p class="metric"><strong data-count>8–32×</strong><span>Reported customer cost savings</span></p>
-              <p class="metric"><strong data-count>20×</strong><span>Reported latency reduction, up to</span></p>
-            </div>
-            <ul class="chapter-points">
-              <li>Scalar and binary quantization, binary vectors, and SIMD-accelerated distance computation.</li>
-              <li>The central tradeoff: reduce the footprint while preserving useful retrieval quality.</li>
-            </ul>
-            <p class="fine-print">Figures are reported customer results. They depend on workload and configuration.</p>
-          </div>
-          <figure class="chapter-figure quantization-study" aria-labelledby="quantization-title" aria-describedby="quantization-caption">
-            <header class="figure-heading quantization-heading">
-              <p class="eyebrow">The precision tradeoff</p>
-              <h3 id="quantization-title">How much detail do you keep?</h3>
-              <p>One value. Three representations.</p>
-            </header>
-            <div class="quantization-chart">
-              <div class="quantization-axis" aria-hidden="true"><span>+1</span><span>0</span><span>&minus;1</span></div>
-              <div class="quantization-column">
-                <h4>FP32 <span>32 bits</span></h4>
-                <div class="quantization-track" aria-hidden="true">
-                  <div class="quantization-ladder quantization-ladder-float"></div>
-                  <span class="quantization-marker" data-quantization-marker="float" style="--position: 31.5%"></span>
-                </div>
-                <p class="quantization-result"><span data-quantization-result="float">+0.370000005</span><small>Fine precision</small></p>
-              </div>
-              <div class="quantization-column">
-                <h4>INT8 <span>8 bits</span></h4>
-                <div class="quantization-track" aria-hidden="true">
-                  <div class="quantization-ladder quantization-ladder-int"></div>
-                  <span class="quantization-marker" data-quantization-marker="int" style="--position: 31.25%"></span>
-                </div>
-                <p class="quantization-result"><span data-quantization-result="int">+0.37255</span><small>Rounded to a level</small></p>
-              </div>
-              <div class="quantization-column">
-                <h4>Binary <span>1 bit</span></h4>
-                <div class="quantization-track" aria-hidden="true">
-                  <div class="quantization-ladder quantization-ladder-binary"><span>+</span><span>&minus;</span></div>
-                  <span class="quantization-marker" data-quantization-marker="binary" style="--position: 0%"></span>
-                </div>
-                <p class="quantization-result"><span data-quantization-result="binary">+1</span><small>Sign only</small></p>
-              </div>
-            </div>
-            <div class="quantization-control" hidden>
-              <div><label for="quantization-input">Move the value</label><output id="quantization-input-value" for="quantization-input">+0.370</output></div>
-              <input id="quantization-input" type="range" min="-1" max="1" step="0.001" value="0.37" aria-describedby="quantization-caption">
-              <p class="cv-sr-only" id="quantization-announcement" aria-live="polite" aria-atomic="true"></p>
-            </div>
-            <section class="qm" data-quant-meter aria-labelledby="qm-title" hidden>
-              <div class="qm-head">
-                <h4 id="qm-title">At scale</h4>
-                <p><span data-qm-count>1 billion</span> vectors &#215; <span data-qm-dims>1,024</span> dimensions</p>
-              </div>
-              <div class="qm-controls">
-                <input id="qm-count" type="range" min="6" max="10" step="0.05" value="9" aria-label="Number of vectors">
-                <div class="segmented" role="group" aria-label="Dimensions">
-                  <button type="button" aria-pressed="false" data-qm-dim="768">768</button>
-                  <button type="button" aria-pressed="true" data-qm-dim="1024">1,024</button>
-                  <button type="button" aria-pressed="false" data-qm-dim="1536">1,536</button>
-                  <button type="button" aria-pressed="false" data-qm-dim="3072">3,072</button>
-                </div>
-              </div>
-              <ul class="qm-bars">
-                <li><span class="qm-name">FP32</span><span class="qm-track"><span class="qm-bar" style="--w: 100%"></span></span><strong data-qm-size="4">4.10 TB</strong><span class="qm-ratio">baseline</span></li>
-                <li><span class="qm-name">INT8</span><span class="qm-track"><span class="qm-bar" style="--w: 25%"></span></span><strong data-qm-size="1">1.02 TB</strong><span class="qm-ratio">4&#215; smaller</span></li>
-                <li><span class="qm-name">Binary</span><span class="qm-track"><span class="qm-bar" style="--w: 3.125%"></span></span><strong data-qm-size="0.125">128 GB</strong><span class="qm-ratio">32&#215; smaller</span></li>
-              </ul>
-              <p class="qm-note">Raw vector bytes only, before index structures, metadata, or retained originals.</p>
-              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-qm-live></p>
-            </section>
-            <figcaption id="quantization-caption">
-              <p>Dense levels &#8594; chunky steps &#8594; just the sign.<br>INT8 motion is exaggerated into 8 blocks; readouts use all 256 codes.</p>
-              <details class="quantization-method">
-                <summary>The math behind the picture</summary>
-                <p>FP32 and binary markers show reconstructed values on [-1, 1]. The INT8 marker snaps to the center of one of 8 visual blocks, each grouping 32 consecutive codes, to exaggerate the rounding. Its numerical readout still uses code = round((value + 1) &#215; 127.5) &minus; 128, reconstructed as (code + 128) / 127.5 &minus; 1. FP32 uses IEEE 754 rounding and displays nine significant digits, enough to uniquely identify its value, not a claim of nine-digit accuracy. INT8 reconstructed values display five decimal places. Binary stores the sign as a bit and reconstructs it as &minus;1 or +1; zero maps to +1.</p>
-                <p>FP32 and INT8 bars show 64 and 8 divisions for legibility, not their actual value counts or spacing. Floating-point spacing is nonuniform. Eight dimensions use 32 bytes, 8 bytes, or 1 byte respectively, excluding metadata, indexes, and retained originals. Raw storage ratios are not customer cost savings; retrieval quality depends on the data and search strategy.</p>
-              </details>
-            </figcaption>
-          </figure>
-        </article>
-
-        <article class="chapter chapter-flip" id="work-simd" aria-labelledby="work-simd-title">
-          <div class="chapter-copy">
-            <p class="chapter-meta"><span class="chapter-num">04</span><span>Distance kernels</span><span>2022 – 2025</span></p>
-            <h3 id="work-simd-title">More dimensions. <em>Per operation.</em></h3>
-            <p class="chapter-lede">Vector search repeats the same similarity math across candidate after candidate. Making that inner loop efficient matters.</p>
-            <p class="chapter-role"><span class="role-badge">Kernel optimization</span><span>SIMD · loop unrolling · independent accumulators · FMA</span></p>
-            <ul class="chapter-points">
-              <li>SIMD processes several dimensions in parallel instead of one at a time.</li>
-              <li>Unrolling across independent vector accumulator registers breaks the serial dependency chain so the CPU can overlap instructions.</li>
-              <li>Memory access, instruction dependencies, and hardware determine the real speedup—not lane count alone.</li>
-            </ul>
-          </div>
-          <figure class="chapter-figure vector-demo-figure" data-simd-demo aria-labelledby="simd-figure-title" aria-describedby="simd-caption">
-            <header class="figure-heading">
-              <p class="eyebrow">Try it · Inside the distance kernel</p>
-              <h3 id="simd-figure-title">Same dot product. Different machinery.</h3>
-              <p>Multiply, accumulate, reduce. Compare a scalar loop with parallel lanes on two 16-dimensional unit vectors.</p>
-            </header>
-            <p data-vector-fallback>A scalar loop uses 16 multiply-accumulate operations; four SIMD lanes use four vector multiply-accumulate operations plus a final reduction to the same dot product. For unit vectors, that is cosine similarity.</p>
-            <div class="vector-demo-body" hidden>
-              <div class="vector-demo-toolbar">
-                <div class="segmented" role="group" aria-label="SIMD lane count">
-                  <button type="button" data-si-lanes="4" aria-pressed="true">4 lanes</button>
-                  <button type="button" data-si-lanes="8" aria-pressed="false">8 lanes</button>
-                </div>
-                <button type="button" class="vector-demo-replay" data-si-replay>Replay comparison</button>
-              </div>
-              <div class="segmented" role="group" aria-label="Candidate vector">
-                <button type="button" data-si-sample="near" aria-pressed="true">Nearby</button>
-                <button type="button" data-si-sample="far" aria-pressed="false">Different</button>
-                <button type="button" data-si-sample="opposite" aria-pressed="false">Opposite</button>
-              </div>
-              <div class="si-vectors">
-                <p class="vector-demo-label">Query vector · unit norm</p><div class="si-inputs" data-si-query></div>
-                <p class="vector-demo-label">Candidate vector · unit norm</p><div class="si-inputs" data-si-candidate></div>
-              </div>
-              <div class="si-processors">
-                <section class="si-processor" aria-labelledby="si-scalar-title">
-                  <div class="si-head"><h4 id="si-scalar-title">Scalar</h4><span data-si-scalar-ops></span></div>
-                  <div class="si-terms" data-si-scalar-terms aria-label="Scalar component products"></div>
-                  <p class="si-total">Accumulated <strong data-si-scalar-total></strong></p>
-                </section>
-                <section class="si-processor si-parallel" aria-labelledby="si-vector-title">
-                  <div class="si-head"><h4 id="si-vector-title">SIMD</h4><span data-si-vector-ops></span></div>
-                  <div class="si-terms" data-si-vector-terms aria-label="SIMD component products"></div>
-                  <p class="vector-demo-label">Packed accumulator · one vector register</p>
-                  <div class="si-lanes" data-si-accumulators aria-label="Lane sums in one packed accumulator"></div>
-                  <p class="si-reduction"><span>Horizontal reduction</span><strong data-si-reduction></strong></p>
-                  <p class="si-total">Reduced sum <strong data-si-vector-total></strong></p>
-                </section>
-              </div>
-              <p class="vector-demo-status" data-si-status></p>
-              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-si-live></p>
-            </div>
-            <figcaption id="simd-caption">
-              <p>Same 16 component products; fewer packed MAC operations, followed by a horizontal reduction. Unit L2 norm makes this dot product equal to cosine similarity. This is an illustration, not native SIMD or a timing comparison.</p>
-              <details class="vector-demo-details">
-                <summary>The math behind the kernel</summary>
-                <p>Dot product = sum of query[i] × candidate[i]. Both vectors are normalized before computation: +1 means aligned directions and −1 means opposite directions. Tiles and lane sums are rounded for display; hover an input component for full precision.</p>
-                <p>MAC means multiply-accumulate. Starting from zero, the scalar model performs 16 scalar MACs; the packed model performs 4 four-lane or 2 eight-lane vector MACs into one vector register. Each lane accumulates its own dimensions, then the horizontal reduction combines the lane sums. The MAC counts exclude loads, loop overhead, and reduction instructions; the reduction's native instruction count depends on the architecture. Animation ticks are conceptual stages, not CPU cycles.</p>
-                <p>Independent lanes in one register are not separate instruction dependency chains. A production kernel can additionally unroll into multiple independent vector accumulator registers, combine those registers, and reduce their lanes; that optimization is not shown here. JavaScript uses double-precision multiplication followed by addition, not native FP32 fused multiply-add. Hardware FMA rounds once, and different reduction orders can change floating-point results.</p>
-              </details>
-            </figcaption>
-          </figure>
-        </article>
-
-        <article class="chapter" id="work-hnsw" aria-labelledby="work-hnsw-title">
-          <div class="chapter-copy">
-            <p class="chapter-meta"><span class="chapter-num">05</span><span>Vector graph search</span><span>2022 – 2025</span></p>
-            <h3 id="work-hnsw-title">Find neighbours. <em>Skip the scan.</em></h3>
-            <p class="chapter-lede">Navigate progressively denser levels, from long-range shortcuts to a base graph that explores nearby candidates instead of comparing every vector.</p>
-            <p class="chapter-role"><span class="role-badge">Vector search at scale</span><span>HNSW resource enforcement and engine reliability</span></p>
-            <ul class="chapter-points">
-              <li>Navigate greedily across sparse upper levels, descending at the closest point found on each; then explore a candidate pool on the base graph.</li>
-              <li>A wider search can improve recall, at the cost of more distance evaluations.</li>
-              <li>My HNSW work included resource-aware quota enforcement that cut reported limit overshoot by 100×.</li>
-            </ul>
-            <p class="fine-print">The demo explains the search structure; it does not imply authorship of HNSW or reproduce the production index.</p>
-          </div>
-          <figure class="chapter-figure vector-demo-figure" data-hnsw-demo aria-labelledby="hnsw-figure-title" aria-describedby="hnsw-caption">
-            <header class="figure-heading">
-              <p class="eyebrow">Try it · Coarse to fine</p>
-              <h3 id="hnsw-figure-title">Take the graph's shortcuts.</h3>
-              <p>Choose a query, or click the lower graph. Adjust the candidate pool and compare the nearest three results with an exhaustive scan.</p>
-            </header>
-            <p data-vector-fallback>Greedy navigation descends through levels 3, 2, and 1 before best-first search on level 0. Real HNSW indexes have a variable number of levels. Larger candidate pools can find neighbours missed by a narrower search.</p>
-            <div class="vector-demo-body" hidden>
-              <div class="segmented" role="group" aria-label="HNSW query position">
-                <button type="button" data-hn-query="right" aria-pressed="true">Right cluster</button>
-                <button type="button" data-hn-query="middle" aria-pressed="false">Between</button>
-                <button type="button" data-hn-query="left" aria-pressed="false">Left cluster</button>
-              </div>
-              <svg class="hn-plot" viewBox="0 0 560 600" role="img" aria-label="Four-level toy HNSW graph and query" data-hn-plot></svg>
-              <p class="vector-demo-note">Crosshair: query · Blue: distance checked · Amber: returned · Dashed amber: missed exact neighbour</p>
-              <div class="vector-demo-control">
-                <div><label for="hn-ef">Candidate pool · efSearch</label><output id="hn-ef-value" for="hn-ef"></output></div>
-                <input id="hn-ef" type="range" min="3" max="24" step="1" value="3" aria-describedby="hn-ef-note">
-                <p id="hn-ef-note" class="vector-demo-note">efSearch bounds retained nearest candidates, not distance checks or the exploration frontier. It is at least the three requested results.</p>
-              </div>
-              <dl class="dv-stats hn-stats">
-                <div><dt>Distance checks</dt><dd data-hn-checks></dd></div>
-                <div><dt>Recall@3</dt><dd data-hn-recall></dd></div>
-                <div><dt>Exhaustive scan</dt><dd>24 checks</dd></div>
-              </dl>
-              <div class="hn-results"><p><span>Graph results</span><strong data-hn-results></strong></p><p><span>Exact neighbours</span><strong data-hn-exact></strong></p></div>
-              <p class="vector-demo-note" data-hn-ties hidden></p>
-              <div class="vector-demo-toolbar"><p class="vector-demo-status" data-hn-status></p><button type="button" class="vector-demo-replay" data-hn-replay>Replay search</button></div>
-              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-hn-live></p>
-            </div>
-            <figcaption id="hnsw-caption">
-              <p>Four levels of a fixed, hand-made graph illustrate HNSW query traversal—not index construction or a production index. Distances are Euclidean in 2D; recall compares the results with an exhaustive scan.</p>
-              <details class="vector-demo-details">
-                <summary>The search behind the picture</summary>
-                <p>Starting at A, upper levels greedily move only to a closer neighbour, then descend at the closest point found. Level 0 uses a nearest-first exploration frontier and an efSearch-bounded list of retained neighbours. An unseen neighbour enters both lists if the retained list has room or it is closer than the worst retained point. Search stops when the nearest frontier point is farther than the worst retained point, or the frontier is empty; the closest three retained points are returned.</p>
-                <p>Recall@3 credits returned points strictly nearer than the third-neighbour cutoff, plus interchangeable ties filling the remaining places. The exact-neighbour list shows one valid set, ordered by distance then letter; ties within floating-point roundoff receive equal credit. Checks count unique points, caching distances across levels; production systems can evaluate a point more than once. A full pool scans all 24 points in this connected toy graph, but a large efSearch does not universally guarantee exact results on an arbitrary index.</p>
-                <p>Real HNSW construction samples node levels with exponentially decreasing promotion probabilities and selects graph connections; neither is implemented here. Upper levels are nested subsets, and the number of levels varies with the index rather than having a four-level limit. See <a href="https://arxiv.org/abs/1603.09320">Malkov and Yashunin's HNSW paper</a> and <a href="https://github.com/nmslib/hnswlib/blob/master/ALGO_PARAMS.md">hnswlib's search parameters</a>.</p>
-              </details>
-            </figcaption>
-          </figure>
-        </article>
-      </section>
-
-      <section class="section cv-section cv-section-work" id="profile-work" aria-labelledby="profile-work-title">
-      <header class="section-heading cv-section-heading">
-      <p class="eyebrow">Career</p>
-      <h2 id="profile-work-title">Experience</h2>
-      <p class="cv-section-description">From offline machine learning and developer tools to the retrieval infrastructure behind enterprise AI.</p>
+      <section class="section cv-section cv-section-work experience-work" id="profile-work" aria-labelledby="profile-work-title">
+    <header class="section-heading">
+      <p class="eyebrow">Microsoft · Experience &amp; selected work</p>
+      <h2 id="profile-work-title">Experience, <em>made tangible.</em></h2>
+      <p class="cv-section-description">Each role, followed by examples of my contributions. The figures explain underlying concepts; they do not reproduce production implementations.</p>
       <button class="text-button" type="button" data-expand-all aria-controls="profile-work-records">Expand all <span aria-hidden="true">+</span></button>
-      </header>
-      <figure class="career-map" aria-labelledby="career-map-title" aria-describedby="career-map-desc">
+    </header>
+    <figure class="career-map" aria-labelledby="career-map-title" aria-describedby="career-map-desc">
         <header class="career-map-head">
           <div>
             <h3 id="career-map-title">Broader scope. <em>Deeper ownership.</em></h3>
@@ -524,29 +220,23 @@
         </div>
         <figcaption class="cm-caption">An illustrative trajectory, not a measured or time-proportional scale. Select a labeled role to explore the work.</figcaption>
       </figure>
-      <p class="cv-work-reading-cue"><span>The work behind the curve</span><span>Newest first &darr;</span></p>
-      <div class="cv-records cv-records-work" id="profile-work-records">
-      <article class="cv-record cv-record-work cv-record-work-current">
+    <div id="profile-work-records">
+      <div id="work" aria-label="Role-linked work examples">
+        <section class="experience-role" aria-labelledby="experience-role-1-title">
+    <header class="experience-role-heading">
+      <p class="eyebrow">Microsoft Azure AI Search · 2025–present</p>
+      <h3 id="experience-role-1-title">Senior Software Engineer</h3>
+      <p>Technical direction for a team of five, research-to-production delivery, and agentic-retrieval benchmarking and billing.</p>
+      <nav class="experience-example-links" aria-label="Senior Software Engineer · 2025–present examples">
+    <a href="#work-diversity">Vector-search diversity <span aria-hidden="true">↓</span></a>
+<a href="#work-agentic">Agentic retrieval <span aria-hidden="true">↓</span></a>
+  </nav>
+    </header>
+    <div class="cv-records"><article class="cv-record cv-record-work cv-record-work-current">
       <details class="cv-details" id="profile-work-entry-1">
       <summary>
-      <span class="cv-summary-copy">
-      <span class="cv-work-stage"><span class="cv-work-scope">Technical direction</span><span class="cv-work-current">Current</span></span>
-      <span class="cv-record-heading">
-      <span class="cv-record-title" role="heading" aria-level="3">Senior Software Engineer<span class="cv-sr-only">, Microsoft Azure AI Search</span>
-      </span>
-      </span>
-      <span class="cv-record-meta">
-      <span class="cv-date">Mar. 2025 - Present | Redmond, WA</span>
-      <span class="cv-employer-team" aria-hidden="true">Azure AI Search</span>
-      </span>
-      <span class="cv-teaser"><strong>Tech lead</strong> (of 5 engineers and scientists) on the technical direction and end-to-end delivery of a novel <strong>vector-search diversity capability</strong>, from leadership buy-in to implementation...</span>
-      <span class="cv-work-tags"><span>Team of five</span><span>Result diversity</span><span>Agentic retrieval</span><span>Research to production</span></span>
-      <span class="cv-disclosure">
-      <span class="cv-closed-label">Full details</span>
-      <span class="cv-open-label">Less detail</span>
-      </span>
-      </span>
-      <span class="cv-plus" aria-hidden="true">+</span>
+        <span class="cv-summary-copy"><span class="experience-details-heading">Full role details</span><span class="cv-record-meta"><span class="cv-date">Mar. 2025 - Present | Redmond, WA</span></span></span>
+        <span class="cv-plus" aria-hidden="true">+</span>
       </summary>
       <div class="cv-record-body">
       <p class="cv-technologies">C++, C#, Java, Python | Vector Search, Agentic Retrieval, Information Retrieval, RAG, Distributed Systems, Graph Databases, Authentication, Durable Systems</p>
@@ -564,28 +254,128 @@
                   </ul>
       </div>
       </details>
-      </article>
-      <article class="cv-record cv-record-work">
+      </article></div>
+    <article class="chapter" id="work-diversity" aria-labelledby="work-diversity-title">
+<div class="chapter-context">
+    <p><span class="chapter-num">01</span><span>Selected contribution</span></p>
+    <a href="#profile-work-entry-1">
+      <img src="/assets/microsoft-mark.svg" alt="" width="16" height="16">
+      <span><strong>Microsoft Azure AI Search</strong><span>Senior Software Engineer · 2025–present</span></span>
+      <span class="chapter-role-link">Role details <span aria-hidden="true">↗</span></span>
+    </a>
+  </div>
+          <div class="chapter-copy">
+            <h4 id="work-diversity-title">Vector-search diversity</h4>
+            <p class="chapter-lede"><span class="chapter-contribution-label">My contribution</span>I lead five engineers and scientists building a novel vector-search diversity capability, from leadership buy-in and algorithm analysis to distributed architecture and implementation.</p>
+            <p class="chapter-role"><span class="role-badge">Tech lead</span><span>Team of five engineers and scientists</span></p>
+            <ul class="chapter-points">
+              <li>Analyzed the research algorithm stage by stage to distill the fundamental concepts and strengths of each.</li>
+              <li>Rethought its architecture for distributed execution, with targeted algorithmic and systems innovations that preserve those properties at production scale.</li>
+              <li>Owned the effort from leadership buy-in through architecture to cross-functional alignment and implementation.</li>
+            </ul>
+            <p class="chapter-uses"><span>Grounding for corpus-spanning questions</span><span>E-commerce</span><span>Recommendations</span></p>
+          </div>
+          <figure class="chapter-figure diversity-demo" data-diversity-demo aria-labelledby="diversity-figure-title" aria-describedby="diversity-caption">
+            <header class="figure-heading">
+      <p class="figure-illustration-label">Interactive concept illustration</p>
+      <p class="figure-illustration-scope">The idea behind result diversity</p>
+              <h4 id="diversity-figure-title">Same query, broader evidence.</h4>
+              <p>Pure nearest-neighbour ranking can fill the top six with near-copies from one neighbourhood. Turn up diversity and the results spread across clusters.</p>
+            </header>
+            <div class="dv-body" hidden>
+              <div class="segmented" role="group" aria-label="Example">
+                <button type="button" aria-pressed="true" data-scenario="travel">Travel</button>
+                <button type="button" aria-pressed="false" data-scenario="product">Shopping</button>
+                <button type="button" aria-pressed="false" data-scenario="grounding">Grounding</button>
+                <button type="button" aria-pressed="false" data-scenario="feed">Your feed</button>
+              </div>
+              <p class="dv-query"><span data-dv-query-label>Prompt</span><span data-dv-query>Plan my first trip to Japan</span></p>
+              <svg class="dv-plot" viewBox="0 0 560 300" aria-hidden="true" focusable="false" data-dv-plot></svg>
+              <div class="dv-control">
+                <div><label for="dv-diversity">Diversity</label><output for="dv-diversity" data-dv-value>Off</output></div>
+                <input id="dv-diversity" type="range" min="0" max="1" step="0.01" value="0" aria-describedby="diversity-caption">
+                <div class="dv-scale" aria-hidden="true"><span>Relevance only</span><span>Maximum spread</span></div>
+              </div>
+              <dl class="dv-stats">
+                <div><dt>Distinct groups</dt><dd data-dv-groups>2 of 6</dd></div>
+                <div><dt>Near-duplicates</dt><dd data-dv-dupes>4</dd></div>
+                <div><dt>Avg. relevance</dt><dd data-dv-rel>0.86</dd></div>
+              </dl>
+              <ol class="dv-results" data-dv-results aria-label="Top six results"></ol>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-dv-live></p>
+            </div>
+            <figcaption id="diversity-caption">A simplified illustration on hand-made data. Lines link each result to its nearest neighbours; shaded regions are the clusters they form. It conveys the idea, not the production algorithm.</figcaption>
+          </figure>
+        </article>
+<article class="chapter chapter-flip" id="work-agentic" aria-labelledby="work-agentic-title">
+<div class="chapter-context">
+    <p><span class="chapter-num">02</span><span>Selected contribution</span></p>
+    <a href="#profile-work-entry-1">
+      <img src="/assets/microsoft-mark.svg" alt="" width="16" height="16">
+      <span><strong>Microsoft Azure AI Search</strong><span>Senior Software Engineer · 2025–present</span></span>
+      <span class="chapter-role-link">Role details <span aria-hidden="true">↗</span></span>
+    </a>
+  </div>
+          <div class="chapter-copy">
+            <h4 id="work-agentic-title">Agentic retrieval</h4>
+            <p class="chapter-lede"><span class="chapter-contribution-label">My contribution</span>I led research-to-production delivery of filter and boost generation, turning open-ended intent into a bounded, verifiable operator set and aligning research and product teams.</p>
+            <p class="chapter-role"><span class="role-badge">Led delivery</span><span>Research to production</span></p>
+            <ul class="chapter-points">
+              <li>Reformulated an unbounded filter-synthesis problem into a bounded, verifiable operator set that excels in specific filter categories.</li>
+              <li>Leveraged production analysis to demonstrate the operator set covered real customer workloads.</li>
+              <li>Set the technical direction across research and product teams, and brought both to consensus.</li>
+            </ul>
+          </div>
+          <figure class="chapter-figure agentic-demo" data-agentic-demo aria-labelledby="agentic-figure-title" aria-describedby="agentic-caption">
+            <header class="figure-heading">
+      <p class="figure-illustration-label">Interactive concept illustration</p>
+      <p class="figure-illustration-scope">The idea behind verifiable query operators</p>
+              <h4 id="agentic-figure-title">Every constraint, checked.</h4>
+              <p>Filters combine only <code>eq</code>, <code>ne</code>, <code>and</code>, and <code>or</code> over categorical fields, and preferences become Lucene boosts. Each is validated against the index before it runs; anything outside the set is left to ranking, not guessed.</p>
+            </header>
+            <div class="ag-body" hidden>
+              <div class="segmented" role="group" aria-label="Example request">
+                <button type="button" aria-pressed="true" data-request="constraints">Constraints</button>
+                <button type="button" aria-pressed="false" data-request="preferences">Preferences</button>
+                <button type="button" aria-pressed="false" data-request="open">Open-ended</button>
+              </div>
+              <div class="ag-request-wrap">
+                <p class="ag-label">Request</p>
+                <p class="ag-request" data-ag-request></p>
+                <p class="ag-legend" aria-hidden="true"><span class="ag-key ag-filter">Filter · must match</span><span class="ag-key ag-boost">Boost · ranks higher</span><span class="ag-key ag-rank">Ranking only</span></p>
+              </div>
+              <div class="ag-schema-wrap">
+                <p class="ag-label">Index schema · hotels</p>
+                <ul class="ag-schema" data-ag-schema aria-label="Index fields"></ul>
+                <p class="ag-schema-note">Only low-cardinality <code>string</code>, <code>string[]</code>, and <code>boolean</code> fields are in the operator set; dashed fields are left to ranking.</p>
+              </div>
+              <ol class="ag-ops" data-ag-ops aria-label="Operators"></ol>
+              <div class="ag-output" aria-label="Generated query">
+                <p><span>filter</span><code data-ag-filter></code></p>
+                <p><span>boost</span><code data-ag-boost></code></p>
+              </div>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-ag-live></p>
+            </div>
+            <figcaption id="agentic-caption">A simplified illustration on a sample hotel index. Filters are shown in OData syntax and boosts in Lucene syntax.</figcaption>
+          </figure>
+        </article>
+  </section>
+        <section class="experience-role" aria-labelledby="experience-role-2-title">
+    <header class="experience-role-heading">
+      <p class="eyebrow">Microsoft Azure AI Search · 2022–2025</p>
+      <h3 id="experience-role-2-title">Software Engineer II</h3>
+      <p>Built and scaled vector search and quantization, optimized distance kernels, strengthened hybrid relevance, built facet aggregation, and hardened the engine.</p>
+      <nav class="experience-example-links" aria-label="Software Engineer II · 2022–2025 examples">
+    <a href="#work-quantization">Vector quantization <span aria-hidden="true">↓</span></a>
+<a href="#work-simd">Vector-distance kernels <span aria-hidden="true">↓</span></a>
+<a href="#work-hnsw">HNSW & vector-engine reliability <span aria-hidden="true">↓</span></a>
+  </nav>
+    </header>
+    <div class="cv-records"><article class="cv-record cv-record-work">
       <details class="cv-details" id="profile-work-entry-2">
       <summary>
-      <span class="cv-summary-copy">
-      <span class="cv-work-stage"><span class="cv-work-scope">Systems at scale</span></span>
-      <span class="cv-record-heading">
-      <span class="cv-record-title" role="heading" aria-level="3">Software Engineer II<span class="cv-sr-only">, Microsoft Azure AI Search</span>
-      </span>
-      </span>
-      <span class="cv-record-meta">
-      <span class="cv-date">Jun. 2022 - Feb. 2025 | Redmond, WA</span>
-      <span class="cv-employer-team" aria-hidden="true">Azure AI Search</span>
-      </span>
-      <span class="cv-teaser">Part of the team that scaled <strong>vector search from 1 to N</strong> and took <strong>quantization from 0 to N</strong> — delivering <strong class="cv-impact">8-32x cost savings</strong> and <strong class="cv-impact">up to 20x latency reduction</strong>.</span>
-      <span class="cv-work-tags"><span>Vector search</span><span>Quantization</span><span>Hybrid relevance</span><span>Distributed systems</span></span>
-      <span class="cv-disclosure">
-      <span class="cv-closed-label">Full details</span>
-      <span class="cv-open-label">Less detail</span>
-      </span>
-      </span>
-      <span class="cv-plus" aria-hidden="true">+</span>
+        <span class="cv-summary-copy"><span class="experience-details-heading">Full role details</span><span class="cv-record-meta"><span class="cv-date">Jun. 2022 - Feb. 2025 | Redmond, WA</span></span></span>
+        <span class="cv-plus" aria-hidden="true">+</span>
       </summary>
       <div class="cv-record-body">
       <p class="cv-technologies">C++, C#, Java, Python | Vector Search, Vector Quantization, Information Retrieval, RAG, Distributed Systems</p>
@@ -602,8 +392,238 @@
                   </ul>
       </div>
       </details>
-      </article>
-      <article class="cv-record cv-record-work">
+      </article></div>
+    <article class="chapter" id="work-quantization" aria-labelledby="work-quantization-title">
+<div class="chapter-context">
+    <p><span class="chapter-num">03</span><span>Selected contribution</span></p>
+    <a href="#profile-work-entry-2">
+      <img src="/assets/microsoft-mark.svg" alt="" width="16" height="16">
+      <span><strong>Microsoft Azure AI Search</strong><span>Software Engineer II · 2022–2025</span></span>
+      <span class="chapter-role-link">Role details <span aria-hidden="true">↗</span></span>
+    </a>
+  </div>
+          <div class="chapter-copy">
+            <h4 id="work-quantization-title">Vector quantization</h4>
+            <p class="chapter-lede"><span class="chapter-contribution-label">My contribution</span>I drove vector quantization from Public Preview to general availability on Azure AI Search, helping make billion-scale vector search practical through compact representations and efficient distance computation.</p>
+            <p class="chapter-role"><span class="role-badge">Drove Preview → GA</span><span>Vector quantization on Azure AI Search</span></p>
+            <div class="metrics">
+              <p class="metric"><strong data-count>8–32×</strong><span>Reported customer cost savings</span></p>
+              <p class="metric"><strong data-count>20×</strong><span>Reported latency reduction, up to</span></p>
+            </div>
+            <ul class="chapter-points">
+              <li>Scalar and binary quantization, binary vectors, and SIMD-accelerated distance computation.</li>
+              <li>The central tradeoff: reduce the footprint while preserving useful retrieval quality.</li>
+            </ul>
+            <p class="fine-print">Figures are reported customer results. They depend on workload and configuration.</p>
+          </div>
+          <figure class="chapter-figure quantization-study" aria-labelledby="quantization-title" aria-describedby="quantization-caption">
+            <header class="figure-heading quantization-heading">
+      <p class="figure-illustration-label">Interactive concept illustration</p>
+      <p class="figure-illustration-scope">The idea behind reduced precision</p>
+              <h4 id="quantization-title">How much detail do you keep?</h4>
+              <p>One value. Three representations.</p>
+            </header>
+            <div class="quantization-chart">
+              <div class="quantization-axis" aria-hidden="true"><span>+1</span><span>0</span><span>&minus;1</span></div>
+              <div class="quantization-column">
+                <h4>FP32 <span>32 bits</span></h4>
+                <div class="quantization-track" aria-hidden="true">
+                  <div class="quantization-ladder quantization-ladder-float"></div>
+                  <span class="quantization-marker" data-quantization-marker="float" style="--position: 31.5%"></span>
+                </div>
+                <p class="quantization-result"><span data-quantization-result="float">+0.370000005</span><small>Fine precision</small></p>
+              </div>
+              <div class="quantization-column">
+                <h4>INT8 <span>8 bits</span></h4>
+                <div class="quantization-track" aria-hidden="true">
+                  <div class="quantization-ladder quantization-ladder-int"></div>
+                  <span class="quantization-marker" data-quantization-marker="int" style="--position: 31.25%"></span>
+                </div>
+                <p class="quantization-result"><span data-quantization-result="int">+0.37255</span><small>Rounded to a level</small></p>
+              </div>
+              <div class="quantization-column">
+                <h4>Binary <span>1 bit</span></h4>
+                <div class="quantization-track" aria-hidden="true">
+                  <div class="quantization-ladder quantization-ladder-binary"><span>+</span><span>&minus;</span></div>
+                  <span class="quantization-marker" data-quantization-marker="binary" style="--position: 0%"></span>
+                </div>
+                <p class="quantization-result"><span data-quantization-result="binary">+1</span><small>Sign only</small></p>
+              </div>
+            </div>
+            <div class="quantization-control" hidden>
+              <div><label for="quantization-input">Move the value</label><output id="quantization-input-value" for="quantization-input">+0.370</output></div>
+              <input id="quantization-input" type="range" min="-1" max="1" step="0.001" value="0.37" aria-describedby="quantization-caption">
+              <p class="cv-sr-only" id="quantization-announcement" aria-live="polite" aria-atomic="true"></p>
+            </div>
+            <section class="qm" data-quant-meter aria-labelledby="qm-title" hidden>
+              <div class="qm-head">
+                <h4 id="qm-title">At scale</h4>
+                <p><span data-qm-count>1 billion</span> vectors &#215; <span data-qm-dims>1,024</span> dimensions</p>
+              </div>
+              <div class="qm-controls">
+                <input id="qm-count" type="range" min="6" max="10" step="0.05" value="9" aria-label="Number of vectors">
+                <div class="segmented" role="group" aria-label="Dimensions">
+                  <button type="button" aria-pressed="false" data-qm-dim="768">768</button>
+                  <button type="button" aria-pressed="true" data-qm-dim="1024">1,024</button>
+                  <button type="button" aria-pressed="false" data-qm-dim="1536">1,536</button>
+                  <button type="button" aria-pressed="false" data-qm-dim="3072">3,072</button>
+                </div>
+              </div>
+              <ul class="qm-bars">
+                <li><span class="qm-name">FP32</span><span class="qm-track"><span class="qm-bar" style="--w: 100%"></span></span><strong data-qm-size="4">4.10 TB</strong><span class="qm-ratio">baseline</span></li>
+                <li><span class="qm-name">INT8</span><span class="qm-track"><span class="qm-bar" style="--w: 25%"></span></span><strong data-qm-size="1">1.02 TB</strong><span class="qm-ratio">4&#215; smaller</span></li>
+                <li><span class="qm-name">Binary</span><span class="qm-track"><span class="qm-bar" style="--w: 3.125%"></span></span><strong data-qm-size="0.125">128 GB</strong><span class="qm-ratio">32&#215; smaller</span></li>
+              </ul>
+              <p class="qm-note">Raw vector bytes only, before index structures, metadata, or retained originals.</p>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-qm-live></p>
+            </section>
+            <figcaption id="quantization-caption">
+              <p>Dense levels &#8594; chunky steps &#8594; just the sign.<br>INT8 motion is exaggerated into 8 blocks; readouts use all 256 codes.</p>
+              <details class="quantization-method">
+                <summary>The math behind the picture</summary>
+                <p>FP32 and binary markers show reconstructed values on [-1, 1]. The INT8 marker snaps to the center of one of 8 visual blocks, each grouping 32 consecutive codes, to exaggerate the rounding. Its numerical readout still uses code = round((value + 1) &#215; 127.5) &minus; 128, reconstructed as (code + 128) / 127.5 &minus; 1. FP32 uses IEEE 754 rounding and displays nine significant digits, enough to uniquely identify its value, not a claim of nine-digit accuracy. INT8 reconstructed values display five decimal places. Binary stores the sign as a bit and reconstructs it as &minus;1 or +1; zero maps to +1.</p>
+                <p>FP32 and INT8 bars show 64 and 8 divisions for legibility, not their actual value counts or spacing. Floating-point spacing is nonuniform. Eight dimensions use 32 bytes, 8 bytes, or 1 byte respectively, excluding metadata, indexes, and retained originals. Raw storage ratios are not customer cost savings; retrieval quality depends on the data and search strategy.</p>
+              </details>
+            </figcaption>
+          </figure>
+        </article>
+<article class="chapter chapter-flip" id="work-simd" aria-labelledby="work-simd-title">
+<div class="chapter-context">
+    <p><span class="chapter-num">04</span><span>Selected contribution</span></p>
+    <a href="#profile-work-entry-2">
+      <img src="/assets/microsoft-mark.svg" alt="" width="16" height="16">
+      <span><strong>Microsoft Azure AI Search</strong><span>Software Engineer II · 2022–2025</span></span>
+      <span class="chapter-role-link">Role details <span aria-hidden="true">↗</span></span>
+    </a>
+  </div>
+          <div class="chapter-copy">
+            <h4 id="work-simd-title">Vector-distance kernels</h4>
+            <p class="chapter-lede"><span class="chapter-contribution-label">My contribution</span>I optimized vector-distance kernels with SIMD, loop unrolling, independent vector accumulator registers, and fused multiply-add.</p>
+            <p class="chapter-role"><span class="role-badge">Kernel optimization</span><span>SIMD · loop unrolling · independent accumulators · FMA</span></p>
+            <ul class="chapter-points"><li>Used packed operations to process multiple dimensions per instruction.</li>
+<li>Unrolled across independent vector accumulator registers to break serial dependencies and expose overlapping work.</li>
+<li>The illustration shows packed lanes and a final reduction; multiple-register unrolling is explained, not simulated.</li></ul>
+          </div>
+          <figure class="chapter-figure vector-demo-figure" data-simd-demo aria-labelledby="simd-figure-title" aria-describedby="simd-caption">
+            <header class="figure-heading">
+      <p class="figure-illustration-label">Interactive concept illustration</p>
+      <p class="figure-illustration-scope">Packed dot products and horizontal reduction</p>
+              <h4 id="simd-figure-title">Same dot product. Different machinery.</h4>
+              <p>Multiply, accumulate, reduce. Compare a scalar loop with parallel lanes on two 16-dimensional unit vectors.</p>
+            </header>
+            <p data-vector-fallback>A scalar loop uses 16 multiply-accumulate operations; four SIMD lanes use four vector multiply-accumulate operations plus a final reduction to the same dot product. For unit vectors, that is cosine similarity.</p>
+            <div class="vector-demo-body" hidden>
+              <div class="vector-demo-toolbar">
+                <div class="segmented" role="group" aria-label="SIMD lane count">
+                  <button type="button" data-si-lanes="4" aria-pressed="true">4 lanes</button>
+                  <button type="button" data-si-lanes="8" aria-pressed="false">8 lanes</button>
+                </div>
+                <button type="button" class="vector-demo-replay" data-si-replay>Replay comparison</button>
+              </div>
+              <div class="segmented" role="group" aria-label="Candidate vector">
+                <button type="button" data-si-sample="near" aria-pressed="true">Nearby</button>
+                <button type="button" data-si-sample="far" aria-pressed="false">Different</button>
+                <button type="button" data-si-sample="opposite" aria-pressed="false">Opposite</button>
+              </div>
+              <div class="si-vectors">
+                <p class="vector-demo-label">Query vector · unit norm</p><div class="si-inputs" data-si-query></div>
+                <p class="vector-demo-label">Candidate vector · unit norm</p><div class="si-inputs" data-si-candidate></div>
+              </div>
+              <div class="si-processors">
+                <section class="si-processor" aria-labelledby="si-scalar-title">
+                  <div class="si-head"><h4 id="si-scalar-title">Scalar</h4><span data-si-scalar-ops></span></div>
+                  <div class="si-terms" data-si-scalar-terms aria-label="Scalar component products"></div>
+                  <p class="si-total">Accumulated <strong data-si-scalar-total></strong></p>
+                </section>
+                <section class="si-processor si-parallel" aria-labelledby="si-vector-title">
+                  <div class="si-head"><h4 id="si-vector-title">SIMD</h4><span data-si-vector-ops></span></div>
+                  <div class="si-terms" data-si-vector-terms aria-label="SIMD component products"></div>
+                  <p class="vector-demo-label">Packed accumulator · one vector register</p>
+                  <div class="si-lanes" data-si-accumulators aria-label="Lane sums in one packed accumulator"></div>
+                  <p class="si-reduction"><span>Horizontal reduction</span><strong data-si-reduction></strong></p>
+                  <p class="si-total">Reduced sum <strong data-si-vector-total></strong></p>
+                </section>
+              </div>
+              <p class="vector-demo-status" data-si-status></p>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-si-live></p>
+            </div>
+            <figcaption id="simd-caption">
+              <p>Same 16 component products; fewer packed MAC operations, followed by a horizontal reduction. Unit L2 norm makes this dot product equal to cosine similarity. This is an illustration, not native SIMD or a timing comparison.</p>
+              <details class="vector-demo-details">
+                <summary>The math behind the kernel</summary>
+                <p>Dot product = sum of query[i] × candidate[i]. Both vectors are normalized before computation: +1 means aligned directions and −1 means opposite directions. Tiles and lane sums are rounded for display; hover an input component for full precision.</p>
+                <p>MAC means multiply-accumulate. Starting from zero, the scalar model performs 16 scalar MACs; the packed model performs 4 four-lane or 2 eight-lane vector MACs into one vector register. Each lane accumulates its own dimensions, then the horizontal reduction combines the lane sums. The MAC counts exclude loads, loop overhead, and reduction instructions; the reduction's native instruction count depends on the architecture. Animation ticks are conceptual stages, not CPU cycles.</p>
+                <p>Independent lanes in one register are not separate instruction dependency chains. A production kernel can additionally unroll into multiple independent vector accumulator registers, combine those registers, and reduce their lanes; that optimization is not shown here. JavaScript uses double-precision multiplication followed by addition, not native FP32 fused multiply-add. Hardware FMA rounds once, and different reduction orders can change floating-point results.</p>
+              </details>
+            </figcaption>
+          </figure>
+        </article>
+<article class="chapter" id="work-hnsw" aria-labelledby="work-hnsw-title">
+<div class="chapter-context">
+    <p><span class="chapter-num">05</span><span>Selected contribution</span></p>
+    <a href="#profile-work-entry-2">
+      <img src="/assets/microsoft-mark.svg" alt="" width="16" height="16">
+      <span><strong>Microsoft Azure AI Search</strong><span>Software Engineer II · 2022–2025</span></span>
+      <span class="chapter-role-link">Role details <span aria-hidden="true">↗</span></span>
+    </a>
+  </div>
+          <div class="chapter-copy">
+            <h4 id="work-hnsw-title">HNSW & vector-engine reliability</h4>
+            <p class="chapter-lede"><span class="chapter-contribution-label">My contribution</span>My work spanned scaling vector search and hardening the engine: resource-aware HNSW enforcement, vector-algorithm review, testing, and cross-team production debugging.</p>
+            <p class="chapter-role"><span class="role-badge">Engine engineering</span><span>Resource use · testing · incident response</span></p>
+            <ul class="chapter-points"><li>Designed HNSW quota enforcement tied to physical resource utilization, cutting reported limit overshoot by 100×.</li>
+<li>Across the vector engine, built a test suite that caught a critical bug in a new quantization algorithm before release.</li>
+<li>Root-caused cross-team production incidents and reviewed distributed-systems and vector-algorithm changes to drive durable fixes.</li></ul>
+            <p class="fine-print">The demo explains the search structure; it does not imply authorship of HNSW or reproduce the production index.</p>
+          </div>
+          <figure class="chapter-figure vector-demo-figure" data-hnsw-demo aria-labelledby="hnsw-figure-title" aria-describedby="hnsw-caption">
+            <header class="figure-heading">
+      <p class="figure-illustration-label">Interactive concept illustration</p>
+      <p class="figure-illustration-scope">HNSW search structure, not the production reliability work</p>
+              <h4 id="hnsw-figure-title">Take the graph's shortcuts.</h4>
+              <p>Choose a query, or click the lower graph. Adjust the candidate pool and compare the nearest three results with an exhaustive scan.</p>
+            </header>
+            <p data-vector-fallback>Greedy navigation descends through levels 3, 2, and 1 before best-first search on level 0. Real HNSW indexes have a variable number of levels. Larger candidate pools can find neighbours missed by a narrower search.</p>
+            <div class="vector-demo-body" hidden>
+              <div class="segmented" role="group" aria-label="HNSW query position">
+                <button type="button" data-hn-query="right" aria-pressed="true">Right cluster</button>
+                <button type="button" data-hn-query="middle" aria-pressed="false">Between</button>
+                <button type="button" data-hn-query="left" aria-pressed="false">Left cluster</button>
+              </div>
+              <svg class="hn-plot" viewBox="0 0 560 600" role="img" aria-label="Four-level toy HNSW graph and query" data-hn-plot></svg>
+              <p class="vector-demo-note">Crosshair: query · Blue: distance checked · Amber: returned · Dashed amber: missed exact neighbour</p>
+              <div class="vector-demo-control">
+                <div><label for="hn-ef">Candidate pool · efSearch</label><output id="hn-ef-value" for="hn-ef"></output></div>
+                <input id="hn-ef" type="range" min="3" max="24" step="1" value="3" aria-describedby="hn-ef-note">
+                <p id="hn-ef-note" class="vector-demo-note">efSearch bounds retained nearest candidates, not distance checks or the exploration frontier. It is at least the three requested results.</p>
+              </div>
+              <dl class="dv-stats hn-stats">
+                <div><dt>Distance checks</dt><dd data-hn-checks></dd></div>
+                <div><dt>Recall@3</dt><dd data-hn-recall></dd></div>
+                <div><dt>Exhaustive scan</dt><dd>24 checks</dd></div>
+              </dl>
+              <div class="hn-results"><p><span>Graph results</span><strong data-hn-results></strong></p><p><span>Exact neighbours</span><strong data-hn-exact></strong></p></div>
+              <p class="vector-demo-note" data-hn-ties hidden></p>
+              <div class="vector-demo-toolbar"><p class="vector-demo-status" data-hn-status></p><button type="button" class="vector-demo-replay" data-hn-replay>Replay search</button></div>
+              <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-hn-live></p>
+            </div>
+            <figcaption id="hnsw-caption">
+              <p>Four levels of a fixed, hand-made graph illustrate HNSW query traversal—not index construction or a production index. Distances are Euclidean in 2D; recall compares the results with an exhaustive scan.</p>
+              <details class="vector-demo-details">
+                <summary>The search behind the picture</summary>
+                <p>Starting at A, upper levels greedily move only to a closer neighbour, then descend at the closest point found. Level 0 uses a nearest-first exploration frontier and an efSearch-bounded list of retained neighbours. An unseen neighbour enters both lists if the retained list has room or it is closer than the worst retained point. Search stops when the nearest frontier point is farther than the worst retained point, or the frontier is empty; the closest three retained points are returned.</p>
+                <p>Recall@3 credits returned points strictly nearer than the third-neighbour cutoff, plus interchangeable ties filling the remaining places. The exact-neighbour list shows one valid set, ordered by distance then letter; ties within floating-point roundoff receive equal credit. Checks count unique points, caching distances across levels; production systems can evaluate a point more than once. A full pool scans all 24 points in this connected toy graph, but a large efSearch does not universally guarantee exact results on an arbitrary index.</p>
+                <p>Real HNSW construction samples node levels with exponentially decreasing promotion probabilities and selects graph connections; neither is implemented here. Upper levels are nested subsets, and the number of levels varies with the index rather than having a four-level limit. See <a href="https://arxiv.org/abs/1603.09320">Malkov and Yashunin's HNSW paper</a> and <a href="https://github.com/nmslib/hnswlib/blob/master/ALGO_PARAMS.md">hnswlib's search parameters</a>.</p>
+              </details>
+            </figcaption>
+          </figure>
+        </article>
+  </section>
+      </div>
+      <section class="experience-earlier" aria-labelledby="experience-earlier-title">
+        <p class="eyebrow">2018–2022 · Microsoft</p>
+        <h3 id="experience-earlier-title">The earlier chapters.</h3>
+        <div class="cv-records"><article class="cv-record cv-record-work">
       <details class="cv-details" id="profile-work-entry-3">
       <summary>
       <span class="cv-summary-copy">
@@ -633,7 +653,7 @@
       </div>
       </details>
       </article>
-      <article class="cv-record cv-record-work">
+<article class="cv-record cv-record-work">
       <details class="cv-details" id="profile-work-entry-4">
       <summary>
       <span class="cv-summary-copy">
@@ -663,7 +683,7 @@
       </div>
       </details>
       </article>
-      <article class="cv-record cv-record-work">
+<article class="cv-record cv-record-work">
       <details class="cv-details" id="profile-work-entry-5">
       <summary>
       <span class="cv-summary-copy">
@@ -695,7 +715,7 @@
       </div>
       </details>
       </article>
-      <article class="cv-record cv-record-work cv-record-work-garage">
+<article class="cv-record cv-record-work cv-record-work-garage">
       <details class="cv-details" id="profile-work-entry-6">
       <summary>
       <span class="cv-summary-copy">
@@ -725,9 +745,11 @@
                   </ul>
       </div>
       </details>
-      </article>
-      </div>
+      </article></div>
       </section>
+    </div>
+  </section>
+
       <section class="section cv-section cv-section-projects" id="profile-projects" aria-labelledby="profile-projects-title">
       <header class="section-heading cv-section-heading">
       <p class="eyebrow">Projects</p>

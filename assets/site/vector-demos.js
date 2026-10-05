@@ -323,8 +323,9 @@
       const ranked = points.map(point => point.id).sort((a, b) => rawDistance(a) - rawDistance(b) || a - b);
       exact = ranked.slice(0, 3);
       const cutoff = rawDistance(exact[2]);
-      // Accept distance ties within floating-point roundoff, not arbitrary ID order.
-      const atCutoff = id => Math.abs(rawDistance(id) - cutoff) <= 8 * Number.EPSILON * Math.max(1, cutoff, rawDistance(id));
+      // Include coordinate roundoff from responsive screen-to-graph transforms.
+      const atCutoff = id => Math.abs(rawDistance(id) - cutoff) <= 8 * Number.EPSILON *
+        Math.max(1, cutoff, rawDistance(id), Math.abs(query.x) + Math.abs(points[id].x), Math.abs(query.y) + Math.abs(points[id].y));
       required = ranked.filter(id => rawDistance(id) < cutoff && !atCutoff(id));
       boundary = ranked.filter(atCutoff);
       const results = best.sort(byDistance).slice(0, 3);
@@ -395,10 +396,7 @@
       player.show(prepareSearch());
     });
     plot.addEventListener('click', event => {
-      const cursor = plot.createSVGPoint();
-      cursor.x = event.clientX;
-      cursor.y = event.clientY;
-      const location = cursor.matrixTransform(plot.getScreenCTM().inverse());
+      const location = new DOMPoint(event.clientX, event.clientY).matrixTransform(plot.getScreenCTM().inverse());
       if (location.y < layout[0].offset) return;
       cancelAuto();
       query = { x: Math.max(25, Math.min(535, location.x)), y: Math.max(25, Math.min(215, (location.y - layout[0].offset) / layout[0].scale)) };

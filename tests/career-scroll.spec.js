@@ -2,7 +2,8 @@
 
 const { test, expect } = require('playwright/test');
 const { createServer } = require('node:http');
-const { readFile } = require('node:fs');
+const { readFile, readFileSync } = require('node:fs');
+const { createHash } = require('node:crypto');
 const { resolve, sep, extname } = require('node:path');
 
 let server;
@@ -59,6 +60,14 @@ function curveLine(page) {
   return page.locator('.cm-curve-desktop .cm-curve-line:visible, .cm-curve-mobile .cm-curve-line:visible');
 }
 
+test('the career card preserves its original desktop and mobile markup exactly', () => {
+  const source = readFileSync(resolve(__dirname, '../index.html'), 'utf8');
+  const card = source.match(/<figure class="career-map"[\s\S]*?<\/figure>/)[0];
+  expect(createHash('sha256').update(card).digest('hex')).toBe(
+    '1f5eaf1fbe9d7b2e6847fe5e71b0c71f96d56894625b66f6b0fc3289dc35cde3'
+  );
+});
+
 async function showCurve(page) {
   await page.locator('.cm-curve').evaluate(curve => {
     curve.scrollIntoView({ block: 'center', behavior: 'instant' });
@@ -86,7 +95,7 @@ async function expectScaledStroke(page) {
   })).toBeLessThan(0.6);
 }
 
-for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 861, height: 1000 }, { width: 860, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
   test(`career restores the card-triggered stroke and newest-first reveal at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     const plot = page.locator('.cm-plot');

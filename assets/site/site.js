@@ -66,7 +66,8 @@
   const visible = new Set();
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => (entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target)));
-    const current = sections.find(section => visible.has(section));
+    const active = sections.filter(section => visible.has(section));
+    const current = active.find(section => !active.some(other => other !== section && section.contains(other)));
     navigation.forEach(link => {
       if (current && link.hash === `#${current.id}`) link.setAttribute('aria-current', 'location');
       else link.removeAttribute('aria-current');
