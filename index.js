@@ -28,6 +28,17 @@ var app = document.getElementById('app');
     try {
       document.dispatchEvent(new CustomEvent('herochat:query', { detail: detail }));
     } catch (e) {}
+    return detail;
+  }
+  function waitForRetrieval(topicId, docs, container) {
+    if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
+    if (window.HeroChatIntro) {
+      return window.HeroChatIntro.afterPrompt(function () {
+        return emitQuery(topicId, docs);
+      }, container, topicId);
+    }
+    emitQuery(topicId, docs);
+    return topicId === 'behind-the-scenes' ? Promise.resolve() : H.wait(320);
   }
   var CHEVRON_SVG = H.CHEVRON_SVG;
   var MODELS = H.MODELS;
@@ -342,29 +353,17 @@ var app = document.getElementById('app');
     applySelection();
     activeTurnTop = prompt.line;
     stickBottom = true;
-    var introQueryStarted = false;
-
     if (streamPrompt) {
       await wait(350);
       await stream(prompt, PROMPT, { base: 34, jitter: 30, subword: false });
       if (myToken !== runToken) return;
-      // Let the opening retrieval land before starting model output.
-      if (window.HeroChatIntro) {
-        if (cursor.parentNode) cursor.parentNode.removeChild(cursor);
-        await window.HeroChatIntro.afterPrompt(function () {
-          introQueryStarted = true;
-          emitQuery('intro', VARIANTS[variantIdx].docs);
-        });
-      } else {
-        await wait(320);
-      }
-      if (myToken !== runToken) return;
     }
+    await waitForRetrieval('intro', VARIANTS[variantIdx].docs, chat);
+    if (myToken !== runToken) return;
 
     think.line.classList.remove('chat-pending');
     think.line.classList.add('line-enter');
     think.line.classList.add('is-thinking');
-    if (!introQueryStarted) emitQuery('intro', VARIANTS[variantIdx].docs);
     introGenModel.textContent = MODELS[modelIdx];
     introGen.classList.add('on'); // glowing "generating" orb, as on follow-ups
     think.txt.style.maxHeight = cotCap(false) + 'px'; // keep the live trace inside the hero
@@ -896,12 +895,12 @@ var app = document.getElementById('app');
     await stream(t.prompt, promptText, { base: 30, jitter: 26, subword: false });
     if (myToken !== runToken) return;
     scrollChatToBottom();
-    await wait(260);
+    await waitForRetrieval(topic.id, docs, t.wrap);
     if (myToken !== runToken) return;
+    scrollChatToBottom();
 
     t.think.line.classList.remove('chat-pending');
     t.think.line.classList.add('line-enter', 'is-thinking');
-    emitQuery(topic.id, docs);
     showGenerating(t);
     var t0 = now();
     await stream(t.think, variant.thought, thinkPace(variant.thought));
@@ -967,14 +966,20 @@ var app = document.getElementById('app');
     t.think.txt.innerHTML = '';
     t.answer.txt.innerHTML = '';
     t.sources.hidden = true;
-    t.think.line.classList.remove('done', 'folded', 'line-enter');
+    t.think.line.classList.remove('done', 'folded', 'line-enter', 'is-thinking');
+    t.think.line.classList.add('chat-pending');
+    t.answer.line.classList.remove('line-enter');
+    t.answer.line.classList.add('chat-pending');
     t.think.txt.style.maxHeight = '';
     t.thinkEls.head.setAttribute('aria-expanded', 'true');
     t.thinkLabel.textContent = 'Thinking';
     t.modelTag.textContent = '';
+    await waitForRetrieval(t.topic.id, v.docs || t.topic.docs, t.wrap);
+    if (myToken !== runToken) return;
+    scrollChatToBottom();
     showGenerating(t);
-    t.think.line.classList.add('is-thinking');
-    emitQuery(t.topic.id, v.docs || t.topic.docs);
+    t.think.line.classList.remove('chat-pending');
+    t.think.line.classList.add('line-enter', 'is-thinking');
 
     var t0 = now();
     await stream(t.think, v.thought, thinkPace(v.thought));
@@ -987,6 +992,8 @@ var app = document.getElementById('app');
     await wait(650);
     if (myToken !== runToken) return;
     simpleFold(t.thinkEls, true);
+    t.answer.line.classList.remove('chat-pending');
+    t.answer.line.classList.add('line-enter');
     await wait(300);
     if (myToken !== runToken) return;
     await stream(t.answer, v.answer, { base: 20, jitter: 18, lead: 260 });

@@ -9,6 +9,46 @@ let server;
 let origin;
 const errors = new WeakMap();
 
+async function accelerateStreams(page) {
+  await page.route('**/chat-core.js', async route => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      body: await response.text() + `
+        (function () {
+          var createStreamer = HeroChat.createStreamer;
+          HeroChat.createStreamer = function (cfg) {
+            var stream = createStreamer(cfg);
+            return function (target, text, opts) {
+              return stream(target, text, Object.assign({}, opts, {
+                base: 0, jitter: 0, punct: 0, lead: 0, fade: false
+              }));
+            };
+          };
+        })();
+      `,
+    });
+  });
+}
+
+async function expectRetrievalBeforeOutput(page, scope, queryId, minimumHold) {
+  await expect(scope.locator('.hero-retrieval-note')).toBeVisible();
+  await expect(scope.locator('.chat-think')).toHaveClass(/chat-pending/);
+  await expect(scope.locator('.chat-answer')).toHaveClass(/chat-pending/);
+  await expect(scope.locator('.chat-think .txt')).toBeEmpty();
+  await expect(scope.locator('.chat-answer .txt')).toBeEmpty();
+  await expect(scope.locator('.chat-think')).not.toHaveClass(/chat-pending/, { timeout: 10000 });
+  const timeline = await page.evaluate(id => window.heroTimeline.filter(event => event.queryId === id), queryId);
+  const query = timeline.find(event => event.type === 'query');
+  const landed = timeline.find(event => event.type === 'landed');
+  expect(query.thinking).toBe(false);
+  expect(query.answerPending).toBe(true);
+  expect(landed.time - query.time).toBeGreaterThanOrEqual(minimumHold);
+  expect(landed.time - query.time).toBeLessThan(minimumHold + 320);
+  expect(timeline.find(event => event.type === 'thinking').time).toBeGreaterThanOrEqual(landed.time);
+  await expect(page.locator('.hero-retrieval-note')).toHaveCount(0);
+}
+
 test.use({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'no-preference' });
 test.setTimeout(45000);
 
@@ -53,19 +93,27 @@ test.beforeEach(async ({ page }) => {
     const sample = new URL(location.href).searchParams.get('sample');
     Math.random = () => sample === null ? .35 : Number(sample);
     window.heroTimeline = [];
+    let queryId = 0;
+    let landedQuery = 0;
+    let thinkingQuery = 0;
     document.addEventListener('herochat:query', event => {
+      queryId++;
       window.heroTimeline.push({
-        type: 'query', time: performance.now(), topic: event.detail.topic,
-        thinking: !document.querySelector('.chat-think').classList.contains('chat-pending'),
+        type: 'query', time: performance.now(), topic: event.detail.topic, queryId,
+        thinking: ![...document.querySelectorAll('.chat-think')].at(-1).classList.contains('chat-pending'),
+        answerPending: [...document.querySelectorAll('.chat-answer')].at(-1).classList.contains('chat-pending'),
       });
     });
     new MutationObserver(records => {
       for (const record of records) {
-        if (record.target.matches?.('html.hero-retrieval-payoff') && !window.heroTimeline.some(event => event.type === 'landed')) {
-          window.heroTimeline.push({ type: 'landed', time: performance.now() });
+        if (record.target.matches?.('html.hero-retrieval-payoff') && landedQuery !== queryId) {
+          landedQuery = queryId;
+          window.heroTimeline.push({ type: 'landed', time: performance.now(), queryId });
         }
-        if (record.target.matches?.('.chat-think:not(.chat-pending)') && !window.heroTimeline.some(event => event.type === 'thinking')) {
-          window.heroTimeline.push({ type: 'thinking', time: performance.now() });
+        if (record.target.matches?.('.chat-think:not(.chat-pending)') &&
+            record.target === [...document.querySelectorAll('.chat-think')].at(-1) && thinkingQuery !== queryId) {
+          thinkingQuery = queryId;
+          window.heroTimeline.push({ type: 'thinking', time: performance.now(), queryId });
         }
         if (record.target.matches?.('.hero.field-entering')) {
           window.heroTimeline.push({ type: 'entrance', time: performance.now() });
@@ -99,6 +147,83 @@ test('opening retrieval lands before model output without restarting on theme or
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect(page.locator('.field-entering')).toHaveCount(0);
   expect(await page.evaluate(() => window.heroTimeline.filter(event => event.type === 'entrance').length)).toBe(1);
+});
+
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  test(`follow-ups and both kinds of model retry wait for graph navigation at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await accelerateStreams(page);
+    await page.goto(origin);
+    const minimumHold = viewport.width < 960 ? 2780 : 3380;
+    const intro = page.locator('.hero-chat');
+    await expectRetrievalBeforeOutput(page, intro, 1, minimumHold);
+    await expect(page.locator('.suggest-chip').first()).toBeVisible();
+    await intro.locator('.retry-btn').click();
+    await intro.locator('.retry-item').first().click();
+    await expectRetrievalBeforeOutput(page, intro, 2, minimumHold);
+    await expect(page.locator('.suggest-chip').first()).toBeVisible();
+
+    await page.locator('.suggest-chip').first().click();
+    const firstTurn = page.locator('.chat-turn').first();
+    await expectRetrievalBeforeOutput(page, firstTurn, 3, minimumHold);
+    await expect(firstTurn.locator('.retry-btn')).toBeVisible();
+    await expect(page.locator('.suggest-chip').first()).toBeVisible();
+    await firstTurn.locator('.retry-btn').click();
+    await firstTurn.locator('.retry-item').first().click();
+    await expectRetrievalBeforeOutput(page, firstTurn, 4, minimumHold);
+    await expect(page.locator('.suggest-chip').first()).toBeVisible();
+
+    await page.locator('.suggest-chip').first().click();
+    const secondTurn = page.locator('.chat-turn').nth(1);
+    await expectRetrievalBeforeOutput(page, secondTurn, 5, minimumHold);
+    await expect(page.locator('.suggest-chip').first()).toBeVisible();
+    expect(await page.evaluate(() => window.heroTimeline.filter(event => event.type === 'query').length)).toBe(5);
+    expect(await page.evaluate(() => window.heroTimeline.filter(event => event.type === 'entrance').length)).toBe(1);
+  });
+}
+
+test('leaving the hero releases a follow-up retrieval hold without a payoff', async ({ page }) => {
+  await accelerateStreams(page);
+  await page.goto(origin);
+  await expect(page.locator('.suggest-chip').first()).toBeVisible({ timeout: 15000 });
+  await page.locator('.suggest-chip').first().click();
+  const turn = page.locator('.chat-turn');
+  await expect(turn.locator('.hero-retrieval-note')).toBeVisible();
+  await expect(turn.locator('.chat-think')).toHaveClass(/chat-pending/);
+  await page.locator('.site-nav a[href="#work"]').click();
+  await expect(turn.locator('.chat-think')).not.toHaveClass(/chat-pending/);
+  await expect(page.locator('.hero-retrieval-note')).toHaveCount(0);
+  expect(await page.evaluate(() => window.heroTimeline.some(event => event.type === 'landed' && event.queryId === 2))).toBe(false);
+});
+
+test('the behind-the-scenes overview releases a superseded retry without a retrieval hold', async ({ page }) => {
+  await accelerateStreams(page);
+  await page.goto(origin);
+  await expect(page.locator('.suggest-chip').first()).toBeVisible({ timeout: 15000 });
+  await page.evaluate(() => { Math.random = () => .05; });
+  for (let index = 0; index < 3; index++) {
+    await page.locator('.suggest-chip').first().click();
+    await expect(page.locator('.suggest-chip').first()).toBeVisible({ timeout: 15000 });
+  }
+  const discovery = page.getByRole('button', { name: 'How does this page work?', exact: true });
+  await expect(discovery).toBeVisible();
+  const previousTurn = page.locator('.chat-turn').last();
+  await previousTurn.locator('.retry-btn').click();
+  await previousTurn.locator('.retry-item').first().click();
+  await expect(previousTurn.locator('.hero-retrieval-note')).toBeVisible();
+  await discovery.click();
+  const overview = page.locator('.chat-turn').last();
+  await expect(overview.locator('.chat-think')).not.toHaveClass(/chat-pending/, { timeout: 1500 });
+  await expect(page.locator('.hero-retrieval-note')).toHaveCount(0);
+  await expect(page.locator('html')).not.toHaveClass(/hero-retrieving/);
+  expect(await page.evaluate(() => window.HeroChatLastQuery.topic)).toBe('behind-the-scenes');
+  expect(await page.evaluate(() => window.heroTimeline.some(event => event.type === 'landed' && event.queryId === 5))).toBe(false);
+  await expect(overview.locator('.retry-btn')).toBeVisible();
+  await overview.locator('.retry-btn').click();
+  await overview.locator('.retry-item').first().click();
+  await expect(overview.locator('.chat-answer .txt')).not.toBeEmpty();
+  await expect(page.locator('.hero-retrieval-note')).toHaveCount(0);
+  await expect(page.locator('html')).not.toHaveClass(/hero-retrieving/);
 });
 
 test('all ten opening answers foreground standout work and keep minor features out of initial suggestions', async ({ page }) => {
@@ -152,6 +277,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
       await expect(answer).toContainText(/8\u201332\u00d7.*20\u00d7.*depending on the workload/);
       expect([topic.variants[index].thought, topic.variants[index].answer, ...topic.docs].join(' ')).not.toMatch(/subscore|score threshold|quota/i);
       expect(await page.evaluate(() => window.HeroChatLastQuery)).toEqual({ topic: topic.id, docs: topic.docs });
+      await expect(page.locator('.hero-retrieval-note')).toHaveCount(0);
+      await expect(page.locator('html')).not.toHaveClass(/hero-retrieving/);
       await expect(turn.locator('.source-chip')).toHaveText(['1Vector diversity', '2Agentic retrieval', '3Quantization']);
       for (const [id] of topic.sources) await expect(page.locator(`#${id}`)).toHaveCount(1);
     }

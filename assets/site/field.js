@@ -818,7 +818,8 @@
       setReadout('HNSW · ' + countHops(q.branches) + ' hops · 0 results above threshold', true);
     }
     if (entranceEffect && entranceEffect.queryDuration && q.land > 0) {
-      const scale = entranceEffect.queryDuration(spec, q.land) / q.land;
+      const lastResultAt = Math.max(q.land, ...q.results.map(result => result.t));
+      const scale = entranceEffect.queryDuration(spec, lastResultAt) / lastResultAt;
       q.branches.forEach(steps => steps.forEach(step => {
         step.t0 *= scale;
         step.tm *= scale;

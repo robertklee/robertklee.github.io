@@ -14,6 +14,7 @@
   let rim = null;
   let rimObserver = null;
   let completeRetrieval = null;
+  let activeQuery = null;
   let retrievalNote = null;
   let payoffTimer = 0;
 
@@ -36,11 +37,19 @@
     }
     const resolve = completeRetrieval;
     completeRetrieval = null;
+    activeQuery = null;
     resolve();
   }
 
   window.HeroChatIntro = {
-    afterPrompt(startRetrieval) {
+    afterPrompt(startRetrieval, container, topicId) {
+      finishRetrieval(false);
+      clearTimeout(payoffTimer);
+      root.classList.remove('hero-retrieval-payoff');
+      if (topicId === 'behind-the-scenes') {
+        startRetrieval();
+        return Promise.resolve();
+      }
       if (!hero.querySelector('.field-canvas')) {
         console.warn('hero: retrieval visualization unavailable; skipping the animated hold.');
         finishEntrance();
@@ -58,10 +67,10 @@
       retrievalNote.className = 'hero-retrieval-note';
       retrievalNote.setAttribute('role', 'status');
       retrievalNote.textContent = 'Retrieving sources...';
-      hero.querySelector('.hero-chat').appendChild(retrievalNote);
+      (container || hero.querySelector('.hero-chat')).appendChild(retrievalNote);
       return new Promise(resolve => {
         completeRetrieval = resolve;
-        startRetrieval();
+        activeQuery = startRetrieval();
       });
     },
   };
@@ -137,11 +146,11 @@
     cameraYaw() {
       return 0;
     },
-    queryDuration(spec, duration) {
-      return spec.topic === 'intro' ? compactEntrance ? 2400 : 3000 : duration;
+    queryDuration() {
+      return compactEntrance ? 2400 : 3000;
     },
     queryLanded(spec) {
-      if (spec.topic === 'intro') finishRetrieval(true);
+      if (spec === activeQuery) finishRetrieval(true);
     },
     draw({ ctx, nodes, edges, progress, colors, compact, clearAt }) {
       if (progress === 1) return;
