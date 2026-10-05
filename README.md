@@ -42,6 +42,8 @@ miss. The tolerance remains at floating-point-roundoff scale.
 
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
+The homepage leads directly with Robert's name and role. Its ten opening answers emphasize current vector-search diversity, research-to-production ownership for agentic retrieval, workload benchmarking and billing, and quantization's measured customer impact. The technical-achievements topic highlights distributed algorithm design, verifiable agentic filter generation, and quantization; distinguish ongoing work from shipped results and qualify cost and latency gains by workload. Hybrid relevance and HNSW quota stories remain available as specific deeper follow-ups, but `followupOnly` excludes them from the initial suggestions. Awards questions are explicitly about recognition, not a substitute for engineering achievements.
+
 The homepage has a one-time retrieval-first entrance. A restrained camera pullback, an activation wave along graph connections, and a rising chat card establish the scene in 1.85 seconds on desktop or 1.25 seconds in compact layouts. The completed question stays on screen with "Retrieving sources..." while the illustrative search descends layers and branches to its documents. The opening traversal takes 3 seconds on desktop or 2.4 seconds in compact layouts, plus 380 ms for the final source marker to settle; only then does a brief card highlight lead into model output. This is scripted dramatic pacing, not a backend request. The name, navigation, and profile remain available throughout. Resizing and theme changes do not replay the entrance. Reduced motion skips the animation and hold. Leaving the hero or hiding the page releases the hold without a payoff, and unavailable Canvas support logs a warning and allows the chat to continue. The 404 graph keeps its existing behavior.
 
 On phones, narrow windows, and short landscape viewports, the homepage uses a compact heading and a chat card that starts at its content height and grows as text arrives. It caps at the available hero height, leaving the scroll cue clear, then scrolls internally. Suggested questions sit in a separate bottom strip so long answers, expanded traces, and contact cards cannot hide them. The same chip elements move back into the transcript on wider screens, preserving their handlers and the accessible-question guarantee. Model menus expand inline in the compact transcript to avoid clipped popovers; answers and contact links remain fully available by scrolling.
@@ -68,7 +70,9 @@ Run `npm run check` to syntax-check the scripts, and `npm run build` to create t
 
 Run `npm run test:hero` for the homepage entrance browser checks. The tests build
 the site, serve that output on an ephemeral local port, and exercise retrieval
-ordering, mobile growth, reduced motion, interruptions, and the 404 page.
+ordering, all ten opening answers, flagship technical-achievement answers and
+citations, initial suggestion curation, mobile growth, reduced motion,
+interruptions, and the 404 page.
 
 Run `npm run test:quantization` for the quantization scroll-animation browser checks,
 including mobile viewports, user interruption, and reduced motion.

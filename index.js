@@ -668,7 +668,9 @@ var app = document.getElementById('app');
     // Weighted shuffle: sorting by u^(1/weight) draws without replacement in
     // proportion to each topic's weight. Topics already asked go to the back,
     // so the chips keep moving to new stories until every one has been told.
-    var pool = TOPICS.filter(function (t) { return t.id !== excludeId; })
+    var pool = TOPICS.filter(function (t) {
+      return t.id !== excludeId && (turnCount > 0 || !t.followupOnly);
+    })
       .map(function (t) { return { t: t, key: Math.pow(Math.random(), 1 / (t.weight || 1)) }; })
       .sort(function (a, b) { return b.key - a.key; })
       .map(function (e) { return e.t; });

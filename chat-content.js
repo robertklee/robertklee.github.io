@@ -24,38 +24,59 @@ window.HeroChatContent = (function () {
   // Real language models are non-deterministic: the same prompt yields a
   // different chain-of-thought and answer each time. To echo that, we keep a
   // set of {thought, answer} pairs and pick one at random on every page load.
+  // Ten opening answers lead with current work and standout delivered impact.
   // Each names work from at least two field regions (`docs`, as in TOPICS), so
   // the intro runs as a diverse retrieval.
   var VARIANTS = [
     {
-      thought: "A quick intro, so lead with the current role: Senior Software Engineer on Microsoft Azure AI Search and technical lead for a team of five engineers and scientists building vector-search diversity. Then filter and boost generation for agentic retrieval, and, before that, vector quantization to general availability. Emphasize team technical leadership and end-to-end delivery.",
-      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of five engineers and scientists building a new vector-search diversity capability. I also led filter and boost generation for agentic retrieval into production, and before that drove vector quantization to general availability.",
-      docs: ['Vector diversity capability', 'Filter generation', 'Scalar quantization']
+      thought: "Lead with the current role and five-person team's vector-search diversity work. Pair that ongoing effort with shipped agentic filter and boost generation and the measured impact of quantization. Keep building distinct from delivered.",
+      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of five engineers and scientists building vector-search diversity. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
+      docs: ['Vector diversity capability', 'Team technical leadership', 'Filter generation', 'Lucene boosts', 'Scalar quantization']
     },
     {
-      thought: "Rather than list feature names, describe what the work does for AI apps built on search. Vector diversity cuts redundant results, generated filters turn a plain request into precise search controls, and binary quantization makes vectors much cheaper to store and search. Frame all three around better search for AI.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My work is about giving AI apps better search results: fewer redundant hits, filters generated from plain-language requests, and binary quantization that makes vector search much cheaper.",
+      thought: "Explain the strongest work through what customers get: less repetition, natural-language search controls, and cheaper vectors. Identify vector-search diversity as current work and quantization as a shipped capability with workload-dependent impact.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval for AI apps: I'm currently working on vector-search diversity to reduce repetitive results, and I led filters generated from natural-language requests into production. Earlier, I helped make vector search much cheaper with binary quantization, part of work delivering 8\u201332\u00d7 cost savings depending on the workload.",
       docs: ['Redundancy reduction', 'Filter generation', 'Binary quantization']
     },
     {
-      thought: "Show the person as well as the job. Robert is a Senior Software Engineer and technical lead for the vector-search diversity team at Azure AI Search, led a student team that trained a human pose estimation model from scratch, and founded a digital literacy program for seniors. Keep it warm.",
-      answer: "Hi there, I'm Robert. By day I'm a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of five engineers and scientists building vector-search diversity. At university I led a team that trained a pose estimation model from scratch, and founded a digital literacy program for 650+ seniors.",
-      docs: ['Vector diversity capability', 'Pose estimation', 'Digital literacy program']
+      thought: "Make technical leadership concrete: team size, direction, distributed architecture, and hands-on delivery. Pair the current vector-search diversity effort with completed research-to-production ownership for agentic retrieval.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of five engineers and scientists building vector-search diversity, setting the technical direction and owning delivery from distributed architecture through hands-on implementation. I also led agentic-retrieval filter and boost generation from research into production.",
+      docs: ['Team technical leadership', 'Distributed execution', 'Filter generation', 'Lucene boosts']
     },
     {
-      thought: "The thread running through Robert's recent work is research to production. As a Senior Software Engineer and technical lead for a team of five engineers and scientists, he sets the direction for vector-search diversity and its distributed architecture. He also reframed agentic filter generation as a bounded, verifiable operator set.",
-      answer: "Nice to meet you! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of five engineers and scientists building vector-search diversity. I set the technical direction and own delivery, including rethinking the algorithm for distributed execution. I also reframed agentic filter generation around a bounded, verifiable operator set.",
-      docs: ['Distributed execution', 'Team technical leadership', 'Bounded operator set']
+      thought: "Lead with the strongest measured outcome, not a small feature list. Quantization reached general availability with workload-dependent cost and latency gains. Then connect that delivered impact to the current vector-search diversity effort.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of five engineers and scientists building vector-search diversity to make search results less redundant.",
+      docs: ['Scalar quantization', 'Binary quantization', 'Team technical leadership', 'Redundancy reduction']
     },
     {
-      thought: "Introduce Robert through concrete systems work: SIMD distance kernels, resource-based quota enforcement for HNSW indexes, and distributed execution for the vector-diversity capability. Keep the technical terms, but make the intro brief.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My systems work spans SIMD-optimized distance kernels, resource-based quota enforcement for HNSW indexes, and distributed execution for a new vector-search diversity capability.",
-      docs: ['SIMD distance', 'HNSW quotas', 'Distributed execution']
+      thought: "Show systems depth across scales: SIMD distance kernels, vector search across billions of embeddings, and the current distributed architecture for vector-search diversity. Preserve team attribution for broad production adoption.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My systems work ranges from SIMD-optimized vector distance kernels to helping scale vector search across billions of embeddings. Now I'm rethinking a research algorithm for distributed execution as part of a new vector-search diversity capability, preserving its strengths under production constraints.",
+      docs: ['SIMD distance', 'Vector search 1 to N', 'Distributed execution']
     },
     {
-      thought: "Start with agents, since that's where search matters most right now. Robert integrated Azure AI Search into agent tool calling and RAG, and earlier designed hybrid-search subscore fusion, which affects what those agents read. Don't claim he built the whole agent platform.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. Lately that means connecting search to AI agents through tool calling and RAG. Earlier I worked on hybrid-search relevance, like subscore fusion, which shapes what those agents end up reading.",
-      docs: ['Agent tool calling', 'RAG grounding', 'Subscore fusion']
+      thought: "Introduce agentic retrieval through substantial delivery: filter and boost generation, a benchmarking system, and the shipped billing model. Connect retrieval to grounded agents without claiming ownership of the whole agent platform.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval that grounds AI agents in enterprise knowledge. I led agentic filter and boost generation into production, built a workload benchmarking system from scratch, and used those measurements to propose and ship the billing model for agentic retrieval with a new serverless enterprise search offering.",
+      docs: ['RAG grounding', 'Filter generation', 'Lucene boosts', 'Workload benchmarks', 'Billing model']
+    },
+    {
+      thought: "Use research to production as the connecting thread. Vector-search diversity requires preserving algorithmic properties in a distributed engine; agentic filter generation required reformulating an unbounded problem into a bounded, verifiable design.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I turn research ideas into production systems. My current vector-search diversity work rethinks an algorithm for distributed execution; for agentic retrieval, I reframed open-ended filter generation as a bounded, verifiable operator set and led it into production.",
+      docs: ['Vector diversity capability', 'Distributed execution', 'Bounded operator set', 'Filter generation']
+    },
+    {
+      thought: "Show end-to-end ownership in two recent efforts: technical leadership for vector-search diversity, and benchmarking that informed a production billing model. Keep the distinction between current delivery ownership and the already-shipped billing work.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of five engineers and scientists building vector-search diversity, owning delivery from algorithm analysis to implementation. I also built agentic-retrieval benchmarks from scratch and turned the workload measurements into a production billing model that I proposed and shipped.",
+      docs: ['Team technical leadership', 'Vector diversity capability', 'Workload benchmarks', 'Billing model']
+    },
+    {
+      thought: "Show applied ML breadth without making older student work the main story. Start with current vector-search diversity, then the pose-estimation project trained from random initialization, with Robert owning the architecture and cloud training pipeline.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I work where algorithms meet real systems: currently, I'm the technical lead for a team of five engineers and scientists building vector-search diversity. Earlier, I led a student team that trained a human pose estimation network from scratch, owning the model architecture and cloud training pipeline.",
+      docs: ['Vector diversity capability', 'Team technical leadership', 'Pose estimation']
+    },
+    {
+      thought: "Tie the career's strongest engineering work to a clear purpose: better evidence for enterprise AI, at practical cost. Mention current vector-search diversity, shipped agentic filter and boost generation, and quantization at scale rather than smaller relevance controls.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is better evidence for enterprise AI, at a cost customers can use. I'm building vector-search diversity, led agentic filter and boost generation into production, and helped scale vector search across billions of embeddings, including quantization that delivered 8\u201332\u00d7 cost savings depending on the workload.",
+      docs: ['Vector diversity capability', 'Filter generation', 'Lucene boosts', 'Vector search 1 to N', 'Binary quantization']
     }
   ];
 
@@ -71,12 +92,34 @@ window.HeroChatContent = (function () {
   // `sources` are the page sections cited under the answer. `weight` (default
   // 1) sets how often a topic is offered as a chip: recent work and the
   // standout academic, leadership, and project stories lead. `category` is
-  // 'technical', 'leadership', or 'general'. Match depth to the question:
+  // 'technical', 'leadership', or 'general'. `followupOnly` keeps narrower,
+  // earlier-career features out of the opening suggestions. Match depth to the question:
   // technical answers retain mechanisms and tradeoffs; leadership answers
   // explain decisions and ownership; general answers explain unfamiliar terms
   // without losing substance. Every suggestion row includes at least one
   // general topic for friends, family, and non-engineers (see pickTopics).
   var TOPICS = [
+    {
+      id: 'technical-achievements',
+      category: 'technical',
+      weight: 3,
+      docs: ['Vector diversity capability', 'Distributed execution', 'Filter generation', 'Bounded operator set', 'Scalar quantization', 'Binary quantization', 'SIMD distance'],
+      sources: [['work-diversity', 'Vector diversity'], ['work-agentic', 'Agentic retrieval'], ['work-quantization', 'Quantization']],
+      prompts: [
+        "What are Robert's most technically impressive achievements?",
+        "Which engineering achievements best show Robert's impact?"
+      ],
+      variants: [
+        {
+          thought: "Choose three substantial engineering stories, distinguishing current research-to-production work from shipped impact. Vector-search diversity demonstrates distributed algorithm design and team technical leadership; agentic filter generation demonstrates a verifiable reformulation; quantization demonstrates measured production gains.",
+          answer: "I'd highlight three. Currently, I'm the technical lead for a team of five engineers and scientists building vector-search diversity, rethinking a research algorithm for distributed execution while preserving its strengths at production scale. I also led agentic-retrieval filter and boost generation into production by replacing open-ended synthesis with a bounded, verifiable operator set. And I drove scalar and binary vector quantization from preview to general availability, with SIMD-accelerated distance computation, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload."
+        },
+        {
+          thought: "Start with the strongest shipped result, then explain the deeper design work in agentic retrieval and current vector-search diversity. Attribute the quantization outcome to the capability, not one kernel, and do not imply vector-search diversity has already shipped.",
+          answer: "For shipped impact, vector quantization stands out: I drove scalar and binary quantization to general availability, including SIMD distance optimization, with 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency depending on the workload. For research-to-production design, I led agentic filter and boost generation using a bounded, verifiable operator set. My current focus is vector-search diversity: as the technical lead for a team of five engineers and scientists, I'm redesigning a research algorithm for distributed execution under scalability, durability, and performance constraints."
+        }
+      ]
+    },
     {
       id: 'diversity-why',
       category: 'technical',
@@ -270,6 +313,7 @@ window.HeroChatContent = (function () {
       id: 'hybrid-relevance',
       category: 'technical',
       weight: 1,
+      followupOnly: true,
       docs: ['Subscore fusion', 'Score thresholds'],
       sources: [['profile-work-entry-2', 'Software Engineer II']],
       prompts: [
@@ -291,6 +335,7 @@ window.HeroChatContent = (function () {
       id: 'reliability',
       category: 'technical',
       weight: 1,
+      followupOnly: true,
       docs: ['HNSW quotas', 'Incident response'],
       sources: [['work-hnsw', 'HNSW graph search'], ['profile-work-entry-2', 'Software Engineer II']],
       prompts: [
@@ -505,7 +550,7 @@ window.HeroChatContent = (function () {
       sources: [['profile-awards', 'Awards']],
       prompts: [
         "What awards has Robert won?",
-        "Which of Robert's achievements stand out?"
+        "What recognition has Robert received?"
       ],
       variants: [
         {

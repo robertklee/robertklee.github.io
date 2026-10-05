@@ -2,7 +2,7 @@
 
 const { test, expect } = require('playwright/test');
 const { createServer } = require('node:http');
-const { readFile } = require('node:fs');
+const { readFile, readFileSync } = require('node:fs');
 const { resolve, sep, extname } = require('node:path');
 
 let server;
@@ -50,7 +50,8 @@ test.beforeEach(async ({ page }) => {
   errors.set(page, []);
   page.on('pageerror', error => errors.get(page).push(error.message));
   await page.addInitScript(() => {
-    Math.random = () => .35;
+    const sample = new URL(location.href).searchParams.get('sample');
+    Math.random = () => sample === null ? .35 : Number(sample);
     window.heroTimeline = [];
     document.addEventListener('herochat:query', event => {
       window.heroTimeline.push({
@@ -99,6 +100,67 @@ test('opening retrieval lands before model output without restarting on theme or
   await expect(page.locator('.field-entering')).toHaveCount(0);
   expect(await page.evaluate(() => window.heroTimeline.filter(event => event.type === 'entrance').length)).toBe(1);
 });
+
+test('all ten opening answers foreground standout work and keep minor features out of initial suggestions', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const field = readFileSync(resolve(__dirname, '../assets/site/field.js'), 'utf8');
+  const regions = [...field.matchAll(/docs: \[([^\]]+)\]/g)].map(match =>
+    [...match[1].matchAll(/'([^']+)'/g)].map(label => label[1]));
+  const minorFeatures = /subscore|score threshold|quota/i;
+  for (let index = 0; index < 10; index++) {
+    await page.goto(`${origin}/?sample=${(index + .5) / 10}`);
+    const content = await page.evaluate(() => window.HeroChatContent);
+    expect(content.PROMPTS).toHaveLength(10);
+    expect(content.VARIANTS).toHaveLength(10);
+    const variant = content.VARIANTS[index];
+    expect([variant.thought, variant.answer, ...variant.docs].join(' ')).not.toMatch(minorFeatures);
+    expect(variant.answer).toContain('Senior Software Engineer on Microsoft Azure AI Search');
+    expect(variant.answer).toMatch(/vector-search diversity|agentic/i);
+    expect(regions.filter(docs => variant.docs.some(doc => docs.includes(doc))).length).toBeGreaterThanOrEqual(2);
+    for (const doc of variant.docs) expect(regions.flat()).toContain(doc);
+    await expect(page.locator('.chat-answer .txt')).toContainText(variant.answer);
+    expect(await page.evaluate(() => window.HeroChatLastQuery)).toEqual({ topic: 'intro', docs: variant.docs });
+    await expect(page.locator('.hero-eyebrow')).toHaveCount(0);
+    const chips = page.locator('.suggest-chip');
+    await expect(chips).toHaveCount(3);
+    await expect(page.locator('.suggest-chip[data-general]')).not.toHaveCount(0);
+    const initialPrompts = await chips.allTextContents();
+    for (const topic of content.TOPICS.filter(topic => topic.followupOnly)) {
+      for (const prompt of topic.prompts) expect(initialPrompts.join(' ')).not.toContain(prompt);
+    }
+  }
+});
+
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  test(`technical achievements highlight flagship work on both answer variants at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(origin);
+    const topic = await page.evaluate(() => window.HeroChatContent.TOPICS.find(topic => topic.id === 'technical-achievements'));
+    await page.getByRole('button', { name: topic.prompts[0], exact: true }).click();
+    const turn = page.locator('.chat-turn');
+    const answer = turn.locator('.chat-answer .txt');
+    for (let index = 0; index < topic.variants.length; index++) {
+      if (index > 0) {
+        await turn.locator('.retry-btn').click();
+        await turn.locator('.retry-item').first().click();
+      }
+      await expect(answer).toContainText(topic.variants[index].answer);
+      await expect(answer).toContainText('technical lead for a team of five engineers and scientists');
+      await expect(answer).toContainText('distributed execution');
+      await expect(answer).toContainText('bounded, verifiable operator set');
+      await expect(answer).toContainText(/8\u201332\u00d7.*20\u00d7.*depending on the workload/);
+      expect([topic.variants[index].thought, topic.variants[index].answer, ...topic.docs].join(' ')).not.toMatch(/subscore|score threshold|quota/i);
+      expect(await page.evaluate(() => window.HeroChatLastQuery)).toEqual({ topic: topic.id, docs: topic.docs });
+      await expect(turn.locator('.source-chip')).toHaveText(['1Vector diversity', '2Agentic retrieval', '3Quantization']);
+      for (const [id] of topic.sources) await expect(page.locator(`#${id}`)).toHaveCount(1);
+    }
+    const recognition = await page.evaluate(() => window.HeroChatContent.TOPICS.find(topic => topic.id === 'recognition'));
+    expect(recognition.prompts.join(' ')).toMatch(/awards|recognition/i);
+    expect(recognition.prompts.join(' ')).not.toMatch(/achievements/i);
+    await expect(turn.locator('.retry-btn')).toBeDisabled();
+  });
+}
 
 for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) {
   test(`mobile card grows and caps with accessible follow-ups at ${viewport.width}x${viewport.height}`, async ({ page }) => {
