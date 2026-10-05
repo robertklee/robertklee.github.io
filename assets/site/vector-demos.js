@@ -231,6 +231,11 @@
       svgElement('rect', { x: 0, y: layout[layer].label - 20, width: 560, height: 24, class: 'hn-heading-bg' }, group);
       const label = svgElement('text', { x: 16, y: layout[layer].label, class: 'hn-layer-label' }, group);
       label.textContent = `LEVEL ${layer} | ${layer === 0 ? 'BASE GRAPH | ' : ''}${levels[layer].size} VECTORS`;
+      if (layer === 0) {
+        svgElement('rect', { x: 16, y: 370, width: 528, height: 207, rx: 12, class: 'hn-search-area' }, group);
+        const hint = svgElement('text', { x: 280, y: 630, class: 'hn-search-hint' }, group);
+        hint.textContent = 'CLICK / TAP LEVEL 0 TO MOVE THE QUERY AND SEARCH';
+      }
       const seen = new Set();
       const ids = [...levels[layer].keys()];
       ids.forEach(id => {
@@ -260,9 +265,21 @@
         nodeElements.push({ node, id, layer });
       });
       const marker = svgElement('g', { class: 'hn-query' }, group);
-      svgElement('circle', { r: 14 }, marker);
-      svgElement('path', { d: 'M-5 0H5M0-5V5' }, marker);
-      queryMarkers.push({ marker, layer });
+      const title = svgElement('title', {}, marker);
+      title.textContent = 'Query vector: the search target, not a stored vector';
+      let callout;
+      let leader;
+      if (layer === 0) {
+        leader = svgElement('line', { x1: 0, y1: 0, class: 'hn-query-leader' }, marker);
+        callout = svgElement('g', { class: 'hn-query-label' }, marker);
+        svgElement('rect', { x: 0, y: -16, width: 148, height: 32, rx: 7 }, callout);
+        const text = svgElement('text', { x: 12, y: 5 }, callout);
+        text.textContent = 'Query vector';
+      }
+      svgElement('path', { d: 'M0-15L15 0L0 15L-15 0Z', class: 'hn-query-diamond' }, marker);
+      const letter = svgElement('text', { dy: '0.35em', class: 'hn-query-letter' }, marker);
+      letter.textContent = 'Q';
+      queryMarkers.push({ marker, layer, callout, leader });
     });
     [105, 217, 334].forEach(y => svgElement('line', { x1: 16, y1: y, x2: 544, y2: y, class: 'hn-divider' }, plot));
 
@@ -329,7 +346,7 @@
       required = ranked.filter(id => rawDistance(id) < cutoff && !atCutoff(id));
       boundary = ranked.filter(atCutoff);
       const results = best.sort(byDistance).slice(0, 3);
-      record(0, null, 'Search complete. Amber nodes are the graph results.', results);
+      record(0, null, "Search complete. Amber circles are the graph's nearest three.", results);
       return frames;
     }
 
@@ -356,15 +373,23 @@
         Object.entries({ x1: entry.x, x2: entry.x, y1: yAt(entry, level) + 12, y2: yAt(entry, level - 1) - 12 })
           .forEach(([name, value]) => node.setAttribute(name, value));
       });
-      hnsw.querySelector('[data-hn-checks]').textContent = `${frame.checked.length} / 24`;
-      hnsw.querySelector('[data-hn-recall]').textContent = frame.results.length ? `${Math.round(hits / 3 * 100)}%` : '--';
+      hnsw.querySelector('[data-hn-checks]').textContent = `${frame.checked.length} of ${points.length}`;
+      hnsw.querySelector('[data-hn-recall]').textContent = frame.results.length ? `${hits} of 3` : '--';
       hnsw.querySelector('[data-hn-results]').textContent = frame.results.length ? frame.results.map(id => points[id].label).join(', ') : 'Searching...';
       hnsw.querySelector('[data-hn-status]').textContent = frame.status;
     }
 
     function prepareSearch() {
       const frames = search();
-      queryMarkers.forEach(({ marker, layer }) => marker.setAttribute('transform', `translate(${query.x} ${yAt(query, layer)})`));
+      queryMarkers.forEach(({ marker, layer, callout, leader }) => {
+        marker.setAttribute('transform', `translate(${query.x} ${yAt(query, layer)})`);
+        if (!callout) return;
+        const left = query.x > 280;
+        const labelY = 600 - yAt(query, layer);
+        callout.setAttribute('transform', `translate(${left ? -170 : 22} ${labelY})`);
+        leader.setAttribute('x2', left ? -22 : 22);
+        leader.setAttribute('y2', labelY - 16);
+      });
       plot.dataset.queryX = query.x;
       plot.dataset.queryY = query.y;
       hnsw.querySelector('#hn-ef-value').textContent = `${efInput.value} candidates`;
@@ -373,13 +398,13 @@
       const tieNote = hnsw.querySelector('[data-hn-ties]');
       tieNote.hidden = boundary.length <= 3 - required.length;
       tieNote.textContent = tieNote.hidden ? '' : `Cutoff tie: ${boundary.map(id => points[id].label).join(', ')} share ` +
-        `${3 - required.length} remaining place${3 - required.length === 1 ? '' : 's'}. Interchangeable tied results receive equal recall credit.`;
+        `${3 - required.length} remaining place${3 - required.length === 1 ? '' : 's'}. Equally near results count as matches.`;
       return frames;
     }
 
     const player = playback(paintHNSW, () => {
-      hnsw.querySelector('[data-hn-live]').textContent = `Search complete. ${hnsw.querySelector('[data-hn-checks]').textContent} distance checks. ` +
-        `Recall at three ${hnsw.querySelector('[data-hn-recall]').textContent}. Results ${hnsw.querySelector('[data-hn-results]').textContent}. ` +
+      hnsw.querySelector('[data-hn-live]').textContent = `Search complete. ${hnsw.querySelector('[data-hn-checks]').textContent} vectors compared. ` +
+        `Found ${hnsw.querySelector('[data-hn-recall]').textContent} true nearest neighbours. Results ${hnsw.querySelector('[data-hn-results]').textContent}. ` +
         hnsw.querySelector('[data-hn-ties]').textContent;
     });
     player.show(prepareSearch());
@@ -395,13 +420,23 @@
       cancelAuto();
       player.show(prepareSearch());
     });
-    plot.addEventListener('click', event => {
-      const location = new DOMPoint(event.clientX, event.clientY).matrixTransform(plot.getScreenCTM().inverse());
-      if (location.y < layout[0].offset) return;
+    function moveQuery(x, y) {
       cancelAuto();
-      query = { x: Math.max(25, Math.min(535, location.x)), y: Math.max(25, Math.min(215, (location.y - layout[0].offset) / layout[0].scale)) };
+      query = { x: Math.max(25, Math.min(535, x)), y: Math.max(25, Math.min(215, y)) };
       press(buttons, null);
       player.play(prepareSearch());
+    }
+    plot.addEventListener('click', event => {
+      const location = new DOMPoint(event.clientX, event.clientY).matrixTransform(plot.getScreenCTM().inverse());
+      if (location.x < 16 || location.x > 544 || location.y < 370 || location.y > 577) return;
+      moveQuery(location.x, (location.y - layout[0].offset) / layout[0].scale);
+    });
+    plot.addEventListener('keydown', event => {
+      const steps = { ArrowLeft: [-10, 0], ArrowRight: [10, 0], ArrowUp: [0, -10], ArrowDown: [0, 10] };
+      const step = steps[event.key];
+      if (!step) return;
+      event.preventDefault();
+      moveQuery(query.x + step[0], query.y + step[1]);
     });
     hnsw.querySelector('[data-hn-replay]').addEventListener('click', () => {
       cancelAuto();

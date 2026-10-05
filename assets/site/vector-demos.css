@@ -38,6 +38,12 @@
 .si-total strong { color: var(--heading); font-family: var(--font-mono); }
 
 .hn-plot { display: block; width: 100%; height: auto; border-radius: var(--radius); background: var(--bg); touch-action: pan-y; }
+.hn-query-help { padding: 12px 14px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--accent-soft); color: var(--muted); font-size: 13px; line-height: 1.6; }
+.hn-query-help strong { color: var(--heading); }
+.hn-level[data-level="0"] { cursor: crosshair; }
+.hn-search-area { fill: var(--accent-soft); stroke: var(--art-fill); stroke-width: 1.5; stroke-dasharray: 6 6; }
+.hn-level:hover .hn-search-area, .hn-plot:focus-visible .hn-search-area { stroke: var(--accent); }
+.hn-search-hint { fill: var(--accent); font: 500 14px var(--font-mono); text-anchor: middle; }
 .hn-edge { stroke: var(--art-fill); stroke-width: 1; stroke-opacity: .35; }
 .hn-edge.is-examined { stroke: var(--accent); stroke-opacity: .8; stroke-width: 1.5; }
 .hn-node circle { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
@@ -47,8 +53,12 @@
 .hn-node.is-missed circle { stroke: var(--amber-strong); stroke-width: 2; stroke-dasharray: 3 2; }
 .hn-node.is-result circle { fill: var(--amber-soft); stroke: var(--amber-strong); stroke-width: 2; }
 .hn-node.is-result text { fill: var(--amber); }
-.hn-query circle { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
-.hn-query path { stroke: var(--accent); stroke-width: 1.5; }
+.hn-query { pointer-events: none; }
+.hn-query-diamond { fill: var(--heading); stroke: var(--bg); stroke-width: 2; }
+.hn-query-letter { fill: var(--bg); font: 600 14px var(--font-mono); text-anchor: middle; }
+.hn-query-leader { stroke: var(--heading); stroke-width: 1.5; stroke-dasharray: 3 4; stroke-opacity: .6; }
+.hn-query-label rect { fill: var(--heading); }
+.hn-query-label text { fill: var(--bg); font: 500 16px var(--font-mono); }
 .hn-layer-label { fill: var(--faint); font: 500 11px var(--font-mono); letter-spacing: .04em; }
 .hn-heading-bg { fill: var(--bg); }
 .hn-divider { stroke: var(--line); stroke-dasharray: 4 6; }
@@ -56,6 +66,7 @@
 .hn-results { display: grid; gap: 8px; }
 .hn-results p { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; color: var(--muted); font-size: 13px; }
 .hn-results strong { color: var(--heading); font: 500 13px var(--font-mono); }
+.hn-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .hn-stats dd { font-size: 23px; }
 
 @media (max-width: 640px) {
@@ -63,6 +74,9 @@
   .si-inputs, .si-terms { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .hn-layer-label { font-size: 20px; }
   .hn-node text { font-size: 18px; }
+  .hn-query-letter { font-size: 18px; }
+  .hn-query-label text { font-size: 18px; }
+  .hn-search-hint { font-size: 18px; letter-spacing: -.04em; }
   .hn-stats { gap: 6px; }
   .hn-stats > div { padding: 9px; }
   .hn-stats dt { font-size: 10px; }

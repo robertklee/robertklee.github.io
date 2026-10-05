@@ -47,7 +47,7 @@
   const entranceEffect = window.HeroFieldEntrance;
 
   const CLUSTERS = [
-    { id: 'diversity', label: 'Diversity', docs: ['Diversity capability', 'Redundancy reduction', 'Corpus-spanning grounding', 'E-commerce & recs', 'Distributed execution', 'Team of five'] },
+    { id: 'diversity', label: 'Vector diversity', docs: ['Vector diversity capability', 'Redundancy reduction', 'Corpus-spanning grounding', 'E-commerce & recs', 'Distributed execution', 'Technical collaboration'] },
     { id: 'agentic', label: 'Agentic retrieval', docs: ['Filter generation', 'Lucene boosts', 'Bounded operator set', 'Production analysis', 'Agent tool calling', 'RAG grounding'] },
     { id: 'performance', label: 'Performance & cost', docs: ['Scalar quantization', 'Binary quantization', 'SIMD distance', 'Workload benchmarks', 'Billing model'] },
     { id: 'engine', label: 'Search engine', docs: ['Vector search 1 to N', 'Subscore fusion', 'Score thresholds', 'HNSW quotas', 'Facet engine', 'Incident response'] },
@@ -59,7 +59,7 @@
   // Answers name the documents they draw on (`docs` in chat-content.js); a query
   // that names none lands on DEFAULT_DOCS, and MISS topics find nothing.
   const MISS = new Set(['not-found']);
-  const DEFAULT_DOCS = ['Diversity capability', 'Filter generation', 'Scalar quantization', 'Pose estimation', 'Digital literacy program'];
+  const DEFAULT_DOCS = ['Vector diversity capability', 'Filter generation', 'Scalar quantization', 'Pose estimation', 'Digital literacy program'];
 
   const TOP = 2; // layers L2 (sparse entry layer) .. L0 (every vector)
   const HOLD_MS = 9000;

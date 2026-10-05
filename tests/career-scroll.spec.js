@@ -60,11 +60,13 @@ function curveLine(page) {
   return page.locator('.cm-curve-desktop .cm-curve-line:visible, .cm-curve-mobile .cm-curve-line:visible');
 }
 
-test('the career card preserves its original desktop and mobile markup exactly', () => {
+test('the career card preserves its desktop and mobile curve geometry while allowing copy updates', () => {
   const source = readFileSync(resolve(__dirname, '../index.html'), 'utf8');
   const card = source.match(/<figure class="career-map"[\s\S]*?<\/figure>/)[0];
-  expect(createHash('sha256').update(card).digest('hex')).toBe(
-    '1f5eaf1fbe9d7b2e6847fe5e71b0c71f96d56894625b66f6b0fc3289dc35cde3'
+  const svg = card.match(/<svg[\s\S]*?<\/svg>/)[0];
+  const styles = [...card.matchAll(/style="([^"]+)"/g)].map(match => match[1]);
+  expect(createHash('sha256').update(JSON.stringify({ svg, styles })).digest('hex')).toBe(
+    '6a6f31022a57ebcf1211ebf18ede9689f6f9be75316eef60446285d59b57170c'
   );
 });
 

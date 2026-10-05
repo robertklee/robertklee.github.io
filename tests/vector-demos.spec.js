@@ -2,7 +2,7 @@
 
 const { test, expect } = require('playwright/test');
 const { createServer } = require('node:http');
-const { readFile } = require('node:fs');
+const { readFile, readFileSync } = require('node:fs');
 const { resolve, sep, extname } = require('node:path');
 
 let server;
@@ -244,7 +244,7 @@ test('HNSW matches a SEARCH-LAYER reference for every supported pool size', asyn
       await setRange(page, '#hn-ef', ef);
       const reference = searchReference(model, ef);
       await expect(page.locator('[data-hn-results]')).toHaveText(reference.results.join(', '));
-      await expect(page.locator('[data-hn-checks]')).toHaveText(`${reference.checks} / 24`);
+      await expect(page.locator('[data-hn-checks]')).toHaveText(`${reference.checks} of 24`);
     }
   }
 });
@@ -265,18 +265,18 @@ test('HNSW reports real recall and finds the exact nearest three with a full can
       const results = (await page.locator('[data-hn-results]').textContent()).split(', ');
       expect(new Set(results).size).toBe(3);
       await expect(page.locator('[data-hn-exact]')).toHaveText(truth.join(', '));
-      await expect(page.locator('[data-hn-recall]')).toHaveText(`${Math.round(results.filter(label => truth.includes(label)).length / 3 * 100)}%`);
+      await expect(page.locator('[data-hn-recall]')).toHaveText(`${results.filter(label => truth.includes(label)).length} of 3`);
       await expect(page.locator('.hn-node[data-layer="0"].is-result')).toHaveCount(3);
-      const checks = Number((await page.locator('[data-hn-checks]').textContent()).split(' / ')[0]);
+      const checks = Number((await page.locator('[data-hn-checks]').textContent()).split(' of ')[0]);
       expect(checks).toBeGreaterThan(ef === 3 ? 3 : 0);
       expect(checks).toBeLessThanOrEqual(24);
       if (preset === 'middle' && ef === 3) {
-        await expect(page.locator('[data-hn-recall]')).toHaveText('33%');
+        await expect(page.locator('[data-hn-recall]')).toHaveText('1 of 3');
         await expect(page.locator('.hn-node.is-missed')).toHaveCount(2);
         expect(checks).toBe(9);
       }
       if (preset === 'middle' && ef === 6) {
-        await expect(page.locator('[data-hn-recall]')).toHaveText('100%');
+        await expect(page.locator('[data-hn-recall]')).toHaveText('3 of 3');
         await expect(page.locator('.hn-node.is-missed')).toHaveCount(0);
         expect(checks).toBe(15);
       }
@@ -290,7 +290,7 @@ test('HNSW reports real recall and finds the exact nearest three with a full can
   const box = await plot.boundingBox();
   await plot.click({ position: { x: box.width * 0.6, y: box.height * 0.8 } });
   await expect(page.locator('[data-hn-query][aria-pressed="true"]')).toHaveCount(0);
-  await expect(page.locator('[data-hn-recall]')).toHaveText('100%');
+  await expect(page.locator('[data-hn-recall]')).toHaveText('3 of 3');
 });
 
 test('HNSW handles cutoff ties and queries at every stored point', async ({ page }) => {
@@ -304,7 +304,7 @@ test('HNSW handles cutoff ties and queries at every stored point', async ({ page
     const results = (await page.locator('[data-hn-results]').textContent()).split(', ');
     expect(results.slice(0, 2)).toEqual(['B', 'D']);
     expect(truth.boundary).toContain(results[2]);
-    await expect(page.locator('[data-hn-recall]')).toHaveText('100%');
+    await expect(page.locator('[data-hn-recall]')).toHaveText('3 of 3');
     await expect(page.locator('.hn-node.is-missed')).toHaveCount(0);
     await expect(page.locator('[data-hn-ties]')).toBeVisible();
     await expect(page.locator('[data-hn-ties]')).toContainText('1 remaining place');
@@ -321,8 +321,8 @@ test('HNSW handles cutoff ties and queries at every stored point', async ({ page
     const truth = exactReference(await graphModel(page));
     await expect(page.locator('[data-hn-results]')).toHaveText(truth.exact.join(', '));
     expect(truth.exact[0]).toBe(point.label);
-    await expect(page.locator('[data-hn-checks]')).toHaveText('24 / 24');
-    await expect(page.locator('[data-hn-recall]')).toHaveText('100%');
+    await expect(page.locator('[data-hn-checks]')).toHaveText('24 of 24');
+    await expect(page.locator('[data-hn-recall]')).toHaveText('3 of 3');
     await expect(page.locator('.hn-node.is-missed')).toHaveCount(0);
   }
 });
@@ -343,7 +343,7 @@ test('HNSW credits alternative tied neighbour sets without marking a false miss'
     const results = (await page.locator('[data-hn-results]').textContent()).split(', ');
     const hits = results.filter(label => truth.required.includes(label)).length +
       Math.min(3 - truth.required.length, results.filter(label => truth.boundary.includes(label)).length);
-    await expect(page.locator('[data-hn-recall]')).toHaveText(`${Math.round(hits / 3 * 100)}%`);
+    await expect(page.locator('[data-hn-recall]')).toHaveText(`${hits} of 3`);
     await expect(page.locator('.hn-node.is-missed')).toHaveCount(3 - hits);
     if (hits === 3 && results.some(label => !truth.exact.includes(label))) {
       alternativeCredited = true;
@@ -352,6 +352,91 @@ test('HNSW credits alternative tied neighbour sets without marking a false miss'
     }
   }
   expect(alternativeCredited).toBe(true);
+});
+
+test('HNSW labels the query, marks its search area, and explains the comparison counts', async ({ page }) => {
+  await expect(page.locator('.hn-query-diamond')).toHaveCount(4);
+  await expect(page.locator('.hn-query-letter')).toHaveText(Array(4).fill('Q'));
+  await expect(page.locator('.hn-query-label')).toHaveText('Query vector');
+  await expect(page.locator('#hn-query-help')).toContainText('click or tap inside the outlined Level 0 graph');
+  await expect(page.locator('.hn-search-hint')).toContainText('MOVE THE QUERY AND SEARCH');
+  await expect(page.locator('.hn-stats dt')).toHaveText(['Vectors compared', 'Nearest 3 found']);
+  await expect(page.locator('.hn-results')).toContainText('True nearest 3 · all 24 compared');
+  await expect(page.locator('[data-hn-live]')).toContainText('vectors compared');
+  await expect(page.locator('[data-hn-live]')).toContainText('Found 3 of 3 true nearest neighbours');
+  const plot = page.locator('[data-hn-plot]');
+  await expect(page.locator('.hn-level[data-level="0"]')).toHaveCSS('cursor', 'crosshair');
+  const original = (await graphModel(page)).query;
+  const box = await plot.boundingBox();
+  await plot.click({ position: { x: box.width * 0.3, y: box.height * 0.2 } });
+  expect((await graphModel(page)).query).toEqual(original);
+  await plot.click({ position: { x: box.width * 0.4, y: box.height * 0.8 } });
+  const next = (await graphModel(page)).query;
+  expect(Math.abs(next.x - 224)).toBeLessThan(2);
+  expect(Math.abs(next.y - (512 - 370) / 0.9)).toBeLessThan(2);
+  await expect(page.locator('[data-hn-query][aria-pressed="true"]')).toHaveCount(0);
+  await expect(page.locator('[data-hn-status]')).toContainText('Search complete');
+});
+
+test('HNSW keyboard query movement stays inside the base graph and updates the results', async ({ page }) => {
+  const plot = page.locator('[data-hn-plot]');
+  await plot.focus();
+  await page.keyboard.press('ArrowLeft');
+  expect((await graphModel(page)).query).toEqual({ x: 460, y: 160 });
+  await page.keyboard.press('ArrowUp');
+  expect((await graphModel(page)).query).toEqual({ x: 460, y: 150 });
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowDown');
+  expect((await graphModel(page)).query).toEqual({ x: 470, y: 160 });
+  await expect(page.locator('[data-hn-query][aria-pressed="true"]')).toHaveCount(0);
+  for (const query of [{ x: 25, y: 25 }, { x: 535, y: 215 }]) {
+    await setQuery(page, query.x, query.y);
+    await plot.focus();
+    await page.keyboard.press(query.x === 25 ? 'ArrowLeft' : 'ArrowRight');
+    await page.keyboard.press(query.y === 25 ? 'ArrowUp' : 'ArrowDown');
+    expect((await graphModel(page)).query).toEqual(query);
+    const reference = searchReference(await graphModel(page), 3);
+    await expect(page.locator('[data-hn-results]')).toHaveText(reference.results.join(', '));
+  }
+});
+
+test.describe('touch query placement', () => {
+  test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+  test('HNSW moves its query and searches when the base graph is tapped', async ({ page }) => {
+    const plot = page.locator('[data-hn-plot]');
+    const box = await plot.boundingBox();
+    await plot.tap({ position: { x: box.width * 0.3, y: box.height * 0.8 } });
+    const model = await graphModel(page);
+    expect(Math.abs(model.query.x - 168)).toBeLessThan(3);
+    expect(Math.abs(model.query.y - (512 - 370) / 0.9)).toBeLessThan(3);
+    await expect(page.locator('[data-hn-results]')).toHaveText(searchReference(model, 3).results.join(', '));
+    await expect(page.locator('[data-hn-status]')).toContainText('Search complete');
+  });
+});
+
+test('current-role copy describes technical leadership and qualifies search diversity throughout the chat', async ({ page }) => {
+  await expect(page.locator('#experience-role-1-title')).toHaveText('Senior Software Engineer');
+  for (const selector of ['.cv-about-copy', '#career-map-desc', '.experience-role-heading', '#profile-work-entry-1', '#work-diversity .chapter-copy']) {
+    await expect(page.locator(selector).first()).toContainText(/technical lead(?:ership)? on a new vector-diversity effort/i);
+  }
+  await expect(page.locator('.cm-step-now .cm-areas')).toContainText('Technical lead');
+  await expect(page.locator('.cm-step-now .cm-areas')).toContainText('Vector diversity');
+  await expect(page.locator('label[for="dv-diversity"]')).toHaveText('Search diversity');
+  const content = await page.evaluate(() => window.HeroChatContent);
+  const field = readFileSync(resolve(__dirname, '../assets/site/field.js'), 'utf8');
+  expect(field).toContain("label: 'Vector diversity'");
+  const fieldDocs = new Set([...field.matchAll(/docs: \[([^\]]+)\]/g)].flatMap(match =>
+    [...match[1].matchAll(/'([^']+)'/g)].map(label => label[1])));
+  for (const topic of [...content.VARIANTS, ...content.TOPICS]) {
+    for (const doc of topic.docs) expect(fieldDocs.has(doc), doc).toBe(true);
+    const copy = [topic.thought, topic.answer, ...(topic.prompts || []),
+      ...(topic.variants || []).flatMap(variant => [variant.thought, variant.answer])].filter(Boolean).join(' ');
+    expect(copy).not.toMatch(/(?:lead|leading|tech-lead|tech-leading) (?:a team of five|five engineers)/i);
+    expect(copy).not.toMatch(/(?<!vector[- ]|search[- ])\bdiversity\b/i);
+    for (const [id, label] of topic.sources || []) {
+      if (id === 'work-diversity') expect(label).toBe('Vector diversity');
+    }
+  }
 });
 
 test('the chosen demos are permanent Work chapters with valid headings and citations', async ({ page }) => {
@@ -388,7 +473,7 @@ test('the chosen demos are permanent Work chapters with valid headings and citat
 
 test('experience, examples, full role details, and biography stay connected', async ({ page }) => {
   expect(await page.locator('main > section').evaluateAll(sections => sections.map(section => section.id))).toEqual([
-    'top', 'profile-about', 'profile-work', 'profile-projects', 'profile-leadership', 'profile-education', 'profile-awards', 'contact'
+    'top', 'profile-about', 'profile-work', 'profile-projects', 'profile-leadership', 'profile-awards', 'profile-education', 'contact'
   ]);
   expect(await page.locator('#profile-work > .career-map').evaluate(card => card.nextElementSibling.id)).toBe('profile-work-records');
   await expect(page.locator('[class*="spike"], [href*="/spikes/"]')).toHaveCount(0);
@@ -459,6 +544,24 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 1080, height: 90
           }).map(node => node.className.baseVal || node.className)
         }));
         expect(overflow).toEqual({ page: 0, elements: [] });
+      }
+      for (const query of [{ x: 25, y: 25 }, { x: 535, y: 215 }]) {
+        await setQuery(page, query.x, query.y);
+        const fits = await page.locator('[data-hn-plot]').evaluate(plot => {
+          const label = plot.querySelector('.hn-query-label text');
+          const bounds = label.getBBox();
+          const position = label.getBoundingClientRect();
+          const plotBox = plot.getBoundingClientRect();
+          const searchArea = plot.querySelector('.hn-search-area').getBoundingClientRect();
+          const background = plot.querySelector('.hn-query-label rect').getBBox();
+          return {
+            text: bounds.x >= background.x && bounds.x + bounds.width <= background.x + background.width,
+            outsideGraph: position.top > searchArea.bottom,
+            plot: position.left >= plotBox.left && position.right <= plotBox.right &&
+              position.top >= plotBox.top && position.bottom <= plotBox.bottom
+          };
+        });
+        expect(fits).toEqual({ text: true, outsideGraph: true, plot: true });
       }
     }
   });
