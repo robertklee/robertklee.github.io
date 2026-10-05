@@ -582,6 +582,29 @@ test('current-role copy describes team technical leadership and qualifies search
   expect(missingSources).toEqual([]);
 });
 
+test('graph search is represented in the profile, HNSW example, chat, and metadata', async ({ page }) => {
+  for (const selector of ['.cv-about-copy', '#profile-work-entry-2 .cv-record-body', '#work-hnsw-title', '#work-hnsw .figure-heading', '.contact-lede']) {
+    await expect(page.locator(selector)).toContainText(/graph search/i);
+  }
+  for (const name of ['description', 'twitter:description']) {
+    await expect(page.locator(`meta[name="${name}"]`)).toHaveAttribute('content', /HNSW graph search/);
+  }
+  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /HNSW graph search/);
+  const identity = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+  expect(identity.knowsAbout).toContain('Graph Search');
+  expect(identity.knowsAbout).toContain('HNSW');
+  const content = await page.evaluate(() => window.HeroChatContent);
+  expect(content.VARIANTS.filter(variant => /graph search/i.test(variant.answer))).toHaveLength(3);
+  for (const variant of content.VARIANTS.filter(variant => /graph search/i.test(variant.answer))) {
+    expect(variant.docs).toContain('HNSW graph search');
+  }
+  const topic = content.TOPICS.find(topic => topic.id === 'graph-search');
+  expect(topic.category).toBe('technical');
+  expect(topic.followupOnly).not.toBe(true);
+  expect(topic.docs).toEqual(['HNSW graph search', 'HNSW quotas', 'SIMD distance']);
+  await expect(page.locator('#work-hnsw .fine-print')).toContainText('does not imply authorship of HNSW');
+});
+
 test('the chosen demos are permanent Work chapters with valid headings and citations', async ({ page }) => {
   await expect(page.locator('#work .chapter')).toHaveCount(5);
   await expect(page.locator('.experience-role').nth(0).locator('.chapter')).toHaveCount(2);
@@ -781,6 +804,8 @@ test('the vector explanations and full role links remain usable without JavaScri
     const page = await context.newPage();
     await page.goto(`${origin}/#work`);
     await expect(page.locator('#work [data-vector-fallback]')).toHaveCount(2);
+    await expect(page.locator('.hero-noscript')).toContainText('HNSW graph search');
+    await expect(page.locator('#work-hnsw .figure-heading')).toContainText('uses graph search');
     for (const id of ['work-simd', 'work-hnsw']) {
       await expect(page.locator(`#${id} [data-vector-fallback]`)).toBeVisible();
       await expect(page.locator(`#${id} .vector-demo-body`)).toBeHidden();

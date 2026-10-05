@@ -289,6 +289,48 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
   });
 }
 
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  test(`graph search questions, both answers, and citations work at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await accelerateStreams(page);
+    await page.route('**/chat-content.js', async route => {
+      const response = await route.fetch();
+      await route.fulfill({
+        response,
+        body: await response.text() + `
+          window.HeroChatContent.TOPICS.find(topic => topic.id === 'graph-search').weight = 4;
+        `,
+      });
+    });
+    for (const sample of [.35, .75]) {
+      await page.goto(`${origin}/?sample=${sample}`);
+      const topic = await page.evaluate(() => window.HeroChatContent.TOPICS.find(topic => topic.id === 'graph-search'));
+      const firstVariant = Math.floor(sample * topic.variants.length);
+      await page.getByRole('button', { name: topic.prompts[firstVariant], exact: true }).click();
+      const turn = page.locator('.chat-turn');
+      for (const index of [firstVariant, 1 - firstVariant]) {
+        if (index !== firstVariant) {
+          await turn.locator('.retry-btn').click();
+          await turn.locator('.retry-item').first().click();
+        }
+        const answer = turn.locator('.chat-answer .txt');
+        await expect(answer).toContainText(topic.variants[index].answer);
+        await expect(answer).toContainText(/graph search/i);
+        await expect(answer).toContainText(/candidate pool/i);
+        await expect(answer).toContainText(/recall/i);
+        await expect(answer).toContainText(/quota enforcement/i);
+        await expect(answer).toContainText('SIMD');
+        expect(await page.evaluate(() => window.HeroChatLastQuery)).toEqual({ topic: topic.id, docs: topic.docs });
+        await expect(turn.locator('.source-chip')).toHaveText(['1HNSW graph search', '2SIMD distance kernels', '3Software Engineer II']);
+      }
+      await turn.locator('.source-chip[href="#work-hnsw"]').click();
+      await expect(page).toHaveURL(/#work-hnsw$/);
+      await expect(page.locator('#work-hnsw-title')).toBeInViewport();
+    }
+  });
+}
+
 for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) {
   test(`mobile card grows and caps with accessible follow-ups at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);

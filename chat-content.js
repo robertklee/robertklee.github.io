@@ -34,9 +34,9 @@ window.HeroChatContent = (function () {
       docs: ['Vector diversity capability', 'Team technical leadership', 'Filter generation', 'Lucene boosts', 'Scalar quantization']
     },
     {
-      thought: "Explain the strongest work through what customers get: less repetition, natural-language search controls, and cheaper vectors. Identify vector-search diversity as current work and quantization as a shipped capability with workload-dependent impact.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval for AI apps: I'm currently working on vector-search diversity to reduce repetitive results, and I led filters generated from natural-language requests into production. Earlier, I helped make vector search much cheaper with binary quantization, part of work delivering 8\u201332\u00d7 cost savings depending on the workload.",
-      docs: ['Redundancy reduction', 'Filter generation', 'Binary quantization']
+      thought: "Connect vector search and HNSW graph search to retrieval for AI apps. Explain the strongest work through what customers get: less repetition, natural-language search controls, and cheaper vectors. Identify vector-search diversity as current work and quantization as a shipped capability with workload-dependent impact.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval for AI apps, including vector search and HNSW graph search. I'm currently working on vector-search diversity to reduce repetitive results, and I led filters generated from natural-language requests into production. Earlier, I helped make vector search much cheaper with binary quantization, part of work delivering 8\u201332\u00d7 cost savings depending on the workload.",
+      docs: ['HNSW graph search', 'Redundancy reduction', 'Filter generation', 'Binary quantization']
     },
     {
       thought: "Make technical leadership concrete: team size, direction, distributed architecture, and hands-on delivery. Pair the current vector-search diversity effort with completed research-to-production ownership for agentic retrieval.",
@@ -49,9 +49,9 @@ window.HeroChatContent = (function () {
       docs: ['Scalar quantization', 'Binary quantization', 'Team technical leadership', 'Redundancy reduction']
     },
     {
-      thought: "Show systems depth across scales: SIMD distance kernels, vector search across billions of embeddings, and the current distributed architecture for vector-search diversity. Preserve team attribution for broad production adoption.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My systems work ranges from SIMD-optimized vector distance kernels to helping scale vector search across billions of embeddings. Now I'm rethinking a research algorithm for distributed execution as part of a new vector-search diversity capability, preserving its strengths under production constraints.",
-      docs: ['SIMD distance', 'Vector search 1 to N', 'Distributed execution']
+      thought: "Show systems depth across scales: HNSW graph search, SIMD distance kernels, vector search across billions of embeddings, and the current distributed architecture for vector-search diversity. Preserve team attribution for broad production adoption.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My systems work spans HNSW graph search and SIMD-optimized vector distance kernels, helping scale vector search across billions of embeddings. Now I'm rethinking a research algorithm for distributed execution as part of a new vector-search diversity capability, preserving its strengths under production constraints.",
+      docs: ['HNSW graph search', 'SIMD distance', 'Vector search 1 to N', 'Distributed execution']
     },
     {
       thought: "Introduce agentic retrieval through substantial delivery: filter and boost generation, a benchmarking system, and the shipped billing model. Connect retrieval to grounded agents without claiming ownership of the whole agent platform.",
@@ -75,8 +75,8 @@ window.HeroChatContent = (function () {
     },
     {
       thought: "Tie the career's strongest engineering work to a clear purpose: better evidence for enterprise AI, at practical cost. Mention current vector-search diversity, shipped agentic filter and boost generation, and quantization at scale rather than smaller relevance controls.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is better evidence for enterprise AI, at a cost customers can use. I'm building vector-search diversity, led agentic filter and boost generation into production, and helped scale vector search across billions of embeddings, including quantization that delivered 8\u201332\u00d7 cost savings depending on the workload.",
-      docs: ['Vector diversity capability', 'Filter generation', 'Lucene boosts', 'Vector search 1 to N', 'Binary quantization']
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is better evidence for enterprise AI, at a cost customers can use. I'm building vector-search diversity, led agentic filter and boost generation into production, and helped scale vector search, including HNSW graph search, across billions of embeddings. Quantization delivered 8\u201332\u00d7 cost savings depending on the workload.",
+      docs: ['Vector diversity capability', 'Filter generation', 'Lucene boosts', 'Vector search 1 to N', 'HNSW graph search', 'Binary quantization']
     }
   ];
 
@@ -310,6 +310,27 @@ window.HeroChatContent = (function () {
       ]
     },
     {
+      id: 'graph-search',
+      category: 'technical',
+      weight: 2,
+      docs: ['HNSW graph search', 'HNSW quotas', 'SIMD distance'],
+      sources: [['work-hnsw', 'HNSW graph search'], ['work-simd', 'SIMD distance kernels'], ['profile-work-entry-2', 'Software Engineer II']],
+      prompts: [
+        "How does graph search power vector retrieval?",
+        "What's Robert's experience with HNSW graph search?"
+      ],
+      variants: [
+        {
+          thought: "Explain HNSW as graph-based approximate nearest-neighbour search, then tie it to Robert's documented engine work. Distinguish traversal from distance computation and the recall-versus-effort tradeoff from production quota enforcement. Do not imply authorship of HNSW.",
+          answer: "HNSW is a graph search approach to approximate nearest-neighbour retrieval: vectors are nodes, and links guide the search toward nearby candidates. Sparse upper levels provide shortcuts; the base level explores a candidate pool. Keeping more candidates can improve recall, but usually requires more distance comparisons. My work included resource-aware quota enforcement for HNSW indexes and SIMD-optimized distance kernels that make candidate comparisons efficient. The interactive demo shows the graph traversal, not the production index."
+        },
+        {
+          thought: "Start with Robert's contributions, then explain how HNSW graph traversal and SIMD distance kernels fit together. Keep the resource-quota work distinct from search parameters, and make the approximation tradeoff explicit.",
+          answer: "My HNSW graph search work focused on the vector engine: I designed quota enforcement tied to physical resource use and optimized vector-distance kernels with SIMD. HNSW searches by following links between stored vectors, taking shortcuts through sparse upper levels before exploring candidates at the base. Graph traversal determines which vectors to compare; SIMD makes those comparisons efficient. A larger candidate pool can improve recall at the cost of more search effort, but approximate search can still miss true neighbours."
+        }
+      ]
+    },
+    {
       id: 'hybrid-relevance',
       category: 'technical',
       weight: 1,
@@ -345,11 +366,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Reliability has two sides: prevention and recovery. For prevention, HNSW indexes are resource-hungry, and Robert built a data-driven quota mechanism tied to physical resource use that cut limit overshoot by 100\u00d7. For recovery, he root-causes hard incidents across teams. Cover both.",
-          answer: "I work on both prevention and incident response. For HNSW indexes, I designed quota enforcement tied to physical resource utilization, cutting limit overshoot by 100\u00d7 through cross-team design work. I also root-cause production incidents across teams and review distributed-systems and vector-algorithm changes, with the goal of restoring service quickly and preventing recurrence."
+          answer: "I work on both prevention and incident response. For HNSW graph search indexes, I designed quota enforcement tied to physical resource utilization, cutting limit overshoot by 100\u00d7 through cross-team design work. I also root-cause production incidents across teams and review distributed-systems and vector-algorithm changes, with the goal of restoring service quickly and preventing recurrence."
         },
         {
           thought: "Start with incidents, then the structural fix. Robert root-causes cross-team incidents and reviews distributed-systems and vector-algorithm changes, and the HNSW quota work fixed one class of problem at the source. Keep incident details private.",
-          answer: "Incident response means tracing failures across team and system boundaries, restoring service, and following through with a durable fix. I also work on structural prevention: the HNSW quota enforcement I designed ties limits to physical resource use and cut overshoot by 100\u00d7. Reviews of distributed-systems and vector-algorithm changes are another part of preventing the next incident."
+          answer: "Incident response means tracing failures across team and system boundaries, restoring service, and following through with a durable fix. I also work on structural prevention: the quota enforcement I designed for HNSW graph search indexes ties limits to physical resource use and cut overshoot by 100\u00d7. Reviews of distributed-systems and vector-algorithm changes are another part of preventing the next incident."
         }
       ]
     },
