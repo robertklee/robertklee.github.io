@@ -50,6 +50,20 @@ const setRange = async (page, selector, value) => {
     input.dispatchEvent(new Event('input', { bubbles: true }));
   }, value);
 };
+const viewSIMD = (page, visible = true) => page.locator('.si-processors').evaluate(async (node, visible) => {
+  await document.fonts.ready;
+  // IntersectionObserver uses native rendering, not Playwright's simulated timer clock.
+  await new Promise(resolve => {
+    const observer = new IntersectionObserver(entries => {
+      if (!entries.some(entry => (entry.isIntersecting && entry.intersectionRatio >= 0.5) === visible)) return;
+      observer.disconnect();
+      resolve();
+    }, { threshold: [0, 0.5] });
+    observer.observe(node);
+    if (visible) node.scrollIntoView({ block: 'center', behavior: 'instant' });
+    else window.scrollTo({ top: 0, behavior: 'instant' });
+  });
+}, visible);
 const setQuery = (page, x, y) => page.locator('[data-hn-plot]').evaluate((plot, query) => {
   plot.scrollIntoView({ block: 'center', behavior: 'instant' });
   const position = new DOMPoint(query.x, 370 + query.y * 0.9).matrixTransform(plot.getScreenCTM());
@@ -187,6 +201,124 @@ test('SIMD reduces the packed accumulator only after all vector MAC operations',
     await expect(page.locator('[data-si-accumulators] .is-reducing')).toHaveCount(0);
     await expect(page.locator('[data-si-vector-total]')).toHaveText(await page.locator('[data-si-scalar-total]').textContent());
   }
+});
+
+test('SIMD repeats with an exact two-second hold without repeating live announcements', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(page.locator('[data-si-pause]')).toBeVisible();
+  await viewSIMD(page);
+  await page.evaluate(() => {
+    window.simdAnnouncements = 0;
+    new MutationObserver(() => { window.simdAnnouncements++; })
+      .observe(document.querySelector('[data-si-live]'), { childList: true });
+  });
+  await page.locator('[data-si-replay]').evaluate(button => button.click());
+  for (let cycle = 0; cycle < 3; cycle++) {
+    await expect(page.locator('[data-si-scalar-ops]')).toHaveText('0 / 16 MAC operations');
+    await page.clock.runFor(3200);
+    await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
+    await expect(page.locator('[data-si-vector-total]')).toHaveText(await page.locator('[data-si-scalar-total]').textContent());
+    await page.clock.runFor(1999);
+    await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
+    await page.clock.runFor(1);
+  }
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('0 / 16 MAC operations');
+  expect(await page.evaluate(() => window.simdAnnouncements)).toBe(0);
+});
+
+test('SIMD can pause a step or the repeat delay, resume, and change inputs without unwanted motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(page.locator('[data-si-pause]')).toBeVisible();
+  await viewSIMD(page);
+  const pause = page.locator('[data-si-pause]');
+  const replay = page.locator('[data-si-replay]');
+  await expect(pause).toHaveText('Pause animation');
+  await replay.evaluate(button => button.click());
+  await page.clock.runFor(600);
+  await pause.evaluate(button => button.click());
+  await expect(pause).toHaveText('Resume animation');
+  await page.clock.runFor(10000);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('3 / 16 MAC operations');
+  await pause.evaluate(button => button.click());
+  await page.clock.runFor(200);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('4 / 16 MAC operations');
+  await pause.evaluate(button => button.click());
+  await page.locator('[data-si-sample="far"]').evaluate(button => button.click());
+  await page.locator('[data-si-lanes="8"]').evaluate(button => button.click());
+  await expect(pause).toHaveText('Resume animation');
+  await expect(page.locator('[data-si-accumulators] > span')).toHaveCount(8);
+  await expect(page.locator('[data-si-vector-total]')).toHaveText(await page.locator('[data-si-scalar-total]').textContent());
+  await page.clock.runFor(10000);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
+  await pause.evaluate(button => button.click());
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('0 / 16 MAC operations');
+  await page.clock.runFor(3200);
+  await pause.evaluate(button => button.click());
+  await page.clock.runFor(10000);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
+  await replay.evaluate(button => button.click());
+  await expect(pause).toHaveText('Pause animation');
+  await page.clock.runFor(400);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('2 / 16 MAC operations');
+});
+
+test('SIMD suspends active and delayed cycles offscreen, in hidden tabs, and with reduced motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(page.locator('[data-si-pause]')).toBeVisible();
+  await viewSIMD(page);
+  await page.locator('[data-si-replay]').evaluate(button => button.click());
+  await page.clock.runFor(3200);
+  await viewSIMD(page, false);
+  await page.clock.runFor(10000);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
+  await viewSIMD(page);
+  await page.clock.runFor(400);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('2 / 16 MAC operations');
+  await viewSIMD(page, false);
+  await page.clock.runFor(10000);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('2 / 16 MAC operations');
+  await viewSIMD(page);
+  await page.clock.runFor(200);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('3 / 16 MAC operations');
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.clock.runFor(10000);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
+  await page.evaluate(() => {
+    delete document.hidden;
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.clock.runFor(400);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('2 / 16 MAC operations');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.locator('[data-si-pause]')).toBeHidden();
+  await expect(page.locator('[data-si-loop-note]')).toBeHidden();
+  await page.clock.runFor(10000);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(page.locator('[data-si-pause]')).toBeVisible();
+  await page.clock.runFor(400);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('2 / 16 MAC operations');
+});
+
+test('SIMD input changes and replay replace pending cycles rather than starting duplicate timers', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(page.locator('[data-si-pause]')).toBeVisible();
+  await viewSIMD(page);
+  await page.locator('[data-si-replay]').evaluate(button => button.click());
+  await page.clock.runFor(4200);
+  await page.locator('[data-si-sample="far"]').evaluate(button => button.click());
+  await page.clock.runFor(1999);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('9 / 16 MAC operations');
+  await page.locator('[data-si-lanes="8"]').evaluate(button => button.click());
+  await page.clock.runFor(200);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('1 / 16 MAC operations');
+  await page.locator('[data-si-replay]').evaluate(button => button.click());
+  await page.clock.runFor(400);
+  await expect(page.locator('[data-si-scalar-ops]')).toHaveText('2 / 16 MAC operations');
+  await expect(page.locator('[data-si-vector-ops]')).toHaveText('2 / 2 vector MAC operations');
 });
 
 test('HNSW has four nested levels and valid descent points between all adjacent levels', async ({ page }) => {
@@ -571,11 +703,11 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 }
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
-  test(`SIMD and HNSW autoplay once, replay, and respect reduced motion at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+  test(`SIMD repeats while HNSW autoplays once, with replay and reduced motion at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.reload();
-    await page.locator('.si-processors').evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await viewSIMD(page);
     await page.clock.runFor(1400);
     await expect(page.locator('[data-si-vector-ops]')).toHaveText('4 / 4 vector MAC operations');
     await expect(page.locator('[data-si-scalar-ops]')).not.toHaveText('16 / 16 MAC operations');
@@ -586,9 +718,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await expect(page.locator('[data-hn-status]')).not.toContainText('Search complete');
     await page.clock.runFor(10000);
     await expect(page.locator('[data-hn-status]')).toContainText('Search complete');
-    await page.locator('.si-processors').evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await viewSIMD(page);
     await page.clock.runFor(500);
-    await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
+    await expect(page.locator('[data-si-scalar-ops]')).not.toHaveText('16 / 16 MAC operations');
     await page.locator('.hn-level[data-level="0"]').evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }));
     await page.clock.runFor(300);
     await expect(page.locator('[data-hn-status]')).toContainText('Search complete');
@@ -604,6 +736,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 1080, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
   test(`vector demos fit in light and dark layouts at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await expect(page.locator('[data-si-pause]')).toBeVisible();
     for (const theme of ['light', 'dark']) {
       await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
       for (const id of ['work-simd', 'work-hnsw']) {

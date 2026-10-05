@@ -2,6 +2,7 @@
 .vector-demo-figure figcaption { padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; line-height: 1.6; }
 .vector-demo-figure [data-vector-fallback] { color: var(--muted); font-size: 14px; }
 .vector-demo-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.vector-demo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .vector-demo-replay { min-height: 44px; padding: 8px 14px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--bg); color: var(--heading); font-size: 13px; }
 .vector-demo-replay:hover { border-color: var(--accent); }
 .vector-demo-label { color: var(--faint); font: 500 11px/1.4 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; }

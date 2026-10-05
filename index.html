@@ -473,8 +473,12 @@
                   <button type="button" data-si-lanes="4" aria-pressed="true">4 lanes</button>
                   <button type="button" data-si-lanes="8" aria-pressed="false">8 lanes</button>
                 </div>
-                <button type="button" class="vector-demo-replay" data-si-replay>Replay comparison</button>
+                <div class="vector-demo-actions">
+                  <button type="button" class="vector-demo-replay" data-si-pause hidden>Pause animation</button>
+                  <button type="button" class="vector-demo-replay" data-si-replay>Replay comparison</button>
+                </div>
               </div>
+              <p class="vector-demo-note" data-si-loop-note hidden>Repeats while in view, with a 2-second pause between comparisons. Pause the animation to inspect a step.</p>
               <div class="segmented" role="group" aria-label="Candidate vector">
                 <button type="button" data-si-sample="near" aria-pressed="true">Nearby</button>
                 <button type="button" data-si-sample="far" aria-pressed="false">Different</button>

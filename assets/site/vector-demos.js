@@ -29,8 +29,16 @@
     const stop = () => { clearInterval(timer); timer = 0; };
     const complete = () => {
       stop();
-      paint(frames[frames.length - 1]);
+      index = frames.length - 1;
+      paint(frames[index]);
       announce();
+    };
+    const run = () => {
+      timer = setInterval(() => {
+        index++;
+        if (index === frames.length - 1) complete();
+        else paint(frames[index]);
+      }, 200);
     };
     reduced.addEventListener('change', () => {
       if (reduced.matches && timer) complete();
@@ -39,6 +47,7 @@
       if (document.hidden && timer) complete();
     });
     return {
+      stop,
       show(next) { frames = next; complete(); },
       play(next) {
         stop();
@@ -46,11 +55,16 @@
         index = 0;
         if (reduced.matches) { complete(); return; }
         paint(frames[index]);
-        timer = setInterval(() => {
-          index++;
-          if (index === frames.length - 1) complete();
-          else paint(frames[index]);
-        }, 200);
+        run();
+      },
+      resume() {
+        if (timer) return;
+        if (reduced.matches) { complete(); return; }
+        if (index === frames.length - 1) {
+          index = 0;
+          paint(frames[index]);
+        }
+        run();
       }
     };
   }
@@ -151,31 +165,78 @@
     }
 
     const frames = Array.from({ length: 17 }, (_, i) => i);
+    const pauseButton = simd.querySelector('[data-si-pause]');
+    const loopNote = simd.querySelector('[data-si-loop-note]');
+    let repeatTimer = 0;
+    let inView = false;
+    let paused = false;
+    const clearRepeat = () => { clearTimeout(repeatTimer); repeatTimer = 0; };
+    const canRepeat = () => inView && !paused && !reduced.matches && !document.hidden;
     const player = playback(paintSIMD, () => {
-      simd.querySelector('[data-si-live]').textContent = simd.querySelector('[data-si-status]').textContent +
+      const live = simd.querySelector('[data-si-live]');
+      const message = simd.querySelector('[data-si-status]').textContent +
         ` Dot product ${simd.querySelector('[data-si-vector-total]').textContent}, equal to cosine similarity for these unit vectors.`;
+      if (live.textContent !== message) live.textContent = message;
+      clearRepeat();
+      if (canRepeat()) repeatTimer = setTimeout(() => {
+        repeatTimer = 0;
+        if (canRepeat()) player.play(frames);
+      }, 2000);
     });
+    const syncPauseButton = () => {
+      pauseButton.hidden = reduced.matches || !('IntersectionObserver' in window);
+      pauseButton.textContent = paused ? 'Resume animation' : 'Pause animation';
+      loopNote.hidden = reduced.matches || !('IntersectionObserver' in window);
+    };
+    const syncCycle = () => {
+      clearRepeat();
+      syncPauseButton();
+      if (canRepeat()) player.resume();
+      else {
+        player.stop();
+        if (reduced.matches) player.show(frames);
+      }
+    };
+    const playSelection = () => {
+      clearRepeat();
+      if (paused) player.show(frames);
+      else player.play(frames);
+    };
     buildSIMD();
     player.show(frames);
     revealBody(simd);
-    const cancelAuto = onFirstView(simd.querySelector('.si-processors'), () => player.play(frames));
+    syncPauseButton();
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        const visible = entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.5);
+        if (visible === inView) return;
+        inView = visible;
+        syncCycle();
+      }, { threshold: [0, 0.5] });
+      observer.observe(simd.querySelector('.si-processors'));
+    }
+    reduced.addEventListener('change', syncCycle);
+    document.addEventListener('visibilitychange', syncCycle);
+    pauseButton.addEventListener('click', () => {
+      paused = !paused;
+      syncCycle();
+    });
     laneButtons.forEach(button => button.addEventListener('click', () => {
-      cancelAuto();
       lanes = Number(button.dataset.siLanes);
       press(laneButtons, button);
       buildSIMD();
-      player.play(frames);
+      playSelection();
     }));
     sampleButtons.forEach(button => button.addEventListener('click', () => {
-      cancelAuto();
       sample = button.dataset.siSample;
       press(sampleButtons, button);
       buildSIMD();
-      player.play(frames);
+      playSelection();
     }));
     simd.querySelector('[data-si-replay]').addEventListener('click', () => {
-      cancelAuto();
-      player.play(frames);
+      paused = false;
+      syncPauseButton();
+      playSelection();
     });
   }
 

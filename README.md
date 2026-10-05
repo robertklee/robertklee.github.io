@@ -12,7 +12,7 @@ A single-page profile that demonstrates retrieval as well as describing it. A sc
    - **Vector diversity:** travel-planning, shopping, grounding, and feed scenarios with a search-diversity slider over a neighbourhood graph.
    - **Agentic retrieval:** a natural-language request becomes OData filters (`eq`, `ne`, `and`, `or` over categorical fields) and Lucene boosts; anything outside that set is left to ranking.
    - **Quantization:** a value ladder and a memory-at-scale meter. On first view, the value sweeps across zero and back, showing FP32 motion, INT8 steps, and the binary sign change; using the value slider cancels autoplay.
-   - **SIMD:** a unit-vector dot product compares scalar MAC operations with four- or eight-lane packed operations, followed by an explicit horizontal reduction.
+   - **SIMD:** a unit-vector dot product compares scalar MAC operations with four- or eight-lane packed operations, followed by an explicit horizontal reduction. While at least half the processor comparison is in view, it repeats after a two-second hold on the completed result. Scrolling away or hiding the tab suspends the loop; returning resumes it. Pause/Resume holds the current animation step, and changing a candidate or lane count while paused shows its completed result without restarting motion. Replay starts a fresh comparison and re-enables looping. Reduced motion shows the final result with no loop. Repeated identical cycles do not re-announce the same screen-reader result. Without IntersectionObserver, comparisons remain manually playable.
    - **HNSW:** four nested graph levels illustrate greedy upper-level navigation and bounded best-first base-level search, with an adjustable `efSearch` pool. A contrasting Q diamond identifies the query vector, with a linked callout below Level 0 so the label never covers stored vectors. The outlined base graph invites clicks or taps to move the query and replay; focusing the graph and pressing arrow keys moves it in ten-unit steps. Preset buttons remain available. The readout shows unique vectors compared and how many of the true nearest three were found, alongside the reference results from comparing all 24 vectors.
 4. **Projects, Community & mentoring, Awards & achievements, and Education.**
 5. **Contact:** a closing call to action.
@@ -79,7 +79,8 @@ including exact curve-geometry preservation, card-triggered reveals, newest-firs
 Run `npm run test:vectors` for the SIMD and HNSW browser checks: unit norms,
 dot-product arithmetic, MAC counts and reduction staging, nested levels and search
 results, nearest-match counts and distance ties, labeled query placement by
-mouse/touch/keyboard, controls, motion, and responsive layouts.
+mouse/touch/keyboard, controls, SIMD's repeated cycles and pause interval,
+manual pause/resume, visibility and reduced-motion handling, and responsive layouts.
 These checks also cover role grouping, consolidated newest-first records,
 contribution labels, expand-all, keyboard and no-JavaScript role navigation,
 return links, and reload alignment on desktop and mobile, plus consistent
