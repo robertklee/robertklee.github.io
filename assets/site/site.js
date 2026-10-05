@@ -60,6 +60,10 @@
   });
   window.addEventListener('popstate', () => scrollToSection());
   if (window.location.hash) scrollToSection();
+  // A reload can restore the old scroll position after collapsed records change height.
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted && window.location.hash) requestAnimationFrame(() => scrollToSection());
+  });
 
   // Highlight the section in view.
   const sections = navigation.map(link => document.getElementById(link.hash.slice(1))).filter(Boolean);

@@ -47,7 +47,7 @@
   const entranceEffect = window.HeroFieldEntrance;
 
   const CLUSTERS = [
-    { id: 'diversity', label: 'Vector diversity', docs: ['Vector diversity capability', 'Redundancy reduction', 'Corpus-spanning grounding', 'E-commerce & recs', 'Distributed execution', 'Technical collaboration'] },
+    { id: 'diversity', label: 'Vector diversity', docs: ['Vector diversity capability', 'Redundancy reduction', 'Corpus-spanning grounding', 'E-commerce & recs', 'Distributed execution', 'Team technical leadership'] },
     { id: 'agentic', label: 'Agentic retrieval', docs: ['Filter generation', 'Lucene boosts', 'Bounded operator set', 'Production analysis', 'Agent tool calling', 'RAG grounding'] },
     { id: 'performance', label: 'Performance & cost', docs: ['Scalar quantization', 'Binary quantization', 'SIMD distance', 'Workload benchmarks', 'Billing model'] },
     { id: 'engine', label: 'Search engine', docs: ['Vector search 1 to N', 'Subscore fusion', 'Score thresholds', 'HNSW quotas', 'Facet engine', 'Incident response'] },

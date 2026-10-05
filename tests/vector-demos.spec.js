@@ -414,10 +414,10 @@ test.describe('touch query placement', () => {
   });
 });
 
-test('current-role copy describes technical leadership and qualifies search diversity throughout the chat', async ({ page }) => {
+test('current-role copy describes team technical leadership and qualifies search diversity throughout the chat', async ({ page }) => {
   await expect(page.locator('#experience-role-1-title')).toHaveText('Senior Software Engineer');
   for (const selector of ['.cv-about-copy', '#career-map-desc', '.experience-role-heading', '#profile-work-entry-1', '#work-diversity .chapter-copy']) {
-    await expect(page.locator(selector).first()).toContainText(/technical lead(?:ership)? on a new vector-diversity effort/i);
+    await expect(page.locator(selector).first()).toContainText(/technical lead for a team of five engineers and scientists/i);
   }
   await expect(page.locator('.cm-step-now .cm-areas')).toContainText('Technical lead');
   await expect(page.locator('.cm-step-now .cm-areas')).toContainText('Vector diversity');
@@ -432,11 +432,22 @@ test('current-role copy describes technical leadership and qualifies search dive
     const copy = [topic.thought, topic.answer, ...(topic.prompts || []),
       ...(topic.variants || []).flatMap(variant => [variant.thought, variant.answer])].filter(Boolean).join(' ');
     expect(copy).not.toMatch(/(?:lead|leading|tech-lead|tech-leading) (?:a team of five|five engineers)/i);
+    expect(copy).not.toMatch(/technical lead on (?:a new vector-diversity effort|vector diversity)/i);
     expect(copy).not.toMatch(/(?<!vector[- ]|search[- ])\bdiversity\b/i);
     for (const [id, label] of topic.sources || []) {
       if (id === 'work-diversity') expect(label).toBe('Vector diversity');
     }
   }
+  for (const variant of content.TOPICS.find(topic => topic.id === 'tech-lead').variants) {
+    expect(variant.answer).toContain('Senior Software Engineer');
+    expect(variant.answer).toContain('technical lead for a team of five engineers and scientists');
+    expect(variant.answer).toContain('technical direction');
+    expect(variant.answer).toContain('own delivery');
+    expect(variant.answer).toContain('hands-on implementation');
+  }
+  const missingSources = await page.evaluate(() => window.HeroChatContent.TOPICS.flatMap(topic =>
+    (topic.sources || []).map(([id]) => id)).filter(id => !document.getElementById(id)));
+  expect(missingSources).toEqual([]);
 });
 
 test('the chosen demos are permanent Work chapters with valid headings and citations', async ({ page }) => {
@@ -475,7 +486,19 @@ test('experience, examples, full role details, and biography stay connected', as
   expect(await page.locator('main > section').evaluateAll(sections => sections.map(section => section.id))).toEqual([
     'top', 'profile-about', 'profile-work', 'profile-projects', 'profile-leadership', 'profile-awards', 'profile-education', 'contact'
   ]);
-  expect(await page.locator('#profile-work > .career-map').evaluate(card => card.nextElementSibling.id)).toBe('profile-work-records');
+  expect(await page.locator('#profile-work > .career-map').evaluate(card => card.nextElementSibling.id)).toBe('work');
+  await expect(page.locator('#work details.cv-details')).toHaveCount(0);
+  await expect(page.locator('#work .experience-details-link')).toHaveCount(2);
+  expect(await page.locator('#profile-work-records details.cv-details').evaluateAll(records => records.map(record => record.id))).toEqual([
+    'profile-work-entry-1', 'profile-work-entry-2', 'profile-work-entry-3', 'profile-work-entry-4', 'profile-work-entry-5', 'profile-work-entry-6'
+  ]);
+  await expect(page.locator('#profile-experience #profile-work-records > .cv-record')).toHaveCount(6);
+  await expect(page.locator('#profile-work-records .cv-record-title')).toHaveText([
+    'Senior Software Engineer, Microsoft Azure AI Search', 'Software Engineer II, Microsoft Azure AI Search',
+    'Software Engineer, Microsoft Azure AI Search', 'Software Engineer Intern, Microsoft Azure Cognitive Search',
+    'Software Engineer Intern, Microsoft Azure Search (AI Platform)', 'Software Developer Intern, Microsoft Garage'
+  ]);
+  await expect(page.locator('#profile-experience [data-expand-all]')).toHaveCount(1);
   await expect(page.locator('[class*="spike"], [href*="/spikes/"]')).toHaveCount(0);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'index, follow');
   await page.locator('.about-more > summary').click();
@@ -495,6 +518,57 @@ test('experience, examples, full role details, and biography stay connected', as
   await page.locator('.site-nav a[href="#profile-work"]').click();
   await expect(page.locator('.site-nav a[href="#profile-work"]')).toHaveAttribute('aria-current', 'location');
 });
+
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  test(`highlight links open consolidated role details and return to examples at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    for (const [index, example] of [[1, 'work-diversity'], [2, 'work-quantization']]) {
+      const record = page.locator(`#profile-work-entry-${index}`);
+      const link = page.locator(`.experience-role-heading .experience-details-link[href="#profile-work-entry-${index}"]`);
+      await expect(link).toContainText('Full role details');
+      await link.focus();
+      await page.keyboard.press('Enter');
+      await expect(page).toHaveURL(new RegExp(`#profile-work-entry-${index}$`));
+      await expect(record).toHaveAttribute('open', '');
+      await expect(record).toBeFocused();
+      await expect(record.locator('.cv-record-body')).toBeVisible();
+      expect(await record.evaluate(node => node.closest('section').id)).toBe('profile-experience');
+      const position = await record.evaluate(node => ({
+        top: node.getBoundingClientRect().top,
+        headerBottom: document.querySelector('.site-header').getBoundingClientRect().bottom
+      }));
+      expect(position.top).toBeGreaterThanOrEqual(position.headerBottom - 1);
+      expect(position.top).toBeLessThan(200);
+      await record.locator(`a[href="#${example}"]`).click();
+      await expect(page).toHaveURL(new RegExp(`#${example}$`));
+      await expect(page.locator(`#${example}`)).toBeFocused();
+      await page.goBack();
+      await expect(page).toHaveURL(new RegExp(`#profile-work-entry-${index}$`));
+      await expect(record).toHaveAttribute('open', '');
+      await page.reload();
+      await page.clock.runFor(32);
+      await expect(record).toHaveAttribute('open', '');
+      await expect(record.locator('.cv-record-body')).toBeVisible();
+      const reloadPosition = await record.evaluate(node => ({
+        top: node.getBoundingClientRect().top,
+        headerBottom: document.querySelector('.site-header').getBoundingClientRect().bottom
+      }));
+      expect(reloadPosition.top).toBeGreaterThanOrEqual(reloadPosition.headerBottom - 1);
+      expect(reloadPosition.top).toBeLessThan(200);
+    }
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      for (const card of ['.experience-role-heading', '#profile-experience']) {
+        const overflow = await page.locator(card).evaluateAll(nodes => nodes.flatMap(node =>
+          [node, ...node.querySelectorAll('*')].filter(element => {
+            const box = element.getBoundingClientRect();
+            return box.width > 0 && (box.left < -1 || box.right > innerWidth + 1);
+          }).map(element => element.className)));
+        expect(overflow).toEqual([]);
+      }
+    }
+  });
+}
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
   test(`SIMD and HNSW autoplay once, replay, and respect reduced motion at ${viewport.width}x${viewport.height}`, async ({ page }) => {
@@ -567,7 +641,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 1080, height: 90
   });
 }
 
-test('the vector explanations remain readable without JavaScript', async ({ browser }) => {
+test('the vector explanations and full role links remain usable without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   try {
     const page = await context.newPage();
@@ -578,6 +652,14 @@ test('the vector explanations remain readable without JavaScript', async ({ brow
       await expect(page.locator(`#${id} .vector-demo-body`)).toBeHidden();
       await page.locator(`#${id} details summary`).click();
       await expect(page.locator(`#${id} details p`).first()).toBeVisible();
+    }
+    for (const index of [1, 2]) {
+      await page.locator(`.experience-role-heading .experience-details-link[href="#profile-work-entry-${index}"]`).click();
+      await expect(page).toHaveURL(new RegExp(`#profile-work-entry-${index}$`));
+      const record = page.locator(`#profile-experience #profile-work-entry-${index}`);
+      await expect(record.locator(':scope > summary')).toBeVisible();
+      if (await record.getAttribute('open') === null) await record.locator(':scope > summary').click();
+      await expect(record.locator('.cv-record-body')).toBeVisible();
     }
   } finally {
     await context.close();
