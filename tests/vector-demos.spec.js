@@ -739,17 +739,22 @@ test('current-role copy describes team technical leadership and qualifies search
   expect(missingSources).toEqual([]);
 });
 
-test('graph search is represented in the profile, HNSW example, chat, and metadata', async ({ page }) => {
-  for (const selector of ['.cv-about-copy', '#profile-work-entry-2 .cv-record-body', '#work-hnsw-title', '#work-hnsw .figure-heading', '.contact-lede']) {
-    await expect(page.locator(selector)).toContainText(/graph search/i);
-  }
+test('HNSW reliability work and its graph-search illustration stay distinct from the broader retrieval profile', async ({ page }) => {
+  await expect(page.locator('.cv-about-copy')).toContainText(/information retrieval/i);
+  await expect(page.locator('.contact-lede')).toContainText(/retrieval/i);
+  await expect(page.locator('#profile-work-entry-2 .cv-record-body')).toContainText(/quota-enforcement mechanism for HNSW indexes/i);
+  await expect(page.locator('#work-hnsw-title')).toHaveText('HNSW & vector-engine reliability');
+  await expect(page.locator('#work-hnsw .chapter-lede')).toContainText('resource-aware HNSW enforcement');
+  await expect(page.locator('#work-hnsw .figure-illustration-label')).toHaveText('Interactive concept illustration');
+  await expect(page.locator('#work-hnsw .figure-illustration-scope')).toHaveText('HNSW search structure, not the production reliability work');
+  await expect(page.locator('#work-hnsw .figure-heading')).toContainText('how the graph finds nearby vectors');
   for (const name of ['description', 'twitter:description']) {
-    await expect(page.locator(`meta[name="${name}"]`)).toHaveAttribute('content', /HNSW graph search/);
+    await expect(page.locator(`meta[name="${name}"]`)).toHaveAttribute('content', /vector-search diversity/);
   }
-  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /HNSW graph search/);
+  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /vector-search diversity/);
   const identity = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
   expect(identity.knowsAbout).toContain('Graph Search');
-  expect(identity.knowsAbout).toContain('HNSW');
+  expect(identity.knowsAbout).toContain('Vector Search');
   const content = await page.evaluate(() => window.HeroChatContent);
   expect(content.VARIANTS.filter(variant => /graph search/i.test(variant.answer))).toHaveLength(3);
   for (const variant of content.VARIANTS.filter(variant => /graph search/i.test(variant.answer))) {
@@ -975,8 +980,10 @@ test('the vector explanations and full role links remain usable without JavaScri
     const page = await context.newPage();
     await page.goto(`${origin}/#work`);
     await expect(page.locator('#work [data-vector-fallback]')).toHaveCount(2);
-    await expect(page.locator('.hero-noscript')).toContainText('HNSW graph search');
-    await expect(page.locator('#work-hnsw .figure-heading')).toContainText('uses graph search');
+    await expect(page.locator('.hero-noscript')).toBeVisible();
+    await expect(page.locator('.hero-noscript')).toContainText('retrieval systems');
+    await expect(page.locator('#work-hnsw .figure-illustration-scope')).toHaveText('HNSW search structure, not the production reliability work');
+    await expect(page.locator('#work-hnsw .figure-heading')).toContainText('how the graph finds nearby vectors');
     for (const id of ['work-simd', 'work-hnsw']) {
       await expect(page.locator(`#${id} [data-vector-fallback]`)).toBeVisible();
       await expect(page.locator(`#${id} .vector-demo-body`)).toBeHidden();
