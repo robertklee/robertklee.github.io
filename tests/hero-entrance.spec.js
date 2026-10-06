@@ -155,7 +155,11 @@ async function inspectIdleField(page) {
           };
         },
         get query() { return query; },
-        get activity() { return { frame, wakeTimer, visible, entranceProgress }; },
+        get activity() { return { frame, wakeTimer, visible, entranceProgress, interval: frameInterval(performance.now()) }; },
+        get idleSince() { return idleSince; },
+        set idleSince(value) { idleSince = value; },
+        get sceneTime() { return sceneTime; },
+        get positions() { return nodes.map(node => [node.sx, node.sy]); },
         get visibilityMargin() { return visibilityObserver.rootMargin; },
         get regions() { return clusterInfo; },
         get motionReduced() { return motionQuery.matches; },
@@ -172,6 +176,8 @@ async function inspectIdleField(page) {
         },
         draw,
         kick,
+        activate,
+        frameInterval,
         onQuery
       };
 ${hook}`),
@@ -219,8 +225,12 @@ async function expectFieldIdle(page, holding = false) {
   await page.evaluate(async () => {
     await document.fonts.ready;
     window.heroIdleCheck = null;
+    window.heroFieldTest.idleSince = performance.now() - 21000;
+    window.heroFieldTest.kick();
   });
   await page.waitForFunction(holding => {
+    // Skip decorative drift while checking transition settling and result holds.
+    window.heroFieldTest.idleSince = performance.now() - 21000;
     const activity = window.heroFieldTest?.activity;
     if (!activity || activity.entranceProgress !== 1 || activity.frame !== 0 ||
         Boolean(activity.wakeTimer) !== holding) {
@@ -237,7 +247,73 @@ async function expectFieldIdle(page, holding = false) {
   expect(await page.evaluate(() => window.heroDrawCount)).toBe(count);
 }
 
+test('idle drift automatically slows at eight seconds and stops at twenty without further activity', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  await page.evaluate(() => window.heroFieldTest.activate());
+  await page.waitForFunction(() => window.heroFieldTest.activity.interval === 125);
+  const slowedAt = await page.evaluate(() => performance.now() - window.heroFieldTest.idleSince);
+  expect(slowedAt).toBeGreaterThanOrEqual(8000);
+  expect(slowedAt).toBeLessThan(8500);
+  await page.waitForFunction(() => {
+    const activity = window.heroFieldTest.activity;
+    return activity.interval === 0 && activity.frame === 0 && activity.wakeTimer === 0;
+  });
+  const stoppedAt = await page.evaluate(() => performance.now() - window.heroFieldTest.idleSince);
+  expect(stoppedAt).toBeGreaterThanOrEqual(20000);
+  expect(stoppedAt).toBeLessThan(20500);
+  const count = await page.evaluate(() => window.heroDrawCount);
+  await page.waitForTimeout(350);
+  expect(await page.evaluate(() => window.heroDrawCount)).toBe(count);
+});
+
 for (const pathname of ['/', '/404.html']) {
+  test(`field drifts at 30 FPS for 8 seconds, 8 FPS until 20 seconds, then stops on ${pathname}`, async ({ page }) => {
+    await inspectIdleField(page);
+    await page.goto(origin + pathname);
+    await expectFieldIdle(page);
+    await page.evaluate(() => window.heroFieldTest.activate());
+    expect(await page.evaluate(() => {
+      const field = window.heroFieldTest;
+      return [0, 7999, 8000, 19999, 20000].map(age => field.frameInterval(field.idleSince + age));
+    })).toEqual([1000 / 30, 1000 / 30, 125, 125, 0]);
+    const activeCount = await page.evaluate(() => window.heroDrawCount);
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => window.heroDrawCount)).toBeGreaterThan(activeCount + 8);
+    await page.evaluate(() => {
+      window.heroFieldTest.idleSince = performance.now() - 8000;
+      window.heroFieldTest.kick();
+    });
+    await page.waitForTimeout(150);
+    const low = await page.evaluate(() => ({
+      count: window.heroDrawCount, time: window.heroFieldTest.sceneTime, positions: window.heroFieldTest.positions,
+    }));
+    await page.waitForTimeout(1000);
+    const drift = await page.evaluate(() => ({
+      count: window.heroDrawCount, time: window.heroFieldTest.sceneTime, positions: window.heroFieldTest.positions,
+    }));
+    expect(drift.count - low.count).toBeGreaterThanOrEqual(6);
+    expect(drift.count - low.count).toBeLessThanOrEqual(8);
+    expect(drift.time - low.time).toBeGreaterThan(750);
+    expect(drift.positions).not.toEqual(low.positions);
+    await page.evaluate(() => {
+      window.heroFieldTest.idleSince = performance.now() - 19500;
+      window.heroFieldTest.kick();
+    });
+    await page.waitForFunction(() => window.heroFieldTest.activity.interval === 0 &&
+      window.heroFieldTest.activity.frame === 0 && window.heroFieldTest.activity.wakeTimer === 0);
+    const stopped = await page.evaluate(() => ({ count: window.heroDrawCount, positions: window.heroFieldTest.positions }));
+    await page.waitForTimeout(350);
+    expect(await page.evaluate(() => ({ count: window.heroDrawCount, positions: window.heroFieldTest.positions }))).toEqual(stopped);
+    await page.evaluate(() => {
+      window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization'] });
+      window.heroFieldTest.idleSince = performance.now() - 20000;
+    });
+    expect(await page.evaluate(() => window.heroFieldTest.activity.interval)).toBe(1000 / 30);
+    await page.waitForFunction(count => window.heroDrawCount > count, stopped.count);
+  });
+
   test(`field stops idle frames and uses a timer for held results on ${pathname}`, async ({ page }) => {
     await inspectIdleField(page);
     await page.goto(origin + pathname);

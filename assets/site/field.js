@@ -67,6 +67,9 @@
   const HOLD_MS = 9000;
   const FADE_MS = 1600;
   const FRAME_MS = 1000 / 30;
+  const IDLE_FRAME_MS = 1000 / 8;
+  const IDLE_GRACE_MS = 8000;
+  const IDLE_STOP_MS = 20000;
   const compactEntrance = document.body.classList.contains('chat-compact');
   const ENTRANCE_MS = entranceEffect ? entranceEffect.duration(compactEntrance) : compactEntrance ? 520 : 820;
   const TAU = Math.PI * 2;
@@ -100,6 +103,7 @@
   let wakeTimer = 0;
   let lastFrame = 0;
   let lastDraw = 0;
+  let idleSince = performance.now();
   let farDirty = true;
   let farSkip = false;
   let sceneTime = 0;
@@ -1292,10 +1296,11 @@
     const still = motionQuery.matches;
     updateColors(now);
     updateEntrance(now, still);
-    const dt = lastDraw ? Math.min(120, now - lastDraw) : 0;
+    const elapsed = lastDraw ? Math.min(250, now - lastDraw) : 0;
+    const dt = Math.min(120, elapsed);
     lastDraw = now;
-    // Freeze drift between event-driven animation runs, including the result hold.
-    sceneTime += dt;
+    // Keep drift speed independent of FPS, without jumping after static waits.
+    if (!still && (needsAnimation(now) || now - idleSince < IDLE_STOP_MS)) sceneTime += elapsed;
     const t = sceneTime;
     const settling = 1 - Math.exp(-dt / 280);
     const conversation = document.body.classList.contains('convo-active') ? 1 : 0;
@@ -1533,6 +1538,31 @@
     const settledAt = Math.max(query.land + (query.target ? 1600 : 0), ...query.results.map(result => result.t + 380));
     return age < settledAt || (age >= query.land + HOLD_MS && age < query.land + HOLD_MS + FADE_MS);
   }
+  function frameInterval(now) {
+    if (!visible || document.hidden || motionQuery.matches) return 0;
+    if (needsAnimation(now) || now - idleSince < IDLE_GRACE_MS) return FRAME_MS;
+    return now - idleSince < IDLE_STOP_MS ? IDLE_FRAME_MS : 0;
+  }
+  function scheduleFrame(now) {
+    const interval = frameInterval(now);
+    if (interval === FRAME_MS) {
+      frame = requestAnimationFrame(tick);
+      return;
+    }
+    let deadline = interval ? Math.min(lastFrame + interval, idleSince + IDLE_STOP_MS) : Infinity;
+    if (query && query.mode !== 'overview') {
+      const fadeAt = query.start + query.land + HOLD_MS;
+      if (fadeAt > now) deadline = Math.min(deadline, fadeAt);
+    }
+    if (Number.isFinite(deadline)) {
+      wakeTimer = setTimeout(() => {
+        wakeTimer = 0;
+        if (!visible || document.hidden) return;
+        if (performance.now() - lastDraw > IDLE_FRAME_MS * 2) lastDraw = 0;
+        frame = requestAnimationFrame(tick);
+      }, Math.max(1, deadline - performance.now()));
+    }
+  }
   function stop() {
     cancelAnimationFrame(frame);
     clearTimeout(wakeTimer);
@@ -1542,19 +1572,14 @@
   function tick(now) {
     frame = 0;
     if (!visible || document.hidden) return;
-    if (!motionQuery.matches && now - lastFrame < FRAME_MS) {
-      frame = requestAnimationFrame(tick);
+    const interval = frameInterval(now);
+    if (interval && now - lastFrame < interval) {
+      scheduleFrame(now);
       return;
     }
     lastFrame = now;
     draw(now);
-    if (!motionQuery.matches) {
-      if (needsAnimation(now)) frame = requestAnimationFrame(tick);
-      else if (query && query.mode !== 'overview') {
-        const fadeAt = query.start + query.land + HOLD_MS;
-        if (fadeAt > now) wakeTimer = setTimeout(kick, fadeAt - now);
-      }
-    }
+    if (!motionQuery.matches) scheduleFrame(now);
   }
   function kick() {
     clearTimeout(wakeTimer);
@@ -1567,10 +1592,15 @@
       return;
     }
     if (!frame) {
-      lastFrame = lastDraw = 0;
+      lastFrame = 0;
+      if (performance.now() - lastDraw > IDLE_FRAME_MS * 2) lastDraw = 0;
       farDirty = true;
       frame = requestAnimationFrame(tick);
     }
+  }
+  function activate() {
+    idleSince = performance.now();
+    kick();
   }
 
   // A query is the topic plus the documents its answer draws on; the 404 page
@@ -1581,25 +1611,26 @@
     if (!entranceEffect) finishEntrance();
     planQuery(spec, performance.now());
     if (!visible && entranceEffect) entranceEffect.interrupt();
-    kick();
+    activate();
   }
 
   document.addEventListener('herochat:query', e => onQuery(e.detail));
-  document.addEventListener('site:themechange', () => { readColors(); kick(); });
-  motionQuery.addEventListener('change', () => { lastFrame = 0; kick(); });
+  document.addEventListener('site:themechange', () => { readColors(); activate(); });
+  motionQuery.addEventListener('change', activate);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (entranceStart != null || entranceEffect) finishEntrance();
       if (entranceEffect && entranceEffect.interrupt) entranceEffect.interrupt();
     }
     lastDraw = 0;
-    kick();
+    if (document.hidden) stop();
+    else activate();
   });
 
   let resizeTimer = 0;
   const relayout = () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { layout(); lastFrame = 0; kick(); }, 120);
+    resizeTimer = setTimeout(() => { layout(); activate(); }, 120);
   };
   new ResizeObserver(relayout).observe(backdrop);
 
@@ -1619,8 +1650,13 @@
     observedHeaderHeight = headerHeight;
     if (visibilityObserver) visibilityObserver.disconnect();
     visibilityObserver = new IntersectionObserver(entries => {
+      const wasVisible = visible;
       visible = entries.some(e => e.isIntersecting && e.intersectionRatio >= 0.1);
-      if (visible) { lastDraw = 0; kick(); }
+      if (visible) {
+        lastDraw = 0;
+        if (wasVisible) kick();
+        else activate();
+      }
       else {
         stop();
         if (entranceStart != null || entranceEffect) finishEntrance();
@@ -1649,13 +1685,13 @@
         });
       }
       hover = next;
-      kick();
+      activate();
     });
     hero.addEventListener('pointerleave', () => {
       cam.tx = 0;
       cam.ty = 0;
       hover = null;
-      kick();
+      activate();
     });
   }
 

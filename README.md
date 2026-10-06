@@ -61,12 +61,16 @@ inactive topic labels dim during dark-mode retrieval and recover afterward.
 The behind-the-scenes overview leaves all topic labels available. None of these
 focus changes remove nodes or connections or alter the graph layout.
 
-The shared homepage/404 field is static once its entrance, retrieval, or
-interaction settles. Hover/parallax, theme changes, resizing, and moving chat
-copy wake it on demand. Completed retrievals hold without animation frames;
-a timer wakes the field for the existing result fade. Drift pauses between
-animation runs rather than jumping ahead after an idle wait. Hidden tabs and
-offscreen heroes cancel both frames and hold timers, then redraw on return.
+The shared homepage/404 field keeps subtle drift at up to 30 FPS for eight
+seconds after meaningful activity, drops to an 8 FPS idle cap through twenty
+seconds, then becomes static. Queries, pointer movement, theme changes,
+resizing, and returning to a visible hero restart that window. Active entrance,
+retrieval, and settling transitions retain the normal frame rate even if the
+idle window has expired. Moving chat copy redraws on demand without extending
+the idle window. Low-FPS drift and held-result fades use timers rather than a
+continuous animation-frame polling loop. Drift speed does not change with FPS
+or jump ahead after a static wait. Reduced motion remains static. Hidden tabs
+and offscreen heroes cancel both frames and timers, then redraw on return.
 Visibility excludes the sticky header and requires at least 10% of the hero's
 area to remain visible. The exclusion tracks header resizing, including mobile
 navigation. Falling below that threshold releases an in-flight chat retrieval
