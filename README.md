@@ -72,6 +72,14 @@ area to remain visible. The exclusion tracks header resizing, including mobile
 navigation. Falling below that threshold releases an in-flight chat retrieval
 hold without a payoff; returning does not replay the entrance.
 
+Project artwork uses two native lazy-loaded images: an accessible, uncropped
+foreground and an empty-alt, cover-cropped decorative backdrop. Both reference
+the same asset, sharing its download, and defer fetching until near the viewport
+without a JavaScript loading handler. Browsers disable native lazy loading when
+scripting is disabled; the complete artwork still renders in that fallback.
+Do not restore image URLs in CSS backgrounds, which would bypass native image
+lazy loading even with scripting enabled.
+
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
 The homepage leads directly with Robert's name and role. Its ten opening answers emphasize current vector-search diversity, research-to-production ownership for agentic retrieval, workload benchmarking and billing, and quantization's measured customer impact. The technical-achievements topic highlights distributed algorithm design, verifiable agentic filter generation, and quantization; distinguish ongoing work from shipped results and qualify cost and latency gains by workload. Hybrid relevance and HNSW quota stories remain available as specific deeper follow-ups, but `followupOnly` excludes them from the initial suggestions. Awards questions are explicitly about recognition, not a substitute for engineering achievements.

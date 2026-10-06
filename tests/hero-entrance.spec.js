@@ -1123,6 +1123,48 @@ test.describe('email reveal', () => {
   }
 });
 
+for (const javaScriptEnabled of [true, false]) {
+  test.describe(`lazy project artwork with JavaScript ${javaScriptEnabled ? 'enabled' : 'disabled'}`, () => {
+    test.use({ javaScriptEnabled, reducedMotion: 'reduce' });
+    for (const width of [1440, 390]) {
+      test(`${javaScriptEnabled ? 'defers foreground and backdrop downloads until nearby' : 'preserves artwork with native eager fallback'} at ${width}px`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 1000 });
+        const sources = ['/assets/skateboarder-pred.webp', '/assets/road-seg.webp', '/assets/monocular-depth.webp', '/assets/battlesnake.png'];
+        const requests = [];
+        page.on('request', request => {
+          const path = new URL(request.url()).pathname;
+          if (sources.includes(path)) requests.push(path);
+        });
+        await page.goto(origin);
+        await page.evaluate(() => document.fonts.ready);
+        await page.waitForTimeout(350);
+        // Native lazy loading is disabled when scripting is off to prevent scroll tracking.
+        expect(requests.sort()).toEqual(javaScriptEnabled ? [] : [...sources].sort());
+        const frames = page.locator('.cv-project-image');
+        await expect(frames).toHaveCount(4);
+        for (let i = 0; i < sources.length; i++) {
+          const frame = frames.nth(i);
+          const foreground = frame.locator('img:not(.cv-project-backdrop)');
+          const backdrop = frame.locator('.cv-project-backdrop');
+          await expect(foreground).toHaveAttribute('loading', 'lazy');
+          await expect(backdrop).toHaveAttribute('loading', 'lazy');
+          await expect(backdrop).toHaveAttribute('alt', '');
+          await expect(backdrop).toHaveAttribute('aria-hidden', 'true');
+          await frame.scrollIntoViewIfNeeded();
+          for (const image of [foreground, backdrop]) {
+            await expect.poll(() => image.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+          }
+          await expect(foreground).toHaveCSS('object-fit', 'contain');
+          await expect(backdrop).toHaveCSS('object-fit', 'cover');
+          await expect(backdrop).toHaveCSS('position', 'absolute');
+          await expect(backdrop).toHaveCSS('filter', 'blur(22px) saturate(1.2) brightness(0.72)');
+          expect(requests.filter(path => path === sources[i])).toHaveLength(1);
+        }
+      });
+    }
+  });
+}
+
 test('the profile remains readable without JavaScript and email stays hidden', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   try {
