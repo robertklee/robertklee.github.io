@@ -40,7 +40,7 @@
   const [FAR, MID, NEAR] = PLANES;
 
   // The readout sits above the conversation dim layer, so it lives on the hero.
-  const readout = document.createElement('div');
+  const readout = document.createElement('p');
   readout.className = 'field-readout';
   readout.setAttribute('aria-hidden', 'true');
   readout.innerHTML = '<span class="field-readout-dot"></span><span class="field-readout-copy"><span class="field-readout-stats"></span><span class="field-readout-text" hidden></span></span>';
@@ -50,7 +50,7 @@
   const effectsButton = document.createElement('button');
   effectsButton.type = 'button';
   effectsButton.className = 'field-effects';
-  readout.querySelector('.field-readout-copy').appendChild(effectsButton);
+  hero.appendChild(effectsButton);
 
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -504,7 +504,8 @@
     const box = backdrop.getBoundingClientRect();
     width = Math.max(1, Math.round(box.width));
     height = Math.max(1, Math.round(box.height));
-    dpr = Math.min(window.devicePixelRatio || 1, QUALITY[quality].dpr);
+    dpr = Math.min(window.devicePixelRatio || 1, QUALITY[quality].dpr,
+      Math.sqrt(8000000 / (width * height)));
     PLANES.forEach(p => {
       p.scale = dpr * p.res;
       p.canvas.width = Math.max(1, Math.round(width * p.scale));
@@ -600,7 +601,8 @@
     const groups = [];
     const profile = QUALITY[quality];
     const spacing = Math.max(AIRY.spacing,
-      Math.sqrt(width * height * 2 * profile.members / (profile.maxBackdrop * 0.86)));
+      Math.sqrt((width + 100) * (height + 100) * 2 * (profile.members + 1) /
+        (profile.maxBackdrop * 0.86 * 0.85)));
     [0.5, 1.65].forEach((depth, sheet) => {
       const z = F * depth;
       const occupied = [];
@@ -1615,8 +1617,14 @@
 
   let resizeTimer = 0;
   const relayout = () => {
+    const box = backdrop.getBoundingClientRect();
+    if (Math.round(box.width) === width && Math.round(box.height) === height) return;
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { layout(); lastFrame = 0; kick(); }, 120);
+    resizeTimer = setTimeout(() => {
+      const next = backdrop.getBoundingClientRect();
+      if (Math.round(next.width) === width && Math.round(next.height) === height) return;
+      layout(); lastFrame = 0; kick();
+    }, 120);
   };
   new ResizeObserver(relayout).observe(backdrop);
 

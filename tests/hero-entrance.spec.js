@@ -234,6 +234,13 @@ test('caps desktop decoration and keeps the focus graph when effects are reduced
   await expect(page.locator('.field-readout-stats')).toHaveText(`${reduced.graph.nodes.length} vectors · 3-layer HNSW · 7 topics`);
   await page.locator('.field-effects').click();
   await expect(page.locator('.field-effects')).toHaveAttribute('aria-pressed', 'false');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.field-effects')).toBeVisible();
+  const mobileControls = await page.evaluate(() => ({
+    effects: document.querySelector('.field-effects').getBoundingClientRect().bottom,
+    cue: document.querySelector('.scroll-cue').getBoundingClientRect().top,
+  }));
+  expect(mobileControls.effects).toBeLessThan(mobileControls.cue);
 });
 
 test('sustained slow visible draws downgrade the hero, without measuring while hidden', async ({ page }) => {
