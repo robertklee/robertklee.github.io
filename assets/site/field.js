@@ -18,6 +18,11 @@
   const hero = backdrop.parentElement;
   const root = document.documentElement;
   const AIRY = { spacing: 210, members: 8, localDegree: 3, hubDegree: 6, leafShare: 0.4, closure: 0.75, limit: 100, opacity: 0.65 };
+  const QUALITY = [
+    { maxBackdrop: 900, members: 8, dpr: 2, frameMs: 1000 / 30 },
+    { maxBackdrop: 600, members: 6, dpr: 1.5, frameMs: 1000 / 24 },
+    { maxBackdrop: 350, members: 5, dpr: 1, frameMs: 1000 / 15 },
+  ];
 
   // Depth of field: the far and mid planes render at lower resolution and are
   // blurred in CSS (on the GPU); the near plane, the focal plane, stays sharp.
@@ -66,7 +71,6 @@
   const TOP = 2; // layers L2 (sparse entry layer) .. L0 (every vector)
   const HOLD_MS = 9000;
   const FADE_MS = 1600;
-  const FRAME_MS = 1000 / 30;
   const compactEntrance = document.body.classList.contains('chat-compact');
   const ENTRANCE_MS = entranceEffect ? entranceEffect.duration(compactEntrance) : compactEntrance ? 520 : 820;
   const TAU = Math.PI * 2;
@@ -101,6 +105,14 @@
   let lastDraw = 0;
   let farDirty = true;
   let farSkip = false;
+  let autoQuality = 0;
+  let manualReduced = false;
+  try { manualReduced = localStorage.getItem('field-reduced-effects') === 'true'; } catch (e) {}
+  let quality = manualReduced ? QUALITY.length - 1 : 0;
+  let slowFrames = 0;
+  let sampledFrames = 0;
+  let lastSample = 0;
+  let lastAdjustment = 0;
   const clockStart = performance.now();
   let entranceStart = null;
   let entranceProgress = (motionQuery.matches || document.body.classList.contains('page-404')) ? 1 : 0;
@@ -466,7 +478,7 @@
     const box = backdrop.getBoundingClientRect();
     width = Math.max(1, Math.round(box.width));
     height = Math.max(1, Math.round(box.height));
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, QUALITY[quality].dpr);
     PLANES.forEach(p => {
       p.scale = dpr * p.res;
       p.canvas.width = Math.max(1, Math.round(width * p.scale));
@@ -560,6 +572,9 @@
 
   function layoutAiryBackdrop(rand, add) {
     const groups = [];
+    const profile = QUALITY[quality];
+    const spacing = Math.max(AIRY.spacing,
+      Math.sqrt(width * height * 2 * profile.members / (profile.maxBackdrop * 0.86)));
     [0.5, 1.65].forEach((depth, sheet) => {
       const z = F * depth;
       const occupied = [];
@@ -572,14 +587,14 @@
       };
       let module = sheet * 10000;
       let row = 0;
-      for (let y = 30; y < height + 40; y += AIRY.spacing * 0.86, row++) {
-        for (let x = 10; x < width + 40; x += AIRY.spacing) {
-          const cx = x + (row % 2) * AIRY.spacing / 2 + (rand() - 0.5) * 65 + sheet * 76;
+      for (let y = 30; y < height + 40; y += spacing * 0.86, row++) {
+        for (let x = 10; x < width + 40; x += spacing) {
+          const cx = x + (row % 2) * spacing / 2 + (rand() - 0.5) * 65 + sheet * 76;
           const cy = y + (rand() - 0.5) * 55 + sheet * 53;
           const radiusX = 60 + rand() * 55;
           const radiusY = 40 + rand() * 42;
           const angle = rand() * TAU;
-          const count = Math.max(3, AIRY.members + Math.floor(rand() * 5) - 2);
+          const count = Math.max(3, profile.members + Math.floor(rand() * 5) - 2);
           groups.push({ c: unproject(cx, cy, z) });
           let placed = scatter(cx, cy, module, AIRY.hubDegree, true) ? 1 : 0;
           for (let attempt = 0; attempt < count * 30 && placed < count; attempt++) {
@@ -594,7 +609,7 @@
           module++;
         }
       }
-      const looseCount = Math.round(width * height / 20000);
+      const looseCount = Math.min(Math.round(width * height / 20000), Math.round(profile.maxBackdrop * 0.15));
       let placed = 0;
       for (let attempt = 0; attempt < looseCount * 25 && placed < looseCount; attempt++) {
         if (scatter(-30 + rand() * (width + 60), -30 + rand() * (height + 60),
