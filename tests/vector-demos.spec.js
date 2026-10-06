@@ -233,11 +233,13 @@ test('SIMD can pause a step or the repeat delay, resume, and change inputs witho
   await viewSIMD(page);
   const pause = page.locator('[data-si-pause]');
   const replay = page.locator('[data-si-replay]');
-  await expect(pause).toHaveText('Pause animation');
+  await expect(pause).toHaveAccessibleName('Pause animation');
   await replay.evaluate(button => button.click());
   await page.clock.runFor(600);
   await pause.evaluate(button => button.click());
-  await expect(pause).toHaveText('Resume animation');
+  await expect(pause).toHaveAccessibleName('Resume animation');
+  await expect(pause.locator('[data-demo-play-icon]')).toBeVisible();
+  await expect(pause.locator('[data-demo-pause-icon]')).toBeHidden();
   await page.clock.runFor(10000);
   await expect(page.locator('[data-si-scalar-ops]')).toHaveText('3 / 16 MAC operations');
   await pause.evaluate(button => button.click());
@@ -246,7 +248,7 @@ test('SIMD can pause a step or the repeat delay, resume, and change inputs witho
   await pause.evaluate(button => button.click());
   await page.locator('[data-si-sample="far"]').evaluate(button => button.click());
   await page.locator('[data-si-lanes="8"]').evaluate(button => button.click());
-  await expect(pause).toHaveText('Resume animation');
+  await expect(pause).toHaveAccessibleName('Resume animation');
   await expect(page.locator('[data-si-accumulators] > span')).toHaveCount(8);
   await expect(page.locator('[data-si-vector-total]')).toHaveText(await page.locator('[data-si-scalar-total]').textContent());
   await page.clock.runFor(10000);
@@ -258,7 +260,9 @@ test('SIMD can pause a step or the repeat delay, resume, and change inputs witho
   await page.clock.runFor(10000);
   await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
   await replay.evaluate(button => button.click());
-  await expect(pause).toHaveText('Pause animation');
+  await expect(pause).toHaveAccessibleName('Pause animation');
+  await expect(pause.locator('[data-demo-pause-icon]')).toBeVisible();
+  await expect(pause.locator('[data-demo-play-icon]')).toBeHidden();
   await page.clock.runFor(400);
   await expect(page.locator('[data-si-scalar-ops]')).toHaveText('2 / 16 MAC operations');
 });
@@ -377,11 +381,9 @@ for (const demo of repeatingDemos) {
     await page.clock.runFor(10000);
     expect(await snapshot()).toBe(held);
     await expect(pause).toHaveAccessibleName('Resume animation');
-    if (demo.prefix === 'hn') {
-      await expect(pause.locator('[data-demo-play-icon]')).toBeVisible();
-      await expect(pause.locator('[data-demo-pause-icon]')).toBeHidden();
-      await expect(pause).toHaveAttribute('title', 'Resume animation');
-    }
+    await expect(pause.locator('[data-demo-play-icon]')).toBeVisible();
+    await expect(pause.locator('[data-demo-pause-icon]')).toBeHidden();
+    await expect(pause).toHaveAttribute('title', 'Resume animation');
     await pause.evaluate(button => button.click());
     await page.clock.runFor(demo.step);
     expect(await snapshot()).not.toBe(held);
@@ -392,11 +394,9 @@ for (const demo of repeatingDemos) {
     expect(await page.evaluate(demo.done)).toBe(true);
     await replay.evaluate(button => button.click());
     await expect(pause).toHaveAccessibleName('Pause animation');
-    if (demo.prefix === 'hn') {
-      await expect(pause.locator('[data-demo-pause-icon]')).toBeVisible();
-      await expect(pause.locator('[data-demo-play-icon]')).toBeHidden();
-      await expect(pause).toHaveAttribute('title', 'Pause animation');
-    }
+    await expect(pause.locator('[data-demo-pause-icon]')).toBeVisible();
+    await expect(pause.locator('[data-demo-play-icon]')).toBeHidden();
+    await expect(pause).toHaveAttribute('title', 'Pause animation');
     await page.clock.runFor(demo.step * 2);
     await viewDemo(page, demo.target, false);
     const offscreen = await snapshot();
@@ -443,6 +443,32 @@ for (const demo of repeatingDemos) {
 }
 
 for (const width of [1440, 390]) {
+  test(`all demo playback controls use matching accessible icons at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    for (const { prefix, label } of [
+      { prefix: 'si', label: 'Replay comparison' },
+      { prefix: 'hn', label: 'Replay search' },
+      { prefix: 'ag', label: 'Replay validation' }
+    ]) {
+      const pause = page.locator(`[data-${prefix}-pause]`);
+      const replay = page.locator(`[data-${prefix}-replay]`);
+      await expect(pause).toHaveAccessibleName('Pause animation');
+      await expect(pause).toHaveAttribute('title', 'Pause animation');
+      await expect(replay).toHaveAccessibleName(label);
+      await expect(replay).toHaveAttribute('title', label);
+      for (const button of [pause, replay]) {
+        await expect(button).toHaveText('');
+        await expect(button.locator('svg:visible')).toHaveCount(1);
+        const size = await button.evaluate(node => {
+          const { width, height } = node.getBoundingClientRect();
+          return { width, height };
+        });
+        expect(size).toEqual({ width: 44, height: 44 });
+      }
+    }
+  });
+
   test(`HNSW icon controls stay fixed above changing status text at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.emulateMedia({ reducedMotion: 'no-preference' });

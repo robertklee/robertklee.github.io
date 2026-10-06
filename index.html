@@ -333,9 +333,14 @@
                 <p><span>filter</span><code data-ag-filter></code></p>
                 <p><span>boost</span><code data-ag-boost></code></p>
               </div>
-              <div class="vector-demo-toolbar">
-                <button type="button" class="vector-demo-replay" data-ag-pause hidden>Pause animation</button>
-                <button type="button" class="vector-demo-replay" data-ag-replay>Replay validation</button>
+              <div class="vector-demo-actions">
+                <button type="button" class="vector-demo-replay vector-demo-icon" data-ag-pause aria-label="Pause animation" title="Pause animation" hidden>
+                  <svg data-demo-pause-icon viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5h4v14H7zm6 0h4v14h-4z" fill="currentColor"/></svg>
+                  <svg data-demo-play-icon viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="m8 5 11 7-11 7z" fill="currentColor"/></svg>
+                </button>
+                <button type="button" class="vector-demo-replay vector-demo-icon" data-ag-replay aria-label="Replay validation" title="Replay validation">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
               </div>
               <p class="vector-demo-note" data-ag-loop-note hidden>Repeats while in view, with a 2-second pause between validations. Pause the animation to inspect a step.</p>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-ag-live></p>
@@ -482,8 +487,13 @@
                   <button type="button" data-si-lanes="8" aria-pressed="false">8 lanes</button>
                 </div>
                 <div class="vector-demo-actions">
-                  <button type="button" class="vector-demo-replay" data-si-pause hidden>Pause animation</button>
-                  <button type="button" class="vector-demo-replay" data-si-replay>Replay comparison</button>
+                  <button type="button" class="vector-demo-replay vector-demo-icon" data-si-pause aria-label="Pause animation" title="Pause animation" hidden>
+                    <svg data-demo-pause-icon viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5h4v14H7zm6 0h4v14h-4z" fill="currentColor"/></svg>
+                    <svg data-demo-play-icon viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="m8 5 11 7-11 7z" fill="currentColor"/></svg>
+                  </button>
+                  <button type="button" class="vector-demo-replay vector-demo-icon" data-si-replay aria-label="Replay comparison" title="Replay comparison">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
                 </div>
               </div>
               <p class="vector-demo-note" data-si-loop-note hidden>Repeats while in view, with a 2-second pause between comparisons. Pause the animation to inspect a step.</p>
