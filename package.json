@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "node build.js",
+    "test:build": "node --test tests/build.test.js",
     "check": "node --check build.js && node --check chat-core.js && node --check chat-content.js && node --check index.js && node --check 404.js && node --check assets/site/site.js && node --check assets/site/meteor-watch.js && node --check assets/site/entrance.js && node --check assets/site/quantization.js && node --check assets/site/field.js && node --check assets/site/diversity.js && node --check assets/site/demo-playback.js && node --check assets/site/agentic.js && node --check assets/site/vector-demos.js && node --check tests/hero-entrance.spec.js && node --check tests/meteor-watch.spec.js && node --check tests/quantization-scroll.spec.js && node --check tests/career-scroll.spec.js && node --check tests/vector-demos.spec.js",
     "test:hero": "npm run build && playwright test tests/hero-entrance.spec.js --workers=1",
     "test:quantization": "npm run build && playwright test tests/quantization-scroll.spec.js --workers=1",
@@ -14,6 +15,7 @@
     "preview": "wrangler dev"
   },
   "devDependencies": {
+    "esbuild": "0.28.1",
     "playwright": "1.63.0",
     "wrangler": "4.129.0"
   }

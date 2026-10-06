@@ -1,7 +1,8 @@
 'use strict';
 
-const { copyFileSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } = require('node:fs');
-const { dirname, join } = require('node:path');
+const { copyFileSync, cpSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } = require('node:fs');
+const { dirname, extname, join } = require('node:path');
+const { transformSync } = require('esbuild');
 
 const root = __dirname;
 const output = join(root, 'dist');
@@ -62,4 +63,31 @@ for (const relativePath of publicDirectories) {
   cpSync(join(root, relativePath), join(output, relativePath), { recursive: true });
 }
 
+let originalBytes = 0;
+let minifiedBytes = 0;
+function minifyDirectory(directory) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const filename = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      minifyDirectory(filename);
+      continue;
+    }
+    const extension = extname(filename);
+    if (extension !== '.js' && extension !== '.css') continue;
+    const source = readFileSync(filename, 'utf8');
+    const { code, warnings } = transformSync(source, {
+      loader: extension === '.js' ? 'js' : 'css',
+      sourcefile: filename,
+      minify: true,
+      legalComments: 'inline',
+    });
+    for (const warning of warnings) console.warn(`${filename}: ${warning.text}`);
+    writeFileSync(filename, code);
+    originalBytes += Buffer.byteLength(source);
+    minifiedBytes += Buffer.byteLength(code);
+  }
+}
+minifyDirectory(output);
+
 console.log(`Built ${publicFiles.length} static files and ${publicDirectories.length} asset directory in dist/.`);
+console.log(`Minified JS/CSS: ${originalBytes} -> ${minifiedBytes} bytes.`);

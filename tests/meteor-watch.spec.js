@@ -4,6 +4,7 @@ const { test, expect } = require('playwright/test');
 const { createServer } = require('node:http');
 const { readFile, readFileSync, existsSync } = require('node:fs');
 const { resolve, sep, extname } = require('node:path');
+const { transformSync } = require('esbuild');
 
 let server;
 let origin;
@@ -98,17 +99,21 @@ test.beforeEach(async ({ page }) => {
   // Read private scheduling state without shipping a preview/debug API.
   await page.route('**/assets/site/meteor-watch.js', async route => {
     const response = await route.fetch();
-    const source = await response.text();
-    await route.fulfill({
-      response,
-      body: source.replace(/\n\}\)\(\);\s*$/, `
+    const source = readFileSync(resolve(__dirname, '../assets/site/meteor-watch.js'), 'utf8');
+    const options = { loader: 'js', minify: true, legalComments: 'inline' };
+    expect(await response.text()).toBe(transformSync(source, options).code);
+    const instrumented = source.replace(/\n\}\)\(\);\s*$/, `
         window.readMeteorWatch = () => ({
           width, height, headerHeight, skyTop, skyBottom, stars, protectedRects,
           clock: clock + (lastNow === null ? 0 : performance.now() - lastNow),
           nextTwinkle, nextMeteor, twinkle, meteor, running: canRun(),
           timer: Boolean(timer), animationFrame: Boolean(animationFrame)
         });
-      })();`),
+      })();`);
+    expect(instrumented).not.toBe(source);
+    await route.fulfill({
+      response,
+      body: transformSync(instrumented, options).code,
     });
   });
   await page.clock.install({ time: new Date('2026-10-06T05:00:00Z') });

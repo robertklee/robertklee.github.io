@@ -98,8 +98,14 @@ Playwright is a development dependency for browser checks and screenshots. After
 
 ## Cloudflare Workers Builds deployment
 
-The dependency-free build script recreates `dist/` and copies only the site's
-public runtime files. Wrangler then deploys that directory as static assets.
+The build script recreates `dist/` and copies only the site's public runtime
+files, then uses esbuild to minify all deployed JavaScript and CSS. Source files,
+asset paths, and script loading order stay unchanged; there is no bundling or
+property-name mangling. HTML, images, fonts, and other assets are not minified.
+Legal comments are retained inline. The build reports the combined JS/CSS byte
+counts before and after minification. Run `npm run test:build` to check output
+sizes, unchanged source and other assets, and preview social URLs.
+Wrangler then deploys that directory as static assets.
 The site uses its custom `404.html` for missing paths; it does not use an SPA
 fallback or a server-side Worker.
 
