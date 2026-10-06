@@ -243,6 +243,35 @@ test('hero colors and idle contrast interpolate without rebuilding on interrupte
   expect(await page.evaluate(() => window.heroFieldTest.colors.point)).toBe('#a6bdff');
 });
 
+test('dark hero texture fades independently of the graph and shared art tokens', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const pathname of ['/', '/404.html']) {
+    await page.goto(origin + pathname);
+    const texture = () => page.evaluate(() => {
+      const hero = getComputedStyle(document.querySelector('.hero'), '::before');
+      const grid = getComputedStyle(document.querySelector('.hero-backdrop'), '::before');
+      const root = getComputedStyle(document.documentElement);
+      return {
+        glow: Number(hero.opacity), grid: Number(grid.opacity),
+        glowTransition: hero.transitionDuration, gridTransition: grid.transitionDuration,
+        art: root.getPropertyValue('--art-strong').trim(),
+        sharedGlow: root.getPropertyValue('--glow-1').trim(),
+      };
+    });
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+    expect(await texture()).toMatchObject({ glow: 1, grid: 1, art: '#2e52ce' });
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+    expect(await texture()).toEqual({
+      glow: .45, grid: .15, glowTransition: '0s', gridTransition: '0s',
+      art: '#a6bdff', sharedGlow: 'rgba(91, 128, 255, .16)',
+    });
+    await expect(page.locator('.field-canvas')).toHaveCount(3);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    expect(await texture()).toMatchObject({ glowTransition: '0.6s', gridTransition: '0.6s' });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+  }
+});
+
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 1920, height: 1080 }]) {
   test(`Airy backdrop caps idle edges and keeps search connected at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     const spikeRequests = [];

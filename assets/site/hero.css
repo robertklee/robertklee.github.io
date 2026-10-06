@@ -13,10 +13,19 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(60% 55% at 50% 38%, var(--glow-1), transparent 70%),
     radial-gradient(40% 40% at 82% 78%, var(--glow-2), transparent 70%),
     radial-gradient(36% 40% at 14% 72%, var(--glow-3), transparent 70%);
+  transition: opacity .6s ease;
 }
 
 .hero-backdrop::before {
@@ -27,7 +36,11 @@
   background-size: 28px 28px;
   -webkit-mask-image: radial-gradient(75% 70% at 50% 45%, #000 30%, transparent 85%);
   mask-image: radial-gradient(75% 70% at 50% 45%, #000 30%, transparent 85%);
+  transition: opacity .6s ease;
 }
+
+:root[data-theme="dark"] .hero::before { opacity: .45; }
+:root[data-theme="dark"] .hero-backdrop::before { opacity: .15; }
 
 .hero-backdrop::after {
   content: "";
@@ -786,6 +799,7 @@ body.chat-compact .suggest-chips.more-left.more-right {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero::before, .hero-backdrop::before { transition: none; }
   .stream-cursor { animation: none; opacity: 1; }
   .tok, .line-enter, .suggest-enter, .scroll-cue svg, .live-dot,
   .field-entering .hero-chat { animation: none; }

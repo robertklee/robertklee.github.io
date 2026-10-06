@@ -50,6 +50,9 @@ use lower opacity; hover links and retrieval overlays keep their emphasis.
 Canvas colors and idle contrast interpolate over 600 ms when switching themes,
 including interrupted switches. Reduced motion applies the target immediately.
 The homepage and 404 share this treatment; site-wide art colors are unchanged.
+Dark mode also fades the hero's decorative grid to 15% and its background glows
+to 45%, with opacity transitions disabled for reduced motion. These changes
+apply only to the hero, not the shared grid/glow tokens or below-hero sky.
 
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
