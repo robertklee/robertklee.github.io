@@ -127,6 +127,86 @@ test.afterEach(async ({ page }) => {
   expect(errors.get(page)).toEqual([]);
 });
 
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 1920, height: 1080 }]) {
+  test(`Airy backdrop caps idle edges and keeps search connected at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    const spikeRequests = [];
+    page.on('request', request => { if (request.url().includes('/spikes/')) spikeRequests.push(request.url()); });
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.route('**/index.js', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
+    await page.addInitScript(() => {
+      window.heroIdleSegments = {};
+      const positions = new WeakMap();
+      const proto = CanvasRenderingContext2D.prototype;
+      const moveTo = proto.moveTo;
+      const lineTo = proto.lineTo;
+      const clearRect = proto.clearRect;
+      proto.moveTo = function (x, y) {
+        positions.set(this, [x, y]);
+        return moveTo.call(this, x, y);
+      };
+      proto.clearRect = function (...args) {
+        if (this.canvas.matches('.field-far, .field-mid')) window.heroIdleSegments[this.canvas.className] = [];
+        return clearRect.apply(this, args);
+      };
+      proto.lineTo = function (x, y) {
+        const from = positions.get(this);
+        if (from && this.canvas.matches('.field-far, .field-mid')) {
+          window.heroIdleSegments[this.canvas.className].push(Math.hypot(x - from[0], y - from[1]));
+        }
+        positions.set(this, [x, y]);
+        return lineTo.call(this, x, y);
+      };
+    });
+    await page.route('**/assets/site/entrance.js', async route => {
+      const response = await route.fetch();
+      await route.fulfill({
+        response,
+        body: await response.text() + `
+          const originalLayout = window.HeroFieldEntrance.layout;
+          window.HeroFieldEntrance.layout = function (model) {
+            window.heroFieldGraph = {
+              nodes: model.nodes.map(({ x, y, z, cluster }) => ({ x, y, z, cluster })),
+              edges: [...model.edges]
+            };
+            return originalLayout.call(this, model);
+          };
+        `,
+      });
+    });
+    await page.goto(origin);
+    await page.waitForFunction(() => window.heroFieldGraph);
+    const stats = await page.evaluate(() => {
+      const { nodes, edges } = window.heroFieldGraph;
+      const neighbours = nodes.map(() => []);
+      for (let k = 0; k < edges.length; k += 2) {
+        const a = edges[k];
+        const b = edges[k + 1];
+        neighbours[a].push(b);
+        neighbours[b].push(a);
+      }
+      const visited = new Set([0]);
+      for (const i of visited) {
+        neighbours[i].forEach(j => visited.add(j));
+      }
+      return {
+        connected: visited.size === nodes.length,
+        idleLengths: Object.values(window.heroIdleSegments).flat(),
+      };
+    });
+    expect(stats.connected).toBe(true);
+    expect(stats.idleLengths.length).toBeGreaterThan(50);
+    expect(Math.max(...stats.idleLengths)).toBeLessThanOrEqual(100);
+    await page.route('**/404.js', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
+    await page.goto(`${origin}/404.html`);
+    await expect(page.locator('.field-canvas')).toHaveCount(3);
+    await page.waitForFunction(() => Object.values(window.heroIdleSegments).flat().length > 50);
+    const missingPageLengths = await page.evaluate(() => Object.values(window.heroIdleSegments).flat());
+    expect(Math.max(...missingPageLengths)).toBeLessThanOrEqual(100);
+    expect(spikeRequests).toEqual([]);
+  });
+}
+
 test('opening retrieval lands before model output without restarting on theme or resize', async ({ page }) => {
   await page.goto(origin);
   await expect(page.locator('.hero-retrieval-note')).toHaveText('Retrieving sources...');
@@ -438,7 +518,7 @@ test('unavailable Canvas logs a warning and does not block the chat', async ({ p
   await expect(page.locator('html')).not.toHaveClass(/hero-entrance-armed|hero-entrance-running/);
 });
 
-test('the 404 keeps its existing field and does not install homepage coordination', async ({ page }) => {
+test('the 404 shares the Airy field without installing homepage coordination', async ({ page }) => {
   await page.goto(`${origin}/404.html`);
   await expect(page.locator('.field-canvas')).toHaveCount(3);
   expect(await page.evaluate(() => typeof window.HeroFieldEntrance)).toBe('undefined');

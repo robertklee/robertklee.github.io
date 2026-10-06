@@ -1,7 +1,7 @@
 // Embedding-field backdrop: an illustrative HNSW index over Robert's work.
 //
-// The scene is a 3D point cloud seen in perspective. Most of it is a dense,
-// generic background graph that recedes out of focus (drawn on two canvases
+// The scene is a 3D point cloud seen in perspective. Its airy constellation
+// backdrop recedes out of focus (drawn on two canvases
 // that CSS blurs); the seven topic regions sit on the focal plane, sharp and
 // labelled. Portfolio questions (`herochat:query`) run a visible HNSW search:
 // it enters at the sparse top layer deep in the background, makes long jumps
@@ -17,6 +17,7 @@
   if (!backdrop) return;
   const hero = backdrop.parentElement;
   const root = document.documentElement;
+  const AIRY = { spacing: 210, members: 8, localDegree: 3, hubDegree: 6, leafShare: 0.4, closure: 0.75, limit: 100, opacity: 0.65 };
 
   // Depth of field: the far and mid planes render at lower resolution and are
   // blurred in CSS (on the GPU); the near plane, the focal plane, stays sharp.
@@ -81,6 +82,7 @@
   let ui = 1; // stroke and marker scale for small screens
   let nodes = [];
   let edges = [];
+  let backdropEdges = [];
   let adj = [];
   let entry = 0;
   let clusterInfo = [];
@@ -235,28 +237,6 @@
   const planeFor = zz => (zz < F * 0.1 ? NEAR : zz < F * 0.75 ? MID : FAR);
 
   // --- Scene -------------------------------------------------------------------
-  function randomAxes(rand) {
-    const unitVec = () => {
-      const z = rand() * 2 - 1;
-      const a = rand() * TAU;
-      const r = Math.sqrt(1 - z * z);
-      return [r * Math.cos(a), r * Math.sin(a), z];
-    };
-    const u = unitVec();
-    let v = unitVec();
-    const d = v[0] * u[0] + v[1] * u[1] + v[2] * u[2];
-    v = [v[0] - d * u[0], v[1] - d * u[1], v[2] - d * u[2]];
-    const l = Math.hypot(v[0], v[1], v[2]) || 1;
-    v = v.map(c => c / l);
-    return [u, v, [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]];
-  }
-  function sampleBlob(rand, c, axes, a, b, d) {
-    const p = gauss(rand) * a;
-    const q = gauss(rand) * b;
-    const r = gauss(rand) * d;
-    const [u, v, w] = axes;
-    return { x: c.x + u[0] * p + v[0] * q + w[0] * r, y: c.y + u[1] * p + v[1] * q + w[1] * r, z: c.z + u[2] * p + v[2] * q + w[2] * r };
-  }
   function bezier(a, c, b, t) {
     const m = 1 - t;
     return { x: m * m * a.x + 2 * m * t * c.x + t * t * b.x, y: m * m * a.y + 2 * m * t * c.y + t * t * b.y, z: m * m * a.z + 2 * m * t * c.z + t * t * b.z };
@@ -493,36 +473,8 @@
       return { id: cluster.id, label: cluster.label, centre, members, links, hub: members[0], f: 1, spot: null };
     });
 
-    // 2. The background: anisotropic groups at every depth, filaments between
-    //    neighbouring groups, and unclustered noise, filling the whole frustum.
-    const nBg = Math.round(clamp(width * height / 1300, 240, 1050));
-    const zMin = F * 0.2;
-    const zMax = F * 2.8;
-    const depth = () => zMin + (zMax - zMin) * Math.pow(rand(), 0.8);
-    const anywhere = z => unproject(-0.06 * width + rand() * width * 1.12, -0.06 * height + rand() * height * 1.12, z);
-    const behind = p => { p.z = Math.max(zMin * 0.8, p.z); return p; };
-    const groups = [];
-    for (let g = 0, n = wide ? 26 : 14; g < n; g++) {
-      const size = (0.45 + rand() * 1.25) * unit;
-      groups.push({ c: anywhere(depth()), axes: randomAxes(rand), a: 130 * size, b: 60 * size * (0.5 + rand() * 0.7), d: 45 * size * (0.5 + rand() * 0.7), w: 0.25 + rand() * rand() * 2.4 });
-    }
-    const totalW = groups.reduce((s, g) => s + g.w, 0);
-    groups.forEach(g => {
-      const count = Math.max(3, Math.round(nBg * 0.64 * g.w / totalW));
-      for (let i = 0; i < count; i++) add(behind(sampleBlob(rand, g.c, g.axes, g.a, g.b, g.d)), -1);
-    });
-    const nFil = wide ? 10 : 5;
-    const perFil = Math.round(nBg * 0.2 / nFil);
-    for (let f = 0; f < nFil; f++) {
-      const a = groups[Math.floor(rand() * groups.length)];
-      const b = groups.filter(g => g !== a).sort((g, h) => dist3(g.c, a.c) - dist3(h.c, a.c))[Math.floor(rand() * 2)];
-      const ctrl = { x: (a.c.x + b.c.x) / 2 + gauss(rand) * 120 * unit, y: (a.c.y + b.c.y) / 2 + gauss(rand) * 120 * unit, z: (a.c.z + b.c.z) / 2 + gauss(rand) * 120 * unit };
-      for (let i = 0; i < perFil; i++) {
-        const p = bezier(a.c, ctrl, b.c, rand());
-        add(behind({ x: p.x + gauss(rand) * 16 * unit, y: p.y + gauss(rand) * 16 * unit, z: p.z + gauss(rand) * 16 * unit }), -1);
-      }
-    }
-    for (let i = 0, n = Math.round(nBg * 0.12); i < n; i++) add(anywhere(depth()), -1);
+    // 2. Both pages share the same Airy constellation layout.
+    const groups = layoutAiryBackdrop(rand, add);
 
     // 3. Tendrils tie each focus region back into the graph behind it, leaving
     //    from the member that faces the group they run to.
@@ -549,6 +501,7 @@
       n.amp = (1.5 + rand() * 3) * unit * (n.cluster >= 0 ? 0.8 : 1 + n.z / F);
       n.freq = 0.00016 + rand() * 0.0002;
       n.r = 0.85 + rand() * 0.4;
+      if (n.sheet != null) n.r *= n.moduleHub ? 1.25 : n.targetDegree <= 1 ? 0.85 : 1;
       n.wx = n.x;
       n.wy = n.y;
     });
@@ -556,9 +509,143 @@
     buildGraph(rand);
     if (entranceEffect) entranceEffect.layout({ nodes, edges, entry });
     projectNodes(0, true);
+    buildBackdropEdges(rand);
 
     if (query) planQuery(query.spec, query.start);
     else setReadout(nodes.length + ' vectors · ' + (TOP + 1) + '-layer HNSW · ' + CLUSTERS.length + ' topics', false);
+  }
+
+  function layoutAiryBackdrop(rand, add) {
+    const groups = [];
+    [0.5, 1.65].forEach((depth, sheet) => {
+      const z = F * depth;
+      const occupied = [];
+      const scatter = (x, y, module, degree, hub = false) => {
+        if (occupied.some(p => Math.hypot(p.x - x, p.y - y) < 22)) return false;
+        occupied.push({ x, y });
+        const id = add(unproject(x, y, z), -1);
+        Object.assign(nodes[id], { sheet, module, targetDegree: degree, moduleHub: hub });
+        return true;
+      };
+      let module = sheet * 10000;
+      let row = 0;
+      for (let y = 30; y < height + 40; y += AIRY.spacing * 0.86, row++) {
+        for (let x = 10; x < width + 40; x += AIRY.spacing) {
+          const cx = x + (row % 2) * AIRY.spacing / 2 + (rand() - 0.5) * 65 + sheet * 76;
+          const cy = y + (rand() - 0.5) * 55 + sheet * 53;
+          const radiusX = 60 + rand() * 55;
+          const radiusY = 40 + rand() * 42;
+          const angle = rand() * TAU;
+          const count = Math.max(3, AIRY.members + Math.floor(rand() * 5) - 2);
+          groups.push({ c: unproject(cx, cy, z) });
+          let placed = scatter(cx, cy, module, AIRY.hubDegree, true) ? 1 : 0;
+          for (let attempt = 0; attempt < count * 30 && placed < count; attempt++) {
+            const theta = rand() * TAU;
+            const radius = Math.sqrt(rand());
+            const dx = Math.cos(theta) * radius * radiusX;
+            const dy = Math.sin(theta) * radius * radiusY;
+            const degree = rand() < AIRY.leafShare ? 1 : 2 + Math.floor(rand() * (AIRY.localDegree - 1));
+            if (scatter(cx + dx * Math.cos(angle) - dy * Math.sin(angle),
+              cy + dx * Math.sin(angle) + dy * Math.cos(angle), module, degree)) placed++;
+          }
+          module++;
+        }
+      }
+      const looseCount = Math.round(width * height / 20000);
+      let placed = 0;
+      for (let attempt = 0; attempt < looseCount * 25 && placed < looseCount; attempt++) {
+        if (scatter(-30 + rand() * (width + 60), -30 + rand() * (height + 60),
+          -1, 1 + Math.floor(rand() * 3))) placed++;
+      }
+    });
+    return groups;
+  }
+
+  // Idle decoration is separate from the connected search graph: no spanning-tree
+  // shortcuts are painted across communities, and every edge is capped in pixels.
+  function buildBackdropEdges(rand) {
+    backdropEdges = [];
+    const linked = new Set();
+    const background = nodes.map((n, i) => i).filter(i => nodes[i].sheet != null);
+    const degrees = nodes.map(() => 0);
+    const neighbours = nodes.map(() => new Set());
+    const keyOf = (i, j) => Math.min(i, j) + ':' + Math.max(i, j);
+    const link = (i, j) => {
+      const key = keyOf(i, j);
+      if (linked.has(key)) return;
+      linked.add(key);
+      backdropEdges.push(i, j);
+      degrees[i]++;
+      degrees[j]++;
+      neighbours[i].add(j);
+      neighbours[j].add(i);
+    };
+    const nearbyCache = new Map();
+    const nearby = i => {
+      if (nearbyCache.has(i)) return nearbyCache.get(i);
+      const a = nodes[i];
+      const candidates = background.filter(j => j !== i && nodes[j].sheet === a.sheet)
+        .map(j => ({ j, distance: Math.hypot(a.sx - nodes[j].sx, a.sy - nodes[j].sy) }))
+        .filter(c => c.distance <= AIRY.limit)
+        .sort((a, b) => a.distance - b.distance);
+      nearbyCache.set(i, candidates);
+      return candidates;
+    };
+    const modules = new Map();
+    background.filter(i => nodes[i].module >= 0).forEach(i => {
+      const module = nodes[i].module;
+      if (!modules.has(module)) modules.set(module, []);
+      modules.get(module).push(i);
+    });
+    modules.forEach(members => {
+      const reached = new Set([members[0]]);
+      while (reached.size < members.length) {
+        let best = null;
+        reached.forEach(i => {
+          nearby(i).filter(c => nodes[c.j].module === nodes[i].module && !reached.has(c.j)).forEach(c => {
+            if (!best || c.distance < best.distance) best = { i, ...c };
+          });
+        });
+        if (!best) break;
+        link(best.i, best.j);
+        reached.add(best.j);
+      }
+    });
+    background.filter(i => nodes[i].module >= 0)
+      .sort((a, b) => nodes[b].targetDegree - nodes[a].targetDegree)
+      .forEach(i => {
+        const candidates = nearby(i).filter(c => nodes[c.j].module === nodes[i].module);
+        const affinity = ({ j, distance }) => {
+          const shared = [...neighbours[i]].filter(k => neighbours[j].has(k)).length;
+          return (1 + shared * AIRY.closure) * Math.sqrt(1 + degrees[j]) / (24 + distance);
+        };
+        candidates.sort((a, b) => affinity(b) - affinity(a));
+        candidates.forEach(({ j }) => {
+          if (degrees[i] < nodes[i].targetDegree && degrees[j] < nodes[j].targetDegree) link(i, j);
+        });
+      });
+    const bridges = new Map();
+    background.filter(i => nodes[i].module >= 0).forEach(i => {
+      nearby(i).filter(c => nodes[c.j].module >= 0 && nodes[c.j].module !== nodes[i].module).forEach(c => {
+        const key = keyOf(nodes[i].module, nodes[c.j].module);
+        if (!bridges.has(key)) bridges.set(key, []);
+        bridges.get(key).push({ i, ...c });
+      });
+    });
+    bridges.forEach(candidates => {
+      candidates.sort((a, b) => a.distance - b.distance);
+      for (const { i, j } of candidates) {
+        if (linked.has(keyOf(i, j))) continue;
+        if (rand() >= 0.85 || degrees[i] >= AIRY.hubDegree || degrees[j] >= AIRY.hubDegree) continue;
+        link(i, j);
+        break;
+      }
+    });
+    background.filter(i => nodes[i].module === -1).forEach(i => {
+      nearby(i).forEach(({ j }) => {
+        if (degrees[i] < nodes[i].targetDegree && degrees[j] < (nodes[j].module === -1 ? nodes[j].targetDegree : 7)) link(i, j);
+      });
+    });
   }
 
   // --- HNSW-style graph ----------------------------------------------------------
@@ -579,22 +666,25 @@
   // HNSW's neighbour-selection heuristic: keep a candidate only if it is closer
   // to the node than to every neighbour already kept, so links fan out in
   // different directions and some reach across to neighbouring regions.
-  function heuristic(cands, M) {
+  function heuristic(cands, M, minimum) {
     const out = [];
     for (const c of cands) {
       if (out.length >= M) break;
       if (out.every(o => dist3(nodes[c.j], nodes[o]) > c.d)) out.push(c.j);
     }
     for (const c of cands) {
-      if (out.length >= Math.min(2, cands.length)) break;
+      if (out.length >= Math.min(minimum, cands.length)) break;
       if (!out.includes(c.j)) out.push(c.j);
     }
     return out;
   }
-  function buildLayer(ids, C, M) {
+  function buildLayer(ids, C, M, minimum = 2, maxLength = Infinity) {
     const sets = new Map(ids.map(i => [i, new Set()]));
     const link = (a, b) => { sets.get(a).add(b); sets.get(b).add(a); };
-    ids.forEach(i => heuristic(knn(ids, i, C), M).forEach(j => link(i, j)));
+    ids.forEach(i => {
+      const candidates = knn(ids, i, C).filter(c => c.d <= maxLength * maxLength);
+      heuristic(candidates, M, minimum).forEach(j => link(i, j));
+    });
     // A minimum spanning tree guarantees one connected component per layer.
     const bestD = new Map();
     const bestTo = new Map();
@@ -616,9 +706,9 @@
   }
   function buildGraph(rand) {
     const all = nodes.map((_, i) => i);
-    // Background vectors link by the HNSW heuristic; each focus region keeps
-    // its own hub-and-spoke links and joins the rest through its tendril.
-    const base = buildLayer(all.filter(i => nodes[i].cluster < 0), 12, 5);
+    // Search stays connected across gaps; idle decoration has its own local links.
+    // Focus regions retain their own links and join through their tendrils.
+    const base = buildLayer(all.filter(i => nodes[i].cluster < 0), 12, 5, 4, F * 0.45);
     adj = [all.map(i => base[i] || [])];
     const link = (a, b) => { adj[0][a].push(b); adj[0][b].push(a); };
     clusterInfo.forEach(c => {
@@ -1164,13 +1254,16 @@
     });
 
     const dark = colors.dark;
-    const bgEdge = dark ? 0.34 : 0.4;
+    const bgEdge = (dark ? 0.34 : 0.4) * AIRY.opacity;
     const bgDot = dark ? 0.72 : 0.6;
     const depthA = s => 0.3 + 0.7 * s;
 
-    for (let e = 0; e < edges.length; e += 2) {
-      const A = nodes[edges[e]];
-      const B = nodes[edges[e + 1]];
+    const idleEdges = backdropEdges;
+    for (let e = 0; e < idleEdges.length; e += 2) {
+      const A = nodes[idleEdges[e]];
+      const B = nodes[idleEdges[e + 1]];
+      const length = Math.hypot(A.sx - B.sx, A.sy - B.sy);
+      if (length > AIRY.limit) continue;
       const v = Math.min(A.vis, B.vis);
       if (v < 0.02) continue;
       if (A.cluster >= 0 && A.cluster === B.cluster) continue;
@@ -1178,7 +1271,8 @@
       const deep = A.zz > B.zz ? A : B;
       const plane = planeFor(deep.zz) === FAR ? FAR : MID;
       const grow = edgeEntrance(A, B);
-      line(plane, plane === FAR ? 0 : 1, bgEdge * v * depthA(deep.s) * (plane === FAR ? 1.6 : 0.7) * grow,
+      const lengthFade = 1 - smooth((length - AIRY.limit * 0.85) / (AIRY.limit * 0.15));
+      line(plane, plane === FAR ? 0 : 1, bgEdge * v * depthA(deep.s) * (plane === FAR ? 1.6 : 0.7) * grow * lengthFade,
         A.sx, A.sy, grow === 1 ? B.sx : A.sx + (B.sx - A.sx) * grow,
         grow === 1 ? B.sy : A.sy + (B.sy - A.sy) * grow);
     }
@@ -1191,7 +1285,7 @@
     flush();
     clusterInfo.forEach(c => drawRegion(c, dark));
     if (entranceEffect && entranceProgress < 1) {
-      entranceEffect.draw({ ctx: NEAR.ctx, nodes, edges, progress: entranceProgress, colors, compact, clearAt });
+      entranceEffect.draw({ ctx: NEAR.ctx, nodes, edges: idleEdges, progress: entranceProgress, colors, compact, clearAt });
     }
 
     // The answer's documents claim label space first; region names fit around.
