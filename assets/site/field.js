@@ -97,11 +97,12 @@
   let hover = null;
   let visible = true;
   let frame = 0;
+  let wakeTimer = 0;
   let lastFrame = 0;
   let lastDraw = 0;
   let farDirty = true;
   let farSkip = false;
-  const clockStart = performance.now();
+  let sceneTime = 0;
   let entranceStart = null;
   let entranceProgress = (motionQuery.matches || document.body.classList.contains('page-404')) ? 1 : 0;
   const cam = { cy: 1, sy: 0, cp: 1, sp: 0, px: 0, py: 0, tx: 0, ty: 0, yaw: 0, pitch: 0 };
@@ -127,6 +128,10 @@
   const ease = t => (t <= 0 ? 0 : t >= 1 ? 1 : 1 - Math.pow(1 - t, 3));
   const easeInOut = t => (t <= 0 ? 0 : t >= 1 ? 1 : t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   const dist3 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2 + (a.z - b.z) ** 2;
+  const approach = (value, target, rate, epsilon = 0.001) => {
+    const next = value + (target - value) * rate;
+    return Math.abs(next - target) < epsilon ? target : next;
+  };
 
   function rgba(hex, a) {
     if (hex.startsWith('#') && (hex.length === 7 || hex.length === 4)) {
@@ -249,8 +254,8 @@
   // so the focus regions hold still while the depths behind them slide.
   function setCamera(t, still) {
     if (!still) {
-      cam.px += (cam.tx - cam.px) * 0.05;
-      cam.py += (cam.ty - cam.py) * 0.05;
+      cam.px = approach(cam.px, cam.tx, 0.05, 0.0001);
+      cam.py = approach(cam.py, cam.ty, 0.05, 0.0001);
     }
     const yaw = still ? 0 : 0.075 * Math.sin(t / 16000) + cam.px +
       (entranceEffect && entranceStart != null ? entranceEffect.cameraYaw(entranceProgress) : 0);
@@ -1277,18 +1282,24 @@
     const age = now - query.start;
     return smooth(age / 280) * (1 - smooth((age - query.land - HOLD_MS) / FADE_MS));
   }
+  function attentionTarget(i, now, still) {
+    if (hover != null && nodes[hover].cluster === i) return 1;
+    return query && query.focus && query.focus[i] === 1 ? retrievalAttention(now, still) : 0;
+  }
 
   const tmpC = {};
   function draw(now) {
-    const t = now - clockStart;
     const still = motionQuery.matches;
     updateColors(now);
     updateEntrance(now, still);
     const dt = lastDraw ? Math.min(120, now - lastDraw) : 0;
     lastDraw = now;
+    // Freeze drift between event-driven animation runs, including the result hold.
+    sceneTime += dt;
+    const t = sceneTime;
     const settling = 1 - Math.exp(-dt / 280);
     const conversation = document.body.classList.contains('convo-active') ? 1 : 0;
-    conversationMix = still ? conversation : conversationMix + (conversation - conversationMix) * settling;
+    conversationMix = still ? conversation : approach(conversationMix, conversation, settling);
     const prevYaw = cam.yaw;
     const prevPitch = cam.pitch;
     setCamera(t, still);
@@ -1301,10 +1312,9 @@
     const attention = retrievalAttention(now, still);
     clusterInfo.forEach((c, i) => {
       const goal = focusTarget(i, now, still);
-      c.f = still ? goal : c.f + (goal - c.f) * settling;
-      const emphasis = hover != null && nodes[hover].cluster === i ? 1 :
-        query && query.focus && query.focus[i] === 1 ? attention : 0;
-      c.attention = still ? emphasis : c.attention + (emphasis - c.attention) * settling;
+      c.f = still ? goal : approach(c.f, goal, settling);
+      const emphasis = attentionTarget(i, now, still);
+      c.attention = still ? emphasis : approach(c.attention, emphasis, settling);
     });
 
     PLANES.forEach(p => {
@@ -1513,21 +1523,54 @@
   }
 
   // --- Loop and wiring -----------------------------------------------------------
+  function needsAnimation(now) {
+    if (entranceProgress < 1 || colorTransition ||
+        cam.px !== cam.tx || cam.py !== cam.ty ||
+        conversationMix !== (document.body.classList.contains('convo-active') ? 1 : 0) ||
+        clusterInfo.some((c, i) => c.f !== focusTarget(i, now, false) || c.attention !== attentionTarget(i, now, false))) return true;
+    if (!query || query.mode === 'overview') return false;
+    const age = now - query.start;
+    const settledAt = Math.max(query.land + (query.target ? 1600 : 0), ...query.results.map(result => result.t + 380));
+    return age < settledAt || (age >= query.land + HOLD_MS && age < query.land + HOLD_MS + FADE_MS);
+  }
+  function stop() {
+    cancelAnimationFrame(frame);
+    clearTimeout(wakeTimer);
+    frame = wakeTimer = 0;
+    lastFrame = lastDraw = 0;
+  }
   function tick(now) {
     frame = 0;
     if (!visible || document.hidden) return;
-    if (motionQuery.matches || now - lastFrame >= FRAME_MS) {
-      lastFrame = now;
-      draw(now);
+    if (!motionQuery.matches && now - lastFrame < FRAME_MS) {
+      frame = requestAnimationFrame(tick);
+      return;
     }
-    if (!motionQuery.matches) frame = requestAnimationFrame(tick);
+    lastFrame = now;
+    draw(now);
+    if (!motionQuery.matches) {
+      if (needsAnimation(now)) frame = requestAnimationFrame(tick);
+      else if (query && query.mode !== 'overview') {
+        const fadeAt = query.start + query.land + HOLD_MS;
+        if (fadeAt > now) wakeTimer = setTimeout(kick, fadeAt - now);
+      }
+    }
   }
   function kick() {
+    clearTimeout(wakeTimer);
+    wakeTimer = 0;
+    if (!visible || document.hidden) { stop(); return; }
     if (motionQuery.matches) {
+      stop();
+      farDirty = true;
       draw(performance.now());
       return;
     }
-    if (!frame) frame = requestAnimationFrame(tick);
+    if (!frame) {
+      lastFrame = lastDraw = 0;
+      farDirty = true;
+      frame = requestAnimationFrame(tick);
+    }
   }
 
   // A query is the topic plus the documents its answer draws on; the 404 page
@@ -1561,14 +1604,16 @@
 
   // Protected areas move as the chat streams; refresh them cheaply.
   const app = document.getElementById('app');
-  const copyObserver = new ResizeObserver(() => { readProtected(); if (motionQuery.matches) kick(); });
+  const copyObserver = new ResizeObserver(() => { readProtected(); kick(); });
   if (app) copyObserver.observe(app);
   copyObserver.observe(readout);
+  new MutationObserver(kick).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
   new IntersectionObserver(entries => {
     visible = entries.some(e => e.isIntersecting);
     if (visible) { lastDraw = 0; kick(); }
     else {
+      stop();
       if (entranceStart != null || entranceEffect) finishEntrance();
       if (entranceEffect && entranceEffect.interrupt) entranceEffect.interrupt();
     }
@@ -1590,12 +1635,14 @@
           if (d < best) { best = d; next = i; }
         });
       }
-      if (next !== hover) { hover = next; kick(); }
+      hover = next;
+      kick();
     });
     hero.addEventListener('pointerleave', () => {
       cam.tx = 0;
       cam.ty = 0;
-      if (hover != null) { hover = null; kick(); }
+      hover = null;
+      kick();
     });
   }
 

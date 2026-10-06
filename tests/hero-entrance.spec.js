@@ -155,6 +155,7 @@ async function inspectIdleField(page) {
           };
         },
         get query() { return query; },
+        get activity() { return { frame, wakeTimer, visible, entranceProgress }; },
         get regions() { return clusterInfo; },
         get motionReduced() { return motionQuery.matches; },
         get visibility() {
@@ -169,12 +170,14 @@ async function inspectIdleField(page) {
           return node && { x: bounds.left + node.sx, y: bounds.top + node.sy, region: CLUSTERS[node.cluster].id };
         },
         draw,
+        kick,
         onQuery
       };
 ${hook}`),
   }));
   await page.addInitScript(() => {
     window.heroPaint = {};
+    window.heroDrawCount = 0;
     const proto = CanvasRenderingContext2D.prototype;
     const paths = new WeakMap();
     for (const method of ['clearRect', 'beginPath', 'arc', 'fill', 'stroke', 'fillText']) {
@@ -182,7 +185,10 @@ ${hook}`),
       proto[method] = function (...args) {
         if (this.canvas.matches('.field-canvas')) {
           const name = this.canvas.className;
-          if (method === 'clearRect') window.heroPaint[name] = { fill: [], stroke: [], text: [] };
+          if (method === 'clearRect') {
+            window.heroPaint[name] = { fill: [], stroke: [], text: [] };
+            if (this.canvas.classList.contains('field-near')) window.heroDrawCount++;
+          }
           const paint = window.heroPaint[name];
           if (method === 'beginPath') paths.set(this, []);
           if (method === 'arc') paths.get(this).push(args.slice(0, 3));
@@ -207,6 +213,124 @@ function meanAlpha(operations) {
   });
   return alphas.reduce((sum, alpha) => sum + alpha, 0) / alphas.length;
 }
+
+async function expectFieldIdle(page, holding = false) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    window.heroIdleCheck = null;
+  });
+  await page.waitForFunction(holding => {
+    const activity = window.heroFieldTest?.activity;
+    if (!activity || activity.entranceProgress !== 1 || activity.frame !== 0 ||
+        Boolean(activity.wakeTimer) !== holding) {
+      window.heroIdleCheck = null;
+      return false;
+    }
+    if (!window.heroIdleCheck || window.heroIdleCheck.count !== window.heroDrawCount) {
+      window.heroIdleCheck = { count: window.heroDrawCount, since: performance.now() };
+    }
+    return performance.now() - window.heroIdleCheck.since >= 250;
+  }, holding);
+  const count = await page.evaluate(() => window.heroDrawCount);
+  await page.waitForTimeout(350);
+  expect(await page.evaluate(() => window.heroDrawCount)).toBe(count);
+}
+
+for (const pathname of ['/', '/404.html']) {
+  test(`field stops idle frames and uses a timer for held results on ${pathname}`, async ({ page }) => {
+    await inspectIdleField(page);
+    await page.goto(origin + pathname);
+    await expectFieldIdle(page);
+    const idleCount = await page.evaluate(() => window.heroDrawCount);
+    await page.evaluate(() => window.heroFieldTest.onQuery({
+      topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'],
+    }));
+    await page.waitForFunction(count => window.heroDrawCount > count, idleCount);
+    await page.evaluate(() => {
+      const query = window.heroFieldTest.query;
+      query.start = performance.now() - query.land - 2000;
+      window.heroFieldTest.kick();
+    });
+    await expectFieldIdle(page, true);
+    const holding = await page.evaluate(() => window.heroFieldTest.regions.map(c => ({ f: c.f, attention: c.attention })));
+    expect(holding.some(c => c.f < 1)).toBe(true);
+    expect(holding.some(c => c.attention === 1)).toBe(true);
+    await page.evaluate(() => {
+      const query = window.heroFieldTest.query;
+      query.start = performance.now() - query.land - 9000 + 650;
+      window.heroFieldTest.kick();
+    });
+    await page.waitForFunction(() => {
+      const activity = window.heroFieldTest.activity;
+      return activity.frame === 0 && activity.wakeTimer > 0;
+    });
+    const heldCount = await page.evaluate(() => window.heroDrawCount);
+    await page.waitForFunction(count => {
+      const query = window.heroFieldTest.query;
+      return window.heroDrawCount > count && performance.now() >= query.start + query.land + 9000;
+    }, heldCount);
+    await expectFieldIdle(page);
+    expect(await page.evaluate(() => window.heroFieldTest.regions.every(c => c.f === 1 && c.attention === 0))).toBe(true);
+  });
+}
+
+test('idle field wakes for hover, theme, copy changes and resize, then settles again', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  const target = await page.evaluate(() => window.heroFieldTest.hoverTarget);
+  expect(target).toBeTruthy();
+  await page.mouse.move(target.x, target.y);
+  await expectFieldIdle(page);
+  expect(await page.evaluate(id => window.heroFieldTest.regions.find(c => c.id === id).attention, target.region)).toBe(1);
+  await page.mouse.move(0, 0);
+  await expectFieldIdle(page);
+  expect(await page.evaluate(() => window.heroFieldTest.regions.every(c => c.attention === 0))).toBe(true);
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await expectFieldIdle(page);
+  expect(await page.evaluate(() => window.heroFieldTest.colors.darkMix)).toBe(1);
+  const count = await page.evaluate(() => window.heroDrawCount);
+  await page.evaluate(() => {
+    document.body.classList.add('convo-active');
+    document.querySelector('.hero-chat').style.height = '300px';
+  });
+  await page.waitForFunction(count => window.heroDrawCount > count, count);
+  await expectFieldIdle(page);
+  const nodes = await page.evaluate(() => window.heroFieldTest.graph.nodes.length);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.waitForFunction(count => window.heroFieldTest.graph.nodes.length !== count, nodes);
+  await expectFieldIdle(page);
+});
+
+test('hidden field cancels animation and result timers and redraws when restored', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  await page.evaluate(() => {
+    window.heroFieldTest.onQuery({ topic: 'engine', docs: ['HNSW graph search'] });
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    document.documentElement.dataset.theme = 'dark';
+  });
+  await expectFieldIdle(page);
+  const count = await page.evaluate(() => window.heroDrawCount);
+  await page.evaluate(() => {
+    delete document.hidden;
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForFunction(count => window.heroDrawCount > count, count);
+  await page.evaluate(() => {
+    const query = window.heroFieldTest.query;
+    query.start = performance.now() - query.land - 2000;
+    window.heroFieldTest.kick();
+  });
+  await expectFieldIdle(page, true);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expectFieldIdle(page);
+});
 
 for (const pathname of ['/', '/404.html']) {
   test(`dark idle contrast preserves graph geometry on ${pathname}`, async ({ page }) => {
