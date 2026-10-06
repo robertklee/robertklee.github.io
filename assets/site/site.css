@@ -728,6 +728,15 @@ em { font-style: italic; }
 .cm-node { position: absolute; bottom: calc(var(--rise) * 1px - 7px); left: calc(50% - 7px); width: 14px; height: 14px; border: 2px solid var(--accent); border-radius: 50%; background: var(--surface); box-shadow: 0 0 0 4px var(--accent-soft); transition: background .2s ease, box-shadow .2s ease; }
 .cm-step-garage .cm-node { border-color: var(--faint); box-shadow: 0 0 0 4px var(--surface-2); }
 .cm-step-now .cm-node { bottom: calc(var(--rise) * 1px - 9px); left: calc(50% - 9px); width: 18px; height: 18px; border-color: var(--amber-strong); background: var(--amber-strong); box-shadow: 0 0 0 5px var(--amber-soft); }
+.cm-step-now .cm-node::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(110deg, transparent 40%, white 50%, transparent 60%) 100% 0 / 300% 100% no-repeat; opacity: 0; pointer-events: none; }
+@media screen and (prefers-reduced-motion: no-preference) {
+  .cm-step-now .cm-node::after { animation: cm-current-shimmer 6s ease-in-out infinite; }
+}
+@keyframes cm-current-shimmer {
+  0%, 70% { background-position: 100% 0; opacity: 0; }
+  75%, 85% { opacity: .45; }
+  90%, 100% { background-position: 0% 0; opacity: 0; }
+}
 .cm-step > a:hover .cm-node, .cm-step > a:focus-visible .cm-node { background: var(--accent); box-shadow: 0 0 0 7px var(--accent-soft); }
 .cm-step-garage > a:hover .cm-node, .cm-step-garage > a:focus-visible .cm-node { background: var(--faint); box-shadow: 0 0 0 7px var(--surface-2); }
 .cm-step-now > a:hover .cm-node, .cm-step-now > a:focus-visible .cm-node { background: var(--amber-strong); box-shadow: 0 0 0 8px var(--amber-soft); }
@@ -1055,7 +1064,7 @@ em { font-style: italic; }
   .cm-step > a { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; }
   .cm-stage { position: static; display: grid; place-items: center; height: auto; }
   .cm-node { position: static; width: 12px; height: 12px; box-shadow: none; }
-  .cm-step-now .cm-node { width: 16px; height: 16px; }
+  .cm-step-now .cm-node { position: relative; bottom: auto; left: auto; width: 16px; height: 16px; }
   .cm-label { position: absolute; top: 36px; left: 50%; width: 64px; text-align: left; }
   .cm-step-above .cm-label { top: auto; bottom: 36px; transform: translateX(-50%); text-align: center; }
   .cm-step-first .cm-label { left: 0; text-align: left; }

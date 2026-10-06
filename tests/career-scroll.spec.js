@@ -60,6 +60,56 @@ function curveLine(page) {
   return page.locator('.cm-curve-desktop .cm-curve-line:visible, .cm-curve-mobile .cm-curve-line:visible');
 }
 
+test('only the current career marker shimmers subtly across themes and layouts', async ({ page }) => {
+  const marker = page.locator('.cm-step-now .cm-node');
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await marker.scrollIntoViewIfNeeded();
+      const shimmer = await marker.evaluate(node => {
+        const animation = node.getAnimations({ subtree: true }).find(animation => animation.animationName === 'cm-current-shimmer');
+        if (!animation) throw new Error('Missing current-role shimmer');
+        animation.pause();
+        const samples = [0, 4200, 4800, 5400, 5900].map(time => {
+          animation.currentTime = time;
+          const style = getComputedStyle(node, '::after');
+          return { opacity: Number(style.opacity), position: style.backgroundPositionX };
+        });
+        const style = getComputedStyle(node, '::after');
+        return {
+          duration: animation.effect.getTiming().duration,
+          iterations: animation.effect.getTiming().iterations,
+          pointerEvents: style.pointerEvents,
+          sheenWidth: parseFloat(style.width),
+          samples,
+        };
+      });
+      expect(shimmer.duration).toBe(6000);
+      expect(shimmer.iterations).toBe(Infinity);
+      expect(shimmer.pointerEvents).toBe('none');
+      expect(shimmer.sheenWidth).toBe(width === 390 ? 12 : 14);
+      for (const [index, opacity] of [0, 0, .45, 0, 0].entries()) {
+        expect(shimmer.samples[index].opacity).toBeCloseTo(opacity, 5);
+      }
+      expect(shimmer.samples[1].position).toBe('100%');
+      expect(shimmer.samples[2].position).toBe('50%');
+      expect(shimmer.samples[3].position).toBe('0%');
+      await expect.poll(() => marker.evaluate(node => node.getBoundingClientRect().width)).toBe(width === 390 ? 16 : 18);
+      expect(await page.locator('.cm-step:not(.cm-step-now) .cm-node').evaluateAll(nodes =>
+        nodes.every(node => getComputedStyle(node, '::after').animationName === 'none')
+      )).toBe(true);
+    }
+  }
+  for (const media of [{ reducedMotion: 'reduce' }, { reducedMotion: 'no-preference', media: 'print' }]) {
+    await page.emulateMedia(media);
+    expect(await marker.evaluate(node => {
+      const style = getComputedStyle(node, '::after');
+      return { animation: style.animationName, opacity: style.opacity };
+    })).toEqual({ animation: 'none', opacity: '0' });
+  }
+});
+
 test('editorial glow is reserved for three achievements across themes and layouts', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const accents = page.locator('.card-accent');
@@ -455,13 +505,16 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 861, height: 100
     expect(await page.locator('.cm-step-now .cm-node').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m11)).toBe(1);
     expect(await page.locator('.cm-step-first .cm-node').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m11)).toBeLessThan(1);
 
-    await card.evaluate(element => element.getAnimations({ subtree: true }).forEach(animation => animation.finish()));
+    await card.evaluate(element => element.getAnimations({ subtree: true })
+      .filter(animation => animation.effect.getTiming().iterations !== Infinity)
+      .forEach(animation => animation.finish()));
     await expectComplete(page);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
     await expect.poll(() => page.locator('.cm-curve').evaluate(curve => curve.getBoundingClientRect().top)).toBeGreaterThan(viewport.height);
     await showCurve(page);
     await expectComplete(page);
-    expect(await plot.evaluate(element => element.getAnimations({ subtree: true }).length)).toBe(0);
+    expect(await plot.evaluate(element => element.getAnimations({ subtree: true })
+      .filter(animation => animation.effect.getTiming().iterations !== Infinity).length)).toBe(0);
     await page.locator('html').evaluate(root => { root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; });
     await page.setViewportSize({ width: viewport.width > 860 ? 390 : 1440, height: 1000 });
     await expectComplete(page);
