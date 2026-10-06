@@ -376,7 +376,12 @@ for (const demo of repeatingDemos) {
     const held = await snapshot();
     await page.clock.runFor(10000);
     expect(await snapshot()).toBe(held);
-    await expect(pause).toHaveText('Resume animation');
+    await expect(pause).toHaveAccessibleName('Resume animation');
+    if (demo.prefix === 'hn') {
+      await expect(pause.locator('[data-demo-play-icon]')).toBeVisible();
+      await expect(pause.locator('[data-demo-pause-icon]')).toBeHidden();
+      await expect(pause).toHaveAttribute('title', 'Resume animation');
+    }
     await pause.evaluate(button => button.click());
     await page.clock.runFor(demo.step);
     expect(await snapshot()).not.toBe(held);
@@ -386,7 +391,12 @@ for (const demo of repeatingDemos) {
     await page.clock.runFor(10000);
     expect(await page.evaluate(demo.done)).toBe(true);
     await replay.evaluate(button => button.click());
-    await expect(pause).toHaveText('Pause animation');
+    await expect(pause).toHaveAccessibleName('Pause animation');
+    if (demo.prefix === 'hn') {
+      await expect(pause.locator('[data-demo-pause-icon]')).toBeVisible();
+      await expect(pause.locator('[data-demo-play-icon]')).toBeHidden();
+      await expect(pause).toHaveAttribute('title', 'Pause animation');
+    }
     await page.clock.runFor(demo.step * 2);
     await viewDemo(page, demo.target, false);
     const offscreen = await snapshot();
@@ -429,6 +439,48 @@ for (const demo of repeatingDemos) {
     expect(await page.evaluate(demo.done)).toBe(true);
     await page.clock.runFor(10000);
     expect(await page.evaluate(demo.done)).toBe(true);
+  });
+}
+
+for (const width of [1440, 390]) {
+  test(`HNSW icon controls stay fixed above changing status text at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await viewDemo(page, '.hn-level[data-level="0"]');
+    const replay = page.locator('[data-hn-replay]');
+    await expect(replay).toHaveAccessibleName('Replay search');
+    await expect(replay).toHaveAttribute('title', 'Replay search');
+    await replay.evaluate(button => button.click());
+    const geometry = () => page.locator('.hn-toolbar').evaluate(toolbar => {
+      const origin = toolbar.getBoundingClientRect();
+      const controls = [...toolbar.querySelectorAll('button')].map(button => {
+        const rect = button.getBoundingClientRect();
+        return { x: rect.x - origin.x, y: rect.y - origin.y, width: rect.width, height: rect.height };
+      });
+      const status = toolbar.querySelector('[data-hn-status]').getBoundingClientRect();
+      return { controls, statusY: status.y - origin.y };
+    });
+    const initial = await geometry();
+    expect(initial.controls).toHaveLength(2);
+    for (const control of initial.controls) {
+      expect(control.width).toBe(44);
+      expect(control.height).toBe(44);
+      expect(initial.statusY).toBeGreaterThanOrEqual(control.y + control.height);
+    }
+    const statuses = new Set();
+    let complete = false;
+    for (let step = 0; step < 60; step++) {
+      const status = await page.locator('[data-hn-status]').textContent();
+      statuses.add(status);
+      const current = await geometry();
+      expect(current.controls).toEqual(initial.controls);
+      expect(current.statusY).toBe(initial.statusY);
+      if (status.includes('Search complete')) { complete = true; break; }
+      await page.clock.runFor(200);
+    }
+    expect(complete).toBe(true);
+    expect(statuses.size).toBeGreaterThan(2);
+    await expect(page.locator('.hn-toolbar button')).toHaveText(['', '']);
   });
 }
 

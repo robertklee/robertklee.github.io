@@ -5,6 +5,9 @@
 .vector-demo-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .vector-demo-replay { min-height: 44px; padding: 8px 14px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--bg); color: var(--heading); font-size: 13px; }
 .vector-demo-replay:hover { border-color: var(--accent); }
+.vector-demo-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; flex: none; }
+.vector-demo-icon svg { width: 20px; height: 20px; }
+.hn-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); }
 .vector-demo-label { color: var(--faint); font: 500 11px/1.4 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; }
 .vector-demo-status { color: var(--accent); font: 500 12px/1.6 var(--font-mono); }
 .vector-demo-note { color: var(--faint); font-size: 12px; }

@@ -4,6 +4,8 @@
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   window.createDemoPlayback = ({ target, pauseButton, loopNote, paint, announce, stepMs = 200 }) => {
+    const pauseIcon = pauseButton.querySelector('[data-demo-pause-icon]');
+    const playIcon = pauseButton.querySelector('[data-demo-play-icon]');
     let timer = 0;
     let repeatTimer = 0;
     let frames = [];
@@ -47,7 +49,15 @@
     };
     const syncControls = () => {
       pauseButton.hidden = reduced.matches || !('IntersectionObserver' in window);
-      pauseButton.textContent = paused ? 'Resume animation' : 'Pause animation';
+      const label = paused ? 'Resume animation' : 'Pause animation';
+      if (pauseIcon && playIcon) {
+        pauseIcon.toggleAttribute('hidden', paused);
+        playIcon.toggleAttribute('hidden', !paused);
+        pauseButton.setAttribute('aria-label', label);
+        pauseButton.title = label;
+      } else {
+        pauseButton.textContent = label;
+      }
       loopNote.hidden = pauseButton.hidden;
     };
     const syncCycle = () => {

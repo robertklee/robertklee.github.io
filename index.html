@@ -572,7 +572,18 @@
               <p class="vector-demo-note">A comparison measures how far a stored vector is from the query. Graph search only compares the vectors it visits; comparing all 24 gives the true nearest three below. These are counts, not a speed benchmark.</p>
               <div class="hn-results"><p><span>Graph's nearest 3</span><strong data-hn-results></strong></p><p><span>True nearest 3 · all 24 compared</span><strong data-hn-exact></strong></p></div>
               <p class="vector-demo-note" data-hn-ties hidden></p>
-              <div class="vector-demo-toolbar"><p class="vector-demo-status" data-hn-status></p><button type="button" class="vector-demo-replay" data-hn-pause hidden>Pause animation</button><button type="button" class="vector-demo-replay" data-hn-replay>Replay search</button></div>
+              <div class="vector-demo-toolbar hn-toolbar">
+                <div class="vector-demo-actions">
+                  <button type="button" class="vector-demo-replay vector-demo-icon" data-hn-pause aria-label="Pause animation" title="Pause animation" hidden>
+                    <svg data-demo-pause-icon viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5h4v14H7zm6 0h4v14h-4z" fill="currentColor"/></svg>
+                    <svg data-demo-play-icon viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden><path d="m8 5 11 7-11 7z" fill="currentColor"/></svg>
+                  </button>
+                  <button type="button" class="vector-demo-replay vector-demo-icon" data-hn-replay aria-label="Replay search" title="Replay search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+                <p class="vector-demo-status" data-hn-status></p>
+              </div>
               <p class="vector-demo-note" data-hn-loop-note hidden>Repeats while in view, with a 2-second pause between searches. Pause the animation to inspect a step.</p>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-hn-live></p>
             </div>
