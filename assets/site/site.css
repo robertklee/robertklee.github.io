@@ -366,7 +366,7 @@ em { font-style: italic; }
   transition: border-color .2s ease, transform .2s ease;
 }
 .cv-contact-links :is(a, button):hover { border-color: var(--accent); transform: translateY(-1px); }
-.cv-contact-links button { border-color: transparent; background: var(--heading); color: var(--bg); }
+.cv-contact-links button[data-profile-resume] { border-color: transparent; background: var(--heading); color: var(--bg); }
 
 /* Selected work chapters */
 .chapter {

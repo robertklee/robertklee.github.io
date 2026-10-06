@@ -7,6 +7,7 @@ const { extname, join, resolve } = require('node:path');
 const { execFileSync } = require('node:child_process');
 
 const root = resolve(__dirname, '..');
+const email = Buffer.from('aGVsbG9Acm9iZXJ0a2wuY29t', 'base64').toString();
 
 test('build minifies deployed JS/CSS without changing sources or other assets', () => {
   const assets = [
@@ -23,6 +24,10 @@ test('build minifies deployed JS/CSS without changing sources or other assets', 
 
   for (const [filename, source] of sources) {
     const built = readFileSync(join(root, 'dist', filename));
+    if (extname(filename) === '.js') {
+      assert.ok(!source.includes(email), `${filename} source should not expose the email address`);
+      assert.ok(!built.includes(email), `${filename} deployment should not expose the email address`);
+    }
     assert.ok(built.length < source.length, `${filename} should be smaller`);
     assert.deepEqual(readFileSync(join(root, filename)), source, `${filename} source should be untouched`);
     if (extname(filename) === '.js') {
@@ -43,6 +48,8 @@ test('build minifies deployed JS/CSS without changing sources or other assets', 
   }
 
   const homepage = readFileSync(join(root, 'dist/index.html'), 'utf8');
+  assert.ok(!homepage.includes(email), 'homepage should not expose the email address');
+  assert.ok(!homepage.includes('mailto:'), 'homepage should not publish email links before activation');
   assert.match(homepage, /property="og:url" content="https:\/\/preview\.example\.com\/"/);
   assert.match(homepage, /property="og:image" content="https:\/\/preview\.example\.com\/assets\/og\.png"/);
   assert.match(homepage, /name="twitter:image" content="https:\/\/preview\.example\.com\/assets\/og\.png"/);

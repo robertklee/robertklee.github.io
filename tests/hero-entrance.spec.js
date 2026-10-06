@@ -862,7 +862,91 @@ test('the 404 shares the Airy field without installing homepage coordination', a
   await expect(page.locator('.field-entering, .hero-retrieval-note')).toHaveCount(0);
 });
 
-test('the profile remains readable without JavaScript', async ({ browser }) => {
+test.describe('email reveal', () => {
+  test.use({ reducedMotion: 'reduce' });
+  const address = Buffer.from('aGVsbG9Acm9iZXJ0a2wuY29t', 'base64').toString();
+
+  test('email stays hidden during passive browsing and synthetic clicks', async ({ page }) => {
+    await page.goto(origin);
+    for (const path of ['/', '/index.js', '/assets/site/site.js']) {
+      const response = await page.request.get(origin + path);
+      expect(response.ok()).toBe(true);
+      expect(await response.text()).not.toContain(address);
+    }
+    const buttons = page.locator('[data-email-reveal]');
+    await expect(buttons).toHaveCount(2);
+    for (const button of await buttons.all()) {
+      await button.hover();
+      await button.focus();
+      await button.evaluate(element => {
+        element.click();
+        element.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+    }
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+    expect(await page.content()).not.toContain(address);
+    await expect(buttons).toHaveCount(2);
+  });
+
+  for (const key of ['Enter', 'Space']) {
+    test(`email can be revealed with ${key} without opening an email app`, async ({ page }) => {
+      await page.goto(origin);
+      const button = page.locator('.cv-contact-links [data-email-reveal]');
+      await button.focus();
+      await page.keyboard.press(key);
+      const link = page.locator('.cv-contact-links').getByRole('link', { name: address, exact: true });
+      await expect(link).toHaveAttribute('href', `mailto:${address}`);
+      await expect(link).toBeFocused();
+      await expect(page.locator('a[href^="mailto:"]')).toHaveCount(1);
+      await expect(page.locator('#contact [data-email-reveal]')).toHaveCount(1);
+      await expect(page).toHaveURL(origin + '/');
+    });
+  }
+
+  test('email reveals when the decorative child of an About button is clicked', async ({ page }) => {
+    await page.goto(origin);
+    await page.locator('.cv-contact-links [data-email-reveal] span').click();
+    const link = page.locator('.cv-contact-links').getByRole('link', { name: address, exact: true });
+    await expect(link).toHaveAttribute('href', `mailto:${address}`);
+    await expect(link).toBeFocused();
+  });
+
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+    test(`email contact button reveals a copyable link at ${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(origin);
+      await page.locator('#contact [data-email-reveal]').click();
+      const link = page.locator('#contact').getByRole('link', { name: address, exact: true });
+      await expect(link).toHaveAttribute('href', `mailto:${address}`);
+      await expect(link).toHaveClass('button button-solid');
+      await expect(link).toBeFocused();
+      await expect(page.locator('.cv-contact-links [data-email-reveal]')).toHaveCount(1);
+      await expect(page).toHaveURL(origin + '/');
+    });
+
+    test(`email in the dynamically created chat stays hidden until clicked at ${viewport.width}px`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(origin);
+      for (let turn = 1; turn <= 3; turn++) {
+        await page.locator('button.suggest-chip').first().click();
+        await expect(page.locator('.chat-turn')).toHaveCount(turn);
+      }
+      const button = page.locator('.chat-cta [data-email-reveal]');
+      await expect(button).toBeVisible();
+      await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+      expect(await page.content()).not.toContain(address);
+      await button.click();
+      const link = page.locator('.chat-cta').getByRole('link', { name: address, exact: true });
+      await expect(link).toHaveAttribute('href', `mailto:${address}`);
+      await expect(link).toHaveClass('chat-cta-link');
+      await expect(link).toBeFocused();
+      await expect(page.locator('a[href^="mailto:"]')).toHaveCount(1);
+      await expect(page.locator('[data-email-reveal]')).toHaveCount(2);
+    });
+  }
+});
+
+test('the profile remains readable without JavaScript and email stays hidden', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   try {
     const page = await context.newPage();
@@ -870,6 +954,10 @@ test('the profile remains readable without JavaScript', async ({ browser }) => {
     await expect(page.locator('#hero-name')).toHaveText('Robert Lee');
     await expect(page.locator('#profile-about')).toContainText('Senior Software Engineer');
     await expect(page.locator('.hero-noscript')).toBeVisible();
+    await expect(page.locator('#contact noscript p')).toContainText('Email reveal requires JavaScript');
+    await expect(page.locator('#contact noscript p')).toBeVisible();
+    await expect(page.locator('#contact').getByRole('link', { name: 'LinkedIn' })).toBeVisible();
+    await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
   } finally {
     await context.close();
   }

@@ -86,6 +86,20 @@
     }
   });
 
+  // Decode only on user activation; delegated clicks also cover chat-created buttons.
+  document.addEventListener('click', event => {
+    if (!event.isTrusted || !(event.target instanceof Element)) return;
+    const button = event.target.closest('button[data-email-reveal]');
+    if (!button) return;
+    const address = atob('aGVsbG9Acm9iZXJ0a2wuY29t');
+    const link = document.createElement('a');
+    link.className = button.className;
+    link.href = `mailto:${address}`;
+    link.textContent = address;
+    button.replaceWith(link);
+    link.focus({ preventScroll: true });
+  });
+
   // Expand or collapse every record in a section.
   document.querySelectorAll('[data-expand-all]').forEach(button => {
     const list = document.getElementById(button.getAttribute('aria-controls'));
