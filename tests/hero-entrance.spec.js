@@ -127,7 +127,7 @@ test.afterEach(async ({ page }) => {
   expect(errors.get(page)).toEqual([]);
 });
 
-async function inspectIdleField(page) {
+async function inspectIdleField(page, slowDraw = false) {
   await page.route('**/index.js', route => route.fulfill({
     contentType: 'text/javascript',
     body: `
@@ -155,6 +155,7 @@ async function inspectIdleField(page) {
           };
         },
         get query() { return query; },
+        get quality() { return quality; },
         get regions() { return clusterInfo; },
         get motionReduced() { return motionQuery.matches; },
         get visibility() {
@@ -171,6 +172,14 @@ async function inspectIdleField(page) {
         draw,
         onQuery
       };
+      ${slowDraw ? `
+        const originalDraw = draw;
+        draw = function (now) {
+          originalDraw(now);
+          const start = performance.now();
+          while (performance.now() - start < 26) {}
+        };
+      ` : ''}
 ${hook}`),
   }));
   await page.addInitScript(() => {
@@ -199,6 +208,46 @@ ${hook}`),
     }
   });
 }
+
+test('caps desktop decoration and keeps the focus graph when effects are reduced', async ({ page }) => {
+  await page.setViewportSize({ width: 3000, height: 1400 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+  const initial = await page.evaluate(() => window.heroFieldTest.graph);
+  expect(initial.nodes.filter(node => node.cluster < 0).length).toBeLessThanOrEqual(1000);
+  await page.locator('.field-effects').click();
+  await expect(page.locator('.field-effects')).toHaveAttribute('aria-pressed', 'true');
+  const reduced = await page.evaluate(() => ({
+    graph: window.heroFieldTest.graph,
+    quality: window.heroFieldTest.quality,
+    setting: localStorage.getItem('field-reduced-effects'),
+  }));
+  expect(reduced.quality).toBe(2);
+  expect(reduced.setting).toBe('true');
+  expect(reduced.graph.nodes.length).toBeLessThan(initial.nodes.length);
+  expect(reduced.graph.nodes.filter(node => node.cluster >= 0).length)
+    .toBe(initial.nodes.filter(node => node.cluster >= 0).length);
+  await page.reload();
+  await expect(page.locator('.field-effects')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.field-readout-stats')).toHaveText(`${reduced.graph.nodes.length} vectors · 3-layer HNSW · 7 topics`);
+  await page.locator('.field-effects').click();
+  await expect(page.locator('.field-effects')).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('sustained slow visible draws downgrade the hero, without measuring while hidden', async ({ page }) => {
+  await inspectIdleField(page, true);
+  await page.goto(origin);
+  await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+  await page.waitForTimeout(2500);
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.waitForTimeout(5000);
+  expect(await page.evaluate(() => window.heroFieldTest.quality)).toBe(0);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForFunction(() => window.heroFieldTest.quality > 0, null, { timeout: 12000 });
+  expect(await page.evaluate(() => window.heroFieldTest.quality)).toBe(1);
+});
 
 function meanAlpha(operations) {
   const alphas = operations.map(({ style }) => {

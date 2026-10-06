@@ -91,6 +91,19 @@
 }
 
 .field-readout-stats { color: var(--faint); }
+.field-effects {
+  justify-self: start;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  letter-spacing: normal;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.field-effects:hover, .field-effects:focus-visible { color: var(--accent); }
 
 .field-readout.is-active { color: var(--muted); }
 .field-readout.is-active .field-readout-dot { background: var(--amber-strong); box-shadow: 0 0 0 4px var(--amber-soft); }

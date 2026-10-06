@@ -40,13 +40,17 @@
   const [FAR, MID, NEAR] = PLANES;
 
   // The readout sits above the conversation dim layer, so it lives on the hero.
-  const readout = document.createElement('p');
+  const readout = document.createElement('div');
   readout.className = 'field-readout';
   readout.setAttribute('aria-hidden', 'true');
   readout.innerHTML = '<span class="field-readout-dot"></span><span class="field-readout-copy"><span class="field-readout-stats"></span><span class="field-readout-text" hidden></span></span>';
   hero.appendChild(readout);
   const readoutStats = readout.querySelector('.field-readout-stats');
   const readoutText = readout.querySelector('.field-readout-text');
+  const effectsButton = document.createElement('button');
+  effectsButton.type = 'button';
+  effectsButton.className = 'field-effects';
+  readout.querySelector('.field-readout-copy').appendChild(effectsButton);
 
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -114,6 +118,28 @@
   let lastSample = 0;
   let lastAdjustment = 0;
   const clockStart = performance.now();
+  function updateEffectsButton() {
+    effectsButton.textContent = manualReduced ? 'Use automatic effects' : 'Reduce visual effects';
+    effectsButton.setAttribute('aria-pressed', String(manualReduced));
+  }
+  updateEffectsButton();
+  effectsButton.addEventListener('click', () => {
+    manualReduced = !manualReduced;
+    try { localStorage.setItem('field-reduced-effects', String(manualReduced)); } catch (e) {}
+    updateEffectsButton();
+    applyQuality();
+  });
+  function applyQuality() {
+    const next = manualReduced ? QUALITY.length - 1 : autoQuality;
+    if (quality === next) return;
+    quality = next;
+    sampledFrames = slowFrames = 0;
+    lastSample = 0;
+    lastAdjustment = performance.now();
+    layout();
+    lastFrame = 0;
+    kick();
+  }
   let entranceStart = null;
   let entranceProgress = (motionQuery.matches || document.body.classList.contains('page-404')) ? 1 : 0;
   const cam = { cy: 1, sy: 0, cp: 1, sp: 0, px: 0, py: 0, tx: 0, ty: 0, yaw: 0, pitch: 0 };
@@ -579,6 +605,7 @@
       const z = F * depth;
       const occupied = [];
       const scatter = (x, y, module, degree, hub = false) => {
+        if (occupied.length >= Math.floor(profile.maxBackdrop / 2)) return false;
         if (occupied.some(p => Math.hypot(p.x - x, p.y - y) < 22)) return false;
         occupied.push({ x, y });
         const id = add(unproject(x, y, z), -1);
@@ -589,6 +616,7 @@
       let row = 0;
       for (let y = 30; y < height + 40; y += spacing * 0.86, row++) {
         for (let x = 10; x < width + 40; x += spacing) {
+          if (occupied.length >= Math.floor(profile.maxBackdrop / 2)) break;
           const cx = x + (row % 2) * spacing / 2 + (rand() - 0.5) * 65 + sheet * 76;
           const cy = y + (rand() - 0.5) * 55 + sheet * 53;
           const radiusX = 60 + rand() * 55;
@@ -1530,12 +1558,29 @@
   // --- Loop and wiring -----------------------------------------------------------
   function tick(now) {
     frame = 0;
-    if (!visible || document.hidden) return;
-    if (motionQuery.matches || now - lastFrame >= FRAME_MS) {
+    if (!visible || document.hidden) { lastSample = 0; return; }
+    if (motionQuery.matches || now - lastFrame >= QUALITY[quality].frameMs) {
+      const gap = lastSample ? now - lastSample : 0;
+      lastSample = now;
       lastFrame = now;
+      const drawStart = performance.now();
       draw(now);
+      const duration = performance.now() - drawStart;
+      const queryActive = query && now - query.start < query.land + HOLD_MS + FADE_MS;
+      if (!motionQuery.matches && !manualReduced && quality < QUALITY.length - 1 &&
+          entranceProgress === 1 && !queryActive && now - clockStart > 4000 &&
+          (!lastAdjustment || now - lastAdjustment > 8000) && gap > 0 && gap < 150) {
+        sampledFrames++;
+        if (gap > QUALITY[quality].frameMs * 1.7 || duration > QUALITY[quality].frameMs * 0.55) slowFrames++;
+        if (sampledFrames >= 36) {
+          if (slowFrames >= 12) { autoQuality++; applyQuality(); }
+          sampledFrames = slowFrames = 0;
+        }
+      } else {
+        sampledFrames = slowFrames = 0;
+      }
     }
-    if (!motionQuery.matches) frame = requestAnimationFrame(tick);
+    if (!motionQuery.matches && !frame) frame = requestAnimationFrame(tick);
   }
   function kick() {
     if (motionQuery.matches) {
@@ -1560,6 +1605,7 @@
   motionQuery.addEventListener('change', () => { lastFrame = 0; kick(); });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
+      lastSample = 0;
       if (entranceStart != null || entranceEffect) finishEntrance();
       if (entranceEffect && entranceEffect.interrupt) entranceEffect.interrupt();
     }
@@ -1584,6 +1630,7 @@
     visible = entries.some(e => e.isIntersecting);
     if (visible) { lastDraw = 0; kick(); }
     else {
+      lastSample = 0;
       if (entranceStart != null || entranceEffect) finishEntrance();
       if (entranceEffect && entranceEffect.interrupt) entranceEffect.interrupt();
     }
