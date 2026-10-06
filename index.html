@@ -285,7 +285,7 @@
               <ol class="dv-results" data-dv-results aria-label="Top six results"></ol>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-dv-live></p>
             </div>
-            <figcaption id="diversity-caption">A simplified illustration on hand-made data. Lines link each result to its nearest neighbours; shaded regions are the clusters they form. It conveys the idea, not the production algorithm.</figcaption>
+            <figcaption id="diversity-caption">A simplified illustration. Shaded regions represent clusters of similar topics.</figcaption>
           </figure>
         </article>
 <article class="chapter chapter-flip" id="work-agentic" aria-labelledby="work-agentic-title">
@@ -344,10 +344,10 @@
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
               </div>
-              <p class="vector-demo-note" data-ag-loop-note hidden>Repeats while in view, with a 2-second pause between validations. Pause the animation to inspect a step.</p>
+              <p class="vector-demo-note" data-ag-loop-note hidden>Repeats while in view.</p>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-ag-live></p>
             </div>
-            <figcaption id="agentic-caption">A simplified illustration on a sample hotel index. Filters are shown in OData syntax and boosts in Lucene syntax.</figcaption>
+            <figcaption id="agentic-caption">A simplified illustration.</figcaption>
           </figure>
         </article>
   </section>
@@ -470,9 +470,8 @@
             <h4 id="work-simd-title">Vector-distance kernels</h4>
             <p class="chapter-lede"><span class="chapter-contribution-label">My contribution</span>I optimized vector-distance kernels with SIMD, loop unrolling, independent vector accumulator registers, and fused multiply-add.</p>
             <p class="chapter-role"><span class="role-badge">Kernel optimization</span><span>SIMD · loop unrolling · independent accumulators · FMA</span></p>
-            <ul class="chapter-points"><li>Used packed operations to process multiple dimensions per instruction.</li>
-<li>Unrolled across independent vector accumulator registers to break serial dependencies and expose overlapping work.</li>
-<li>The illustration shows packed lanes and a final reduction; multiple-register unrolling is explained, not simulated.</li></ul>
+            <ul class="chapter-points"><li>Packed operations allow the CPU to process multiple data per instruction.</li>
+<li>Unrolled across independent vector accumulator registers to break serial dependencies and expose overlapping work.</li></ul>
           </div>
           <figure class="chapter-figure vector-demo-figure" data-simd-demo aria-labelledby="simd-figure-title" aria-describedby="simd-caption">
             <header class="figure-heading">
@@ -498,7 +497,7 @@
                   </button>
                 </div>
               </div>
-              <p class="vector-demo-note" data-si-loop-note hidden>Repeats while in view, with a 2-second pause between comparisons. Pause the animation to inspect a step.</p>
+              <p class="vector-demo-note" data-si-loop-note hidden>Repeats while in view.</p>
               <div class="segmented" role="group" aria-label="Candidate vector">
                 <button type="button" data-si-sample="near" aria-pressed="true">Nearby</button>
                 <button type="button" data-si-sample="far" aria-pressed="false">Different</button>
@@ -527,7 +526,7 @@
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-si-live></p>
             </div>
             <figcaption id="simd-caption">
-              <p>Same 16 component products; fewer packed MAC operations, followed by a horizontal reduction. Unit L2 norm makes this dot product equal to cosine similarity. This is an illustration, not native SIMD or a timing comparison.</p>
+              <p>SIMD allows for fewer packed operations.</p>
               <details class="vector-demo-details">
                 <summary>The math behind the kernel</summary>
                 <p>Dot product = sum of query[i] × candidate[i]. Both vectors are normalized before computation: +1 means aligned directions and −1 means opposite directions. Tiles and lane sums are rounded for display; hover an input component for full precision.</p>
@@ -596,7 +595,7 @@
                 </div>
                 <p class="vector-demo-status" data-hn-status></p>
               </div>
-              <p class="vector-demo-note" data-hn-loop-note hidden>Repeats while in view, with a 2-second pause between searches. Pause the animation to inspect a step.</p>
+              <p class="vector-demo-note" data-hn-loop-note hidden>Repeats while in view.</p>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-hn-live></p>
             </div>
             <figcaption id="hnsw-caption">
