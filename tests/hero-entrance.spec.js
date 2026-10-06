@@ -127,7 +127,7 @@ test.afterEach(async ({ page }) => {
   expect(errors.get(page)).toEqual([]);
 });
 
-async function inspectIdleField(page, slowDraw = false) {
+async function inspectIdleField(page, slowDraw = 0) {
   await page.route('**/index.js', route => route.fulfill({
     contentType: 'text/javascript',
     body: `
@@ -177,7 +177,7 @@ async function inspectIdleField(page, slowDraw = false) {
         draw = function (now) {
           originalDraw(now);
           const start = performance.now();
-          while (performance.now() - start < 26) {}
+          while (performance.now() - start < ${slowDraw}) {}
         };
       ` : ''}
 ${hook}`),
@@ -236,15 +236,13 @@ test('caps desktop decoration and keeps the focus graph when effects are reduced
   await expect(page.locator('.field-effects')).toHaveAttribute('aria-pressed', 'false');
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('.field-effects')).toBeVisible();
-  const mobileControls = await page.evaluate(() => ({
-    effects: document.querySelector('.field-effects').getBoundingClientRect().bottom,
-    cue: document.querySelector('.scroll-cue').getBoundingClientRect().top,
-  }));
-  expect(mobileControls.effects).toBeLessThan(mobileControls.cue);
+  expect(await page.evaluate(() => document.querySelector('.field-effects').previousElementSibling.classList.contains('hero'))).toBe(true);
+  await page.locator('.field-effects').click();
+  await expect(page.locator('.field-effects')).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('sustained slow visible draws downgrade the hero, without measuring while hidden', async ({ page }) => {
-  await inspectIdleField(page, true);
+  await inspectIdleField(page, 26);
   await page.goto(origin);
   await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
   await page.waitForTimeout(2500);
@@ -254,6 +252,22 @@ test('sustained slow visible draws downgrade the hero, without measuring while h
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForFunction(() => window.heroFieldTest.quality > 0, null, { timeout: 12000 });
   expect(await page.evaluate(() => window.heroFieldTest.quality)).toBe(1);
+});
+
+test('very slow visible draws are not discarded as inactive gaps', async ({ page }) => {
+  await inspectIdleField(page, 180);
+  await page.goto(origin);
+  await page.waitForFunction(() => window.heroFieldTest.quality > 0, null, { timeout: 20000 });
+  expect(await page.evaluate(() => window.heroFieldTest.quality)).toBe(1);
+});
+
+test('short mobile 404 keeps its homepage link clickable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 500 });
+  await accelerateStreams(page);
+  await page.goto(`${origin}/404.html`);
+  await expect(page.locator('.chat-suggest .suggest-chip')).toBeVisible();
+  await page.locator('.chat-suggest .suggest-chip').click();
+  await expect(page).toHaveURL(`${origin}/`);
 });
 
 function meanAlpha(operations) {

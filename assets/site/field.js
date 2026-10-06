@@ -51,6 +51,13 @@
   effectsButton.type = 'button';
   effectsButton.className = 'field-effects';
   hero.appendChild(effectsButton);
+  const smallScreen = window.matchMedia('(max-width: 760px)');
+  const placeEffectsButton = () => {
+    if (smallScreen.matches) hero.after(effectsButton);
+    else hero.appendChild(effectsButton);
+  };
+  smallScreen.addEventListener('change', placeEffectsButton);
+  placeEffectsButton();
 
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -1571,7 +1578,8 @@
       const queryActive = query && now - query.start < query.land + HOLD_MS + FADE_MS;
       if (!motionQuery.matches && !manualReduced && quality < QUALITY.length - 1 &&
           entranceProgress === 1 && !queryActive && now - clockStart > 4000 &&
-          (!lastAdjustment || now - lastAdjustment > 8000) && gap > 0 && gap < 150) {
+          (!lastAdjustment || now - lastAdjustment > 8000) && gap > 0 &&
+          (gap < 1000 || duration > 150)) {
         sampledFrames++;
         if (gap > QUALITY[quality].frameMs * 1.7 || duration > QUALITY[quality].frameMs * 0.55) slowFrames++;
         if (sampledFrames >= 36) {

@@ -781,7 +781,7 @@ body.chat-compact.convo-active #app { margin-top: 14px; }
 
 @media (max-width: 760px) {
   .field-readout { display: none; }
-  .field-effects { left: 12px; bottom: 72px; min-height: 32px; max-width: 120px; font-size: 10px; line-height: 1.2; text-align: left; }
+  .field-effects { position: static; display: block; min-height: 36px; margin: 6px 12px; padding: 8px; font-size: 11px; line-height: 1.2; text-align: left; }
   .hero-eyebrow { height: auto; min-height: 22px; }
   .hero-eyebrow-note { display: none; }
 }
