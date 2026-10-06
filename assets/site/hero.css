@@ -95,7 +95,7 @@
   position: absolute;
   z-index: 4;
   left: var(--page-pad);
-  bottom: 2px;
+  bottom: 70px;
   padding: 4px 0;
   border: 0;
   background: none;
@@ -779,9 +779,12 @@ body.chat-compact.convo-active #app { margin-top: 14px; }
   body.chat-compact .scroll-cue { bottom: 4px; }
 }
 
+@media (max-width: 760px), (max-height: 500px) and (max-width: 960px) {
+  .field-effects { position: static; display: block; min-height: 36px; margin: 6px 12px; padding: 8px; font-size: 11px; line-height: 1.2; text-align: left; }
+}
+
 @media (max-width: 760px) {
   .field-readout { display: none; }
-  .field-effects { position: static; display: block; min-height: 36px; margin: 6px 12px; padding: 8px; font-size: 11px; line-height: 1.2; text-align: left; }
   .hero-eyebrow { height: auto; min-height: 22px; }
   .hero-eyebrow-note { display: none; }
 }

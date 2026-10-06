@@ -51,7 +51,7 @@
   effectsButton.type = 'button';
   effectsButton.className = 'field-effects';
   hero.appendChild(effectsButton);
-  const smallScreen = window.matchMedia('(max-width: 760px)');
+  const smallScreen = window.matchMedia('(max-width: 760px), (max-height: 500px) and (max-width: 960px)');
   const placeEffectsButton = () => {
     if (smallScreen.matches) hero.after(effectsButton);
     else hero.appendChild(effectsButton);

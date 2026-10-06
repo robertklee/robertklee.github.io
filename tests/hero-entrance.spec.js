@@ -270,6 +270,19 @@ test('short mobile 404 keeps its homepage link clickable', async ({ page }) => {
   await expect(page).toHaveURL(`${origin}/`);
 });
 
+for (const pathname of ['/', '/404.html']) {
+  test(`desktop effects control clears the field readout on ${pathname}`, async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(origin + pathname);
+    await expect(page.locator('.field-readout.is-active')).toBeVisible();
+    const bounds = await page.evaluate(() => ({
+      button: document.querySelector('.field-effects').getBoundingClientRect().bottom,
+      readout: document.querySelector('.field-readout').getBoundingClientRect().top,
+    }));
+    expect(bounds.button).toBeLessThan(bounds.readout);
+  });
+}
+
 function meanAlpha(operations) {
   const alphas = operations.map(({ style }) => {
     const match = style.match(/^rgba\([\d.,\s]+,\s*([\d.]+)\)$/);
