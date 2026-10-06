@@ -21,6 +21,47 @@
     root.style.setProperty('--header-h', `${Math.round(header.getBoundingClientRect().height)}px`);
   }).observe(header);
 
+  const accentCards = [...document.querySelectorAll('.card-accent')];
+  function paceAccentSheen(card) {
+    const animation = card.getAnimations({ subtree: true }).find(animation => animation.animationName === 'card-accent-sheen');
+    if (!animation) return;
+    const radius = parseFloat(getComputedStyle(card).borderTopRightRadius);
+    const width = card.clientWidth;
+    const height = card.clientHeight;
+    const top = card.clientWidth - radius + 80;
+    const cornerStep = Math.PI / 16;
+    const cornerChord = 2 * radius * Math.sin(cornerStep / 2);
+    const corner = cornerChord * 8;
+    const right = height - radius;
+    const travel = top + corner + right + 80;
+    const frame = (offset, x, y, opacity) => ({
+      offset, backgroundPosition: `${x - 80}px ${y - 80}px`, opacity, easing: 'linear',
+    });
+    const atDistance = distance => .65 + .3 * distance / travel;
+    const frames = [
+      frame(0, -80, 0, 0),
+      frame(.65, -80, 0, 0),
+      frame(atDistance(80), 0, 0, .8),
+      frame(atDistance(top), width - radius, 0, .8),
+    ];
+    for (let step = 1; step <= 8; step++) {
+      const angle = cornerStep * step;
+      frames.push(frame(atDistance(top + cornerChord * step),
+        width - radius + radius * Math.sin(angle), radius * (1 - Math.cos(angle)), .8));
+    }
+    frames.push(
+      frame(atDistance(top + corner + right), width, height, .8),
+      frame(.95, width, height + 80, 0),
+      frame(1, width, height + 80, 0),
+    );
+    animation.effect.setKeyframes(frames);
+  }
+  const accentResizeObserver = new ResizeObserver(entries => {
+    entries.forEach(entry => paceAccentSheen(entry.target));
+  });
+  accentCards.forEach(card => accentResizeObserver.observe(card));
+  reducedMotion.addEventListener('change', () => accentCards.forEach(paceAccentSheen));
+
   let scrollFrame = 0;
   function onScroll() {
     if (scrollFrame) return;

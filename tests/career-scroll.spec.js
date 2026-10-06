@@ -112,22 +112,72 @@ test('editorial glow is reserved for three achievements across themes and layout
   }
 });
 
-test('amber edge sheen moves briefly then rests without touching card content', async ({ page }) => {
+test('amber edge sheen crosses the top and follows the full right edge before resting', async ({ page }) => {
   for (const theme of ['light', 'dark']) {
     await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
-    for (const width of [1440, 390]) {
+    for (const { width, expanded } of [
+      { width: 1440, expanded: false }, { width: 390, expanded: false },
+      { width: 1440, expanded: true }, { width: 390, expanded: true },
+    ]) {
       await page.setViewportSize({ width, height: 1000 });
+      await page.locator('.card-accent details').evaluateAll((details, expanded) => {
+        details.forEach(details => { details.open = expanded; });
+      }, expanded);
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       const frames = await page.locator('.card-accent').evaluateAll(cards => cards.map(card => {
         const sheen = getComputedStyle(card, '::after');
         const animation = card.getAnimations({ subtree: true }).find(animation => animation.animationName === 'card-accent-sheen');
         if (!animation) throw new Error('Missing card sheen animation');
         animation.pause();
-        const samples = [3000, 5100, 5900, 6850].map(time => {
+        const coordinate = (position, length) => {
+          const percent = position.includes('%') ? Number(position.match(/-?[\d.]+(?:e[+-]?\d+)?(?=%)/)[0]) : 0;
+          const pixels = position.match(/[+-]?\s*[\d.]+(?:e[+-]?\d+)?(?=px)/);
+          return (length - 160) * percent / 100 + (pixels ? Number(pixels[0].replace(/\s/g, '')) : 0);
+        };
+        const keyframes = animation.effect.getKeyframes();
+        const turn = [keyframes[3], keyframes[7], keyframes[11]];
+        const bottom = keyframes[12].offset;
+        const positionAt = time => {
           animation.currentTime = time;
           const style = getComputedStyle(card, '::after');
-          return { opacity: Number(style.opacity), position: style.backgroundPosition };
+          return {
+            x: coordinate(style.backgroundPositionX, card.clientWidth) + 80,
+            y: coordinate(style.backgroundPositionY, card.clientHeight) + 80,
+          };
+        };
+        const segments = keyframes.slice(2, 13).map((frame, index) => {
+          const previous = keyframes[index + 1];
+          const duration = (frame.offset - previous.offset) * 10000;
+          const midpoint = (frame.offset + previous.offset) * 5000;
+          const before = positionAt(midpoint - duration / 4);
+          const after = positionAt(midpoint + duration / 4);
+          return {
+            speed: Math.hypot(after.x - before.x, after.y - before.y) / (duration / 2),
+            midpoint: positionAt(midpoint),
+          };
+        });
+        const samples = [3000, keyframes[2].offset * 10000, turn[0].offset * 10000, 9800, 6500,
+          ...turn.map(frame => frame.offset * 10000),
+          (turn[2].offset + bottom) / 2 * 10000, 9500,
+          turn[0].offset * 10000 - 10, turn[2].offset * 10000 + 10,
+          bottom * 10000, (bottom + .95) / 2 * 10000,
+        ].map(time => {
+          animation.currentTime = time;
+          const style = getComputedStyle(card, '::after');
+          return {
+            opacity: Number(style.opacity),
+            position: style.backgroundPosition,
+            x: coordinate(style.backgroundPositionX, card.clientWidth) + 80,
+            y: coordinate(style.backgroundPositionY, card.clientHeight) + 80,
+          };
         });
         return {
+          width: card.clientWidth,
+          height: card.clientHeight,
+          radius: parseFloat(getComputedStyle(card).borderTopRightRadius),
+          gradient: sheen.backgroundImage,
+          segments,
+          easings: keyframes.map(frame => frame.easing),
           duration: animation.effect.getTiming().duration,
           iterations: animation.effect.getTiming().iterations,
           pointerEvents: sheen.pointerEvents,
@@ -137,16 +187,51 @@ test('amber edge sheen moves briefly then rests without touching card content', 
         };
       }));
       for (const frame of frames) {
-        expect(frame.duration).toBe(7000);
+        expect(frame.duration).toBe(10000);
         expect(frame.iterations).toBe(Infinity);
         expect(frame.pointerEvents).toBe('none');
         expect(frame.mask).toContain('exclude');
+        expect(frame.gradient).toContain('32px');
         expect(frame.edge).toContain(theme === 'light' ? '224, 138, 30' : '244, 185, 100');
         expect(frame.samples[0].opacity).toBe(0);
         expect(frame.samples[1].opacity).toBeCloseTo(.8);
         expect(frame.samples[2].opacity).toBeCloseTo(.8);
         expect(frame.samples[1].position).not.toBe(frame.samples[2].position);
         expect(frame.samples[3].opacity).toBe(0);
+        expect(frame.samples[4].x).toBeCloseTo(-80);
+        expect(frame.samples[4].y).toBeCloseTo(0);
+        expect(frame.samples[5].opacity).toBeCloseTo(.8);
+        expect(frame.samples[5].x).toBeCloseTo(frame.width - frame.radius, 1);
+        expect(frame.samples[5].y).toBeCloseTo(0);
+        expect(frame.samples[6].x).toBeCloseTo(frame.width - frame.radius * (1 - Math.SQRT1_2), 1);
+        expect(frame.samples[6].y).toBeCloseTo(frame.radius * (1 - Math.SQRT1_2), 1);
+        expect(frame.samples[7].x).toBeCloseTo(frame.width, 1);
+        expect(frame.samples[7].y).toBeCloseTo(frame.radius, 1);
+        expect(frame.samples[8].x).toBeCloseTo(frame.width, 1);
+        expect(frame.samples[8].y).toBeGreaterThan(frame.radius);
+        expect(frame.samples[8].opacity).toBeGreaterThan(0);
+        expect(frame.samples[8].opacity).toBeCloseTo(.8);
+        expect(frame.samples[9].y).toBeCloseTo(frame.height + 80, 1);
+        expect(frame.samples[9].opacity).toBe(0);
+        expect(frame.samples[12].y).toBeCloseTo(frame.height, 1);
+        expect(frame.samples[12].opacity).toBeCloseTo(.8);
+        expect(frame.samples[13].y).toBeGreaterThan(frame.height);
+        expect(frame.samples[13].opacity).toBeGreaterThan(0);
+        expect(frame.samples[13].opacity).toBeLessThan(.8);
+        expect(frame.easings.every(easing => easing === 'linear')).toBe(true);
+        const topSpeed = (frame.samples[5].x - frame.samples[10].x) / 10;
+        const rightSpeed = (frame.samples[11].y - frame.samples[7].y) / 10;
+        for (const segment of frame.segments) {
+          expect(Math.abs(segment.speed / topSpeed - 1)).toBeLessThan(.01);
+        }
+        for (const segment of frame.segments.slice(2, 10)) {
+          const distance = Math.hypot(
+            segment.midpoint.x - (frame.width - frame.radius),
+            segment.midpoint.y - frame.radius,
+          );
+          expect(Math.abs(distance - frame.radius)).toBeLessThan(.1);
+        }
+        expect(rightSpeed).toBeCloseTo(topSpeed, 2);
       }
     }
   }
@@ -154,6 +239,20 @@ test('amber edge sheen moves briefly then rests without touching card content', 
   expect(await page.locator('.card-accent').evaluateAll(cards =>
     cards.every(card => getComputedStyle(card, '::after').animationName === 'none')
   )).toBe(true);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const restored = await page.locator('.card-accent').evaluateAll(cards => cards.map(card => {
+    const animation = card.getAnimations({ subtree: true }).find(animation => animation.animationName === 'card-accent-sheen');
+    if (!animation) throw new Error('Missing restored card sheen animation');
+    const radius = parseFloat(getComputedStyle(card).borderTopRightRadius);
+    const top = card.clientWidth - radius + 80;
+    const corner = 16 * radius * Math.sin(Math.PI / 32);
+    return {
+      actual: animation.effect.getKeyframes()[3].offset,
+      expected: .65 + .3 * top / (top + corner + card.clientHeight - radius + 80),
+    };
+  }));
+  for (const frame of restored) expect(frame.actual).toBeCloseTo(frame.expected, 5);
 });
 
 test('accent glow preserves disclosure interaction, focus, and open-card shadow', async ({ page }) => {

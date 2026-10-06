@@ -885,7 +885,7 @@ em { font-style: italic; }
   transition: opacity .2s ease;
 }
 .card-accent::after {
-  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--amber-strong) 65%, white), transparent 65%) -160px -80px / 160px 160px no-repeat;
+  background: radial-gradient(circle 32px at center, color-mix(in srgb, var(--amber-strong) 65%, white), transparent) -160px -80px / 160px 160px no-repeat;
   opacity: 0;
 }
 :root[data-theme="dark"] .card-accent { --card-accent-strength: 24%; }
@@ -898,13 +898,28 @@ em { font-style: italic; }
   .card-accent:hover::before { opacity: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .card-accent::after { animation: card-accent-sheen 7s ease-in-out infinite; }
+  .card-accent::after { animation: card-accent-sheen 10s linear infinite; }
 }
 @keyframes card-accent-sheen {
   0%, 65% { background-position: -160px -80px; opacity: 0; }
   70% { opacity: .8; }
-  88% { opacity: .8; }
-  95%, 100% { background-position: 320px -80px; opacity: 0; }
+  84% {
+    background-position: calc(100% + 80px - var(--radius)) -80px;
+    opacity: .8;
+  }
+  86% {
+    background-position: calc(100% + 80px - var(--radius) * .293) calc(-80px + var(--radius) * .293);
+    opacity: .8;
+  }
+  88% {
+    background-position: calc(100% + 80px) calc(-80px + var(--radius));
+    opacity: .8;
+  }
+  92% {
+    background-position: calc(100% + 80px) calc(100% + 80px);
+    opacity: .8;
+  }
+  95%, 100% { background-position: calc(100% + 80px) calc(100% + 160px); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .card-accent::before { transition: none; }
