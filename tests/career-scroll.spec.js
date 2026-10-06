@@ -60,6 +60,26 @@ function curveLine(page) {
   return page.locator('.cm-curve-desktop .cm-curve-line:visible, .cm-curve-mobile .cm-curve-line:visible');
 }
 
+test('header navigation separates career growth from detailed experience', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+  const career = navigation.getByRole('link', { name: 'Career growth', exact: true });
+  const experience = navigation.getByRole('link', { name: 'Experience', exact: true });
+  await expect(career).toHaveAttribute('href', '#profile-work');
+  await expect(experience).toHaveAttribute('href', '#profile-experience');
+
+  for (const [link, id] of [[career, 'profile-work'], [experience, 'profile-experience']]) {
+    await link.click();
+    await expect(page).toHaveURL(`${origin}/#${id}`);
+    await expect(page.locator(`#${id}`)).toBeFocused();
+    await expect(link).toHaveAttribute('aria-current', 'location');
+    expect(await page.locator(`#${id}`).evaluate(section => {
+      const offset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+      return Math.abs(section.getBoundingClientRect().top - offset);
+    })).toBeLessThan(2);
+  }
+});
+
 test('the career card preserves its desktop and mobile curve geometry while allowing copy updates', () => {
   const source = readFileSync(resolve(__dirname, '../index.html'), 'utf8');
   const card = source.match(/<figure class="career-map"[\s\S]*?<\/figure>/)[0];
