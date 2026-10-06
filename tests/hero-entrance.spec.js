@@ -168,7 +168,8 @@ async function inspectIdleField(page) {
           const bounds = backdrop.getBoundingClientRect();
           return node && { x: bounds.left + node.sx, y: bounds.top + node.sy, region: CLUSTERS[node.cluster].id };
         },
-        draw
+        draw,
+        onQuery
       };
 ${hook}`),
   }));
@@ -497,6 +498,9 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 
 test('opening retrieval lands before model output without restarting on theme or resize', async ({ page }) => {
   await page.goto(origin);
+  const stats = page.locator('.field-readout-stats');
+  await expect(stats).toBeVisible();
+  await expect(stats).toHaveText(/^\d+ vectors · 3-layer HNSW · 7 topics$/);
   await expect(page.locator('.hero-retrieval-note')).toHaveText('Retrieving sources...');
   await expect(page.locator('.chat-think')).toHaveClass(/chat-pending/);
   await expect(page.locator('.chat-answer')).toHaveClass(/chat-pending/);
@@ -511,11 +515,55 @@ test('opening retrieval lands before model output without restarting on theme or
   expect(timeline.filter(event => event.type === 'query')).toHaveLength(1);
   await expect(page.locator('.hero-retrieval-note')).toHaveCount(0);
   await expect(page.locator('.hero-entrance-rim')).toHaveCount(0);
+  await expect(stats).toBeVisible();
+  await expect(stats).toHaveText(/^\d+ vectors · 3-layer HNSW · 7 topics$/);
   await page.locator('#theme-toggle').click();
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect(page.locator('.field-entering')).toHaveCount(0);
   expect(await page.evaluate(() => window.heroTimeline.filter(event => event.type === 'entrance').length)).toBe(1);
 });
+
+for (const pathname of ['/', '/404.html']) {
+  test(`graph stats persist alongside retrieval status and refresh on resize on ${pathname}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await inspectIdleField(page);
+    await page.goto(origin + pathname);
+    await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+    const stats = page.locator('.field-readout-stats');
+    const status = page.locator('.field-readout-text');
+    const nodeCount = await page.evaluate(() => window.heroFieldTest.graph.nodes.length);
+    const initialStats = `${nodeCount} vectors · 3-layer HNSW · 7 topics`;
+    await expect(stats).toBeVisible();
+    await expect(stats).toHaveText(initialStats);
+    await expect(status).toBeHidden();
+    for (const { query, text } of [
+      { query: { topic: 'engine', docs: ['HNSW graph search'] }, text: /HNSW .* k=1/ },
+      { query: { topic: 'intro' }, text: /Diverse retrieval/ },
+      { query: { topic: 'not-found' }, text: /0 results above threshold/ },
+      { query: { topic: 'behind-the-scenes' }, text: 'Illustrative graph · scripted chat' },
+    ]) {
+      await page.evaluate(detail => window.heroFieldTest.onQuery(detail), query);
+      await expect(status).toBeVisible();
+      await expect(status).toHaveText(text);
+      await expect(stats).toBeVisible();
+      await expect(stats).toHaveText(initialStats);
+      const bounds = await page.evaluate(() => {
+        const stats = document.querySelector('.field-readout-stats').getBoundingClientRect();
+        const status = document.querySelector('.field-readout-text').getBoundingClientRect();
+        return { statsBottom: stats.bottom, statusTop: status.top };
+      });
+      expect(bounds.statsBottom).toBeLessThan(bounds.statusTop);
+    }
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.waitForFunction(count => window.heroFieldTest.graph.nodes.length !== count, nodeCount);
+    const resizedCount = await page.evaluate(() => window.heroFieldTest.graph.nodes.length);
+    await expect(stats).toHaveText(`${resizedCount} vectors · 3-layer HNSW · 7 topics`);
+    await expect(status).toHaveText('Illustrative graph · scripted chat');
+    await page.locator('#theme-toggle').click();
+    await expect(stats).toBeVisible();
+    await expect(stats).toHaveText(`${resizedCount} vectors · 3-layer HNSW · 7 topics`);
+  });
+}
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
   test(`follow-ups and both kinds of model retry wait for graph navigation at ${viewport.width}x${viewport.height}`, async ({ page }) => {

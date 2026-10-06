@@ -85,6 +85,13 @@
   transition: background .3s ease, box-shadow .3s ease;
 }
 
+.field-readout-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.field-readout-stats { color: var(--faint); }
+
 .field-readout.is-active { color: var(--muted); }
 .field-readout.is-active .field-readout-dot { background: var(--amber-strong); box-shadow: 0 0 0 4px var(--amber-soft); }
 

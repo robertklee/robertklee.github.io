@@ -38,9 +38,10 @@
   const readout = document.createElement('p');
   readout.className = 'field-readout';
   readout.setAttribute('aria-hidden', 'true');
-  readout.innerHTML = '<span class="field-readout-dot"></span><span class="field-readout-text"></span>';
+  readout.innerHTML = '<span class="field-readout-dot"></span><span class="field-readout-copy"><span class="field-readout-stats"></span><span class="field-readout-text" hidden></span></span>';
   hero.appendChild(readout);
-  const readoutText = readout.lastElementChild;
+  const readoutStats = readout.querySelector('.field-readout-stats');
+  const readoutText = readout.querySelector('.field-readout-text');
 
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -552,8 +553,9 @@
     projectNodes(0, true);
     buildBackdropEdges(rand);
 
+    readoutStats.textContent = nodes.length + ' vectors · ' + (TOP + 1) + '-layer HNSW · ' + CLUSTERS.length + ' topics';
     if (query) planQuery(query.spec, query.start);
-    else setReadout(nodes.length + ' vectors · ' + (TOP + 1) + '-layer HNSW · ' + CLUSTERS.length + ' topics', false);
+    else setReadout('', false);
   }
 
   function layoutAiryBackdrop(rand, add) {
@@ -965,6 +967,7 @@
 
   function setReadout(text, active) {
     readoutText.textContent = text;
+    readoutText.hidden = !text;
     readout.classList.toggle('is-active', active);
   }
 
@@ -1558,7 +1561,9 @@
 
   // Protected areas move as the chat streams; refresh them cheaply.
   const app = document.getElementById('app');
-  if (app) new ResizeObserver(() => { readProtected(); if (motionQuery.matches) kick(); }).observe(app);
+  const copyObserver = new ResizeObserver(() => { readProtected(); if (motionQuery.matches) kick(); });
+  if (app) copyObserver.observe(app);
+  copyObserver.observe(readout);
 
   new IntersectionObserver(entries => {
     visible = entries.some(e => e.isIntersecting);
