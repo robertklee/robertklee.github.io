@@ -1,0 +1,14 @@
+body.meteor-watch { isolation: isolate; }
+.meteor-watch-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+:root:not([data-theme="dark"]) .meteor-watch-canvas { display: none; }
+@media print {
+  .meteor-watch-canvas { display: none; }
+}
