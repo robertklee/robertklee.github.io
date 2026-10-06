@@ -127,6 +127,122 @@ test.afterEach(async ({ page }) => {
   expect(errors.get(page)).toEqual([]);
 });
 
+async function inspectIdleField(page) {
+  await page.route('**/index.js', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
+  await page.route('**/404.js', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
+  const field = readFileSync(resolve(__dirname, '../assets/site/field.js'), 'utf8');
+  const hook = '  readColors();\n  layout();';
+  expect(field.split(hook)).toHaveLength(2);
+  await page.route('**/assets/site/field.js', route => route.fulfill({
+    contentType: 'text/javascript',
+    body: field.replace(hook, `
+      window.heroFieldTest = {
+        get colors() { return { ...colors }; },
+        get graph() {
+          return {
+            nodes: nodes.map(({ x, y, z, r, kind, cluster }) => ({ x, y, z, r, kind, cluster })),
+            edges: [...edges], decoration: [...backdropEdges]
+          };
+        },
+        get query() { return query; },
+        get regions() { return clusterInfo; },
+        get motionReduced() { return motionQuery.matches; },
+        draw
+      };
+${hook}`),
+  }));
+  await page.addInitScript(() => {
+    window.heroPaint = {};
+    const proto = CanvasRenderingContext2D.prototype;
+    const paths = new WeakMap();
+    for (const method of ['clearRect', 'beginPath', 'arc', 'fill', 'stroke', 'fillText']) {
+      const original = proto[method];
+      proto[method] = function (...args) {
+        if (this.canvas.matches('.field-canvas')) {
+          const name = this.canvas.className;
+          if (method === 'clearRect') window.heroPaint[name] = { fill: [], stroke: [], text: [] };
+          const paint = window.heroPaint[name];
+          if (method === 'beginPath') paths.set(this, []);
+          if (method === 'arc') paths.get(this).push(args.slice(0, 3));
+          if (paint && ['fill', 'stroke'].includes(method) && this.globalCompositeOperation !== 'destination-out') {
+            paint[method].push({ style: this[method + 'Style'], arcs: [...paths.get(this)] });
+          }
+          if (paint && method === 'fillText') paint.text.push({ text: args[0], style: this.fillStyle });
+        }
+        return original.apply(this, args);
+      };
+    }
+  });
+}
+
+function meanAlpha(operations) {
+  const alphas = operations.map(({ style }) => {
+    const match = style.match(/^rgba\([\d.,\s]+,\s*([\d.]+)\)$/);
+    return match ? Number(match[1]) : 1;
+  });
+  return alphas.reduce((sum, alpha) => sum + alpha, 0) / alphas.length;
+}
+
+for (const pathname of ['/', '/404.html']) {
+  test(`dark idle contrast preserves graph geometry on ${pathname}`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await inspectIdleField(page);
+    await page.goto(origin + pathname);
+    await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+    await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 0);
+    const light = await page.evaluate(() => ({
+      graph: window.heroFieldTest.graph, paint: window.heroPaint,
+    }));
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+    await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 1);
+    const dark = await page.evaluate(() => ({
+      graph: window.heroFieldTest.graph, paint: window.heroPaint,
+    }));
+    expect(dark.graph).toEqual(light.graph);
+    for (const plane of ['field-canvas field-far', 'field-canvas field-mid', 'field-canvas field-near']) {
+      expect(dark.paint[plane].fill.length).toBeGreaterThan(0);
+      expect(meanAlpha(dark.paint[plane].fill)).toBeLessThan(meanAlpha(light.paint[plane].fill) * .75);
+      expect(meanAlpha(dark.paint[plane].stroke)).toBeLessThan(meanAlpha(light.paint[plane].stroke) * .75);
+    }
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+    await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 0);
+    expect(await page.evaluate(() => window.heroFieldTest.graph)).toEqual(light.graph);
+  });
+}
+
+test('hero colors and idle contrast interpolate without rebuilding on interrupted theme switches', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+  const graph = await page.evaluate(() => window.heroFieldTest.graph);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await page.waitForFunction(() => {
+    const { darkMix, point } = window.heroFieldTest.colors;
+    return darkMix > .1 && darkMix < .85 && point !== '#2e52ce' && point !== '#a6bdff';
+  });
+  const before = await page.evaluate(() => {
+    const colors = window.heroFieldTest.colors;
+    document.documentElement.dataset.theme = 'light';
+    return colors;
+  });
+  const after = await page.evaluate(() => window.heroFieldTest.colors);
+  expect(Math.abs(after.darkMix - before.darkMix)).toBeLessThan(.15);
+  await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 0);
+  expect(await page.evaluate(() => window.heroFieldTest.colors.point)).toBe('#2e52ce');
+  expect(await page.evaluate(() => window.heroFieldTest.graph)).toEqual(graph);
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await page.waitForFunction(() => window.heroFieldTest.colors.darkMix > .1);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(() => page.evaluate(() => ({
+    colors: window.heroFieldTest.colors,
+    reducedMotion: window.heroFieldTest.motionReduced,
+  })), { timeout: 2000 }).toMatchObject({ colors: { darkMix: 1 }, reducedMotion: true });
+  expect(await page.evaluate(() => window.heroFieldTest.colors.point)).toBe('#a6bdff');
+});
+
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 1920, height: 1080 }]) {
   test(`Airy backdrop caps idle edges and keeps search connected at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     const spikeRequests = [];

@@ -44,6 +44,13 @@ cutoff-tie tolerance accounts for coordinate and distance magnitudes, so
 responsive screen-to-graph roundoff does not turn an illustrative tie into a
 miss. The tolerance remains at floating-point-roundoff scale.
 
+The dark hero keeps the same graph positions, connections, marker sizes, and hub
+geometry as light mode. Idle background dots, edges, topic nodes, and hub rings
+use lower opacity; hover links and retrieval overlays keep their emphasis.
+Canvas colors and idle contrast interpolate over 600 ms when switching themes,
+including interrupted switches. Reduced motion applies the target immediately.
+The homepage and 404 share this treatment; site-wide art colors are unchanged.
+
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
 The homepage leads directly with Robert's name and role. Its ten opening answers emphasize current vector-search diversity, research-to-production ownership for agentic retrieval, workload benchmarking and billing, and quantization's measured customer impact. The technical-achievements topic highlights distributed algorithm design, verifiable agentic filter generation, and quantization; distinguish ongoing work from shipped results and qualify cost and latency gains by workload. Hybrid relevance and HNSW quota stories remain available as specific deeper follow-ups, but `followupOnly` excludes them from the initial suggestions. Awards questions are explicitly about recognition, not a substitute for engineering achievements.

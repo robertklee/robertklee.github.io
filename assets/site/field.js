@@ -90,6 +90,7 @@
   let protectedRects = [];
   let colors = {};
   let palette = [];
+  let colorTransition = null;
   let query = null;
   let hover = null;
   let visible = true;
@@ -135,10 +136,33 @@
   }
 
   const STEPS = 40;
+  const COLOR_NAMES = ['point', 'edge', 'accent', 'amber', 'amberText', 'faint', 'bg'];
+  function mixColor(from, to, t) {
+    const a = parseInt(from.slice(1), 16);
+    const b = parseInt(to.slice(1), 16);
+    return '#' + [16, 8, 0].map(shift => {
+      const start = (a >> shift) & 255;
+      return Math.round(start + (((b >> shift) & 255) - start) * t).toString(16).padStart(2, '0');
+    }).join('');
+  }
+  function updatePalette() {
+    palette = [colors.edge, colors.point].map(hex => Array.from({ length: STEPS + 1 }, (_, s) => rgba(hex, s / STEPS)));
+    farDirty = true;
+  }
+  function updateColors(now) {
+    if (!colorTransition) return;
+    const { from, to, start } = colorTransition;
+    const t = motionQuery.matches ? 1 : smooth((now - start) / 600);
+    COLOR_NAMES.forEach(name => { colors[name] = mixColor(from[name], to[name], t); });
+    colors.darkMix = from.darkMix + (to.darkMix - from.darkMix) * t;
+    if (t === 1) { colors = to; colorTransition = null; }
+    updatePalette();
+  }
   function readColors() {
     const style = getComputedStyle(root);
     const v = name => style.getPropertyValue(name).trim();
-    colors = {
+    const dark = root.dataset.theme === 'dark';
+    const next = {
       point: v('--art-strong') || '#2e52ce',
       edge: v('--art-fill') || '#8ea6ea',
       accent: v('--accent') || '#2e52ce',
@@ -146,10 +170,19 @@
       amberText: v('--amber') || '#8f5208',
       faint: v('--faint') || '#656c7e',
       bg: v('--bg') || '#f5f5f0',
-      dark: root.dataset.theme === 'dark'
+      dark,
+      darkMix: dark ? 1 : 0
     };
-    palette = [colors.edge, colors.point].map(hex => Array.from({ length: STEPS + 1 }, (_, s) => rgba(hex, s / STEPS)));
-    farDirty = true;
+    const now = performance.now();
+    updateColors(now);
+    if (!colors.point || motionQuery.matches) {
+      colors = next;
+      colorTransition = null;
+      updatePalette();
+    } else {
+      colorTransition = { from: { ...colors }, to: next, start: now };
+      colors.dark = dark;
+    }
   }
 
   // --- Hero copy the field keeps clear of --------------------------------------
@@ -1156,8 +1189,9 @@
   // Each node punches a gap through the links that meet it, so the regions
   // read as discs joined by links rather than points on a mesh. Hovering a
   // node lights its links.
-  function drawRegion(c, dark) {
+  function drawRegion(c) {
     const dim = 0.35 + 0.65 * c.f;
+    const idle = 1 - 0.35 * colors.darkMix;
     for (const [plane, k] of [[NEAR, c.f], [MID, 1 - c.f]]) {
       if (k < 0.01) continue;
       const ctx = plane.ctx;
@@ -1172,7 +1206,7 @@
         if (grow < 0.01) continue;
         const lit = hover === a || hover === b;
         const spoke = a === c.hub;
-        ctx.strokeStyle = rgba(lit ? colors.accent : colors.point, (lit ? 0.9 : (spoke ? 0.44 : 0.32) * (dark ? 1.2 : 1)) * v * grow);
+        ctx.strokeStyle = rgba(lit ? colors.accent : colors.point, (lit ? 0.9 : (spoke ? 0.44 : 0.32) * idle) * v * grow);
         ctx.lineWidth = (lit ? 1.8 : spoke ? 1.4 : 1.1) * ui;
         ctx.beginPath();
         ctx.moveTo(A.sx, A.sy);
@@ -1193,23 +1227,23 @@
         ctx.fill();
         ctx.globalCompositeOperation = 'source-over';
         if (n.kind === 'hub') {
-          ctx.fillStyle = rgba(colors.point, 0.08 * v);
+          ctx.fillStyle = rgba(colors.point, 0.08 * idle * v);
           ctx.beginPath();
           ctx.arc(n.sx, n.sy, r * 2.2, 0, TAU);
           ctx.fill();
-          ctx.fillStyle = rgba(colors.point, 0.22 * v);
-          ctx.strokeStyle = rgba(colors.point, 0.92 * v);
+          ctx.fillStyle = rgba(colors.point, 0.22 * idle * v);
+          ctx.strokeStyle = rgba(colors.point, (0.92 - 0.37 * colors.darkMix) * v);
           ctx.lineWidth = 1.5 * ui;
           ctx.beginPath();
           ctx.arc(n.sx, n.sy, r, 0, TAU);
           ctx.fill();
           ctx.stroke();
-          ctx.fillStyle = rgba(colors.point, 0.95 * v);
+          ctx.fillStyle = rgba(colors.point, 0.95 * idle * v);
           ctx.beginPath();
           ctx.arc(n.sx, n.sy, r * 0.48, 0, TAU);
           ctx.fill();
         } else {
-          ctx.fillStyle = rgba(n.kind === 'doc' ? colors.point : colors.edge, 0.95 * v);
+          ctx.fillStyle = rgba(n.kind === 'doc' ? colors.point : colors.edge, 0.95 * idle * v);
           ctx.beginPath();
           ctx.arc(n.sx, n.sy, r, 0, TAU);
           ctx.fill();
@@ -1230,6 +1264,7 @@
   function draw(now) {
     const t = now - clockStart;
     const still = motionQuery.matches;
+    updateColors(now);
     updateEntrance(now, still);
     const dt = lastDraw ? Math.min(120, now - lastDraw) : 0;
     lastDraw = now;
@@ -1254,8 +1289,8 @@
     });
 
     const dark = colors.dark;
-    const bgEdge = (dark ? 0.34 : 0.4) * AIRY.opacity;
-    const bgDot = dark ? 0.72 : 0.6;
+    const bgEdge = (0.4 - 0.2 * colors.darkMix) * AIRY.opacity;
+    const bgDot = 0.6 - 0.22 * colors.darkMix;
     const depthA = s => 0.3 + 0.7 * s;
 
     const idleEdges = backdropEdges;
@@ -1283,7 +1318,7 @@
       dot(plane, plane === FAR ? 0 : 1, bgDot * n.vis * depthA(n.s) * (plane === FAR ? 1.4 : 1), n.sx, n.sy, r);
     }
     flush();
-    clusterInfo.forEach(c => drawRegion(c, dark));
+    clusterInfo.forEach(c => drawRegion(c));
     if (entranceEffect && entranceProgress < 1) {
       entranceEffect.draw({ ctx: NEAR.ctx, nodes, edges: idleEdges, progress: entranceProgress, colors, compact, clearAt });
     }
@@ -1455,7 +1490,7 @@
   function tick(now) {
     frame = 0;
     if (!visible || document.hidden) return;
-    if (now - lastFrame >= FRAME_MS) {
+    if (motionQuery.matches || now - lastFrame >= FRAME_MS) {
       lastFrame = now;
       draw(now);
     }
