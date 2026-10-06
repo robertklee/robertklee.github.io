@@ -95,7 +95,7 @@
   let conversationMix = 0;
   let query = null;
   let hover = null;
-  let visible = true;
+  let visible = false;
   let frame = 0;
   let wakeTimer = 0;
   let lastFrame = 0;
@@ -1580,6 +1580,7 @@
     if (!spec || !spec.topic) return;
     if (!entranceEffect) finishEntrance();
     planQuery(spec, performance.now());
+    if (!visible && entranceEffect) entranceEffect.interrupt();
     kick();
   }
 
@@ -1609,15 +1610,27 @@
   copyObserver.observe(readout);
   new MutationObserver(kick).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-  new IntersectionObserver(entries => {
-    visible = entries.some(e => e.isIntersecting);
-    if (visible) { lastDraw = 0; kick(); }
-    else {
-      stop();
-      if (entranceStart != null || entranceEffect) finishEntrance();
-      if (entranceEffect && entranceEffect.interrupt) entranceEffect.interrupt();
-    }
-  }).observe(hero);
+  const header = document.querySelector('.site-header');
+  let visibilityObserver = null;
+  let observedHeaderHeight = -1;
+  function observeVisibility() {
+    const headerHeight = header ? Math.ceil(header.getBoundingClientRect().height) : 0;
+    if (visibilityObserver && observedHeaderHeight === headerHeight) return;
+    observedHeaderHeight = headerHeight;
+    if (visibilityObserver) visibilityObserver.disconnect();
+    visibilityObserver = new IntersectionObserver(entries => {
+      visible = entries.some(e => e.isIntersecting && e.intersectionRatio >= 0.1);
+      if (visible) { lastDraw = 0; kick(); }
+      else {
+        stop();
+        if (entranceStart != null || entranceEffect) finishEntrance();
+        if (entranceEffect && entranceEffect.interrupt) entranceEffect.interrupt();
+      }
+    }, { rootMargin: `-${headerHeight}px 0px 0px 0px`, threshold: [0, 0.1] });
+    visibilityObserver.observe(hero);
+  }
+  if (header) new ResizeObserver(observeVisibility).observe(header);
+  observeVisibility();
 
   if (finePointer.matches) {
     hero.addEventListener('pointermove', e => {

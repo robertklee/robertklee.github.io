@@ -156,6 +156,7 @@ async function inspectIdleField(page) {
         },
         get query() { return query; },
         get activity() { return { frame, wakeTimer, visible, entranceProgress }; },
+        get visibilityMargin() { return visibilityObserver.rootMargin; },
         get regions() { return clusterInfo; },
         get motionReduced() { return motionQuery.matches; },
         get visibility() {
@@ -329,6 +330,56 @@ test('hidden field cancels animation and result timers and redraws when restored
     Object.defineProperty(document, 'hidden', { configurable: true, value: true });
     document.dispatchEvent(new Event('visibilitychange'));
   });
+  await expectFieldIdle(page);
+});
+
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  test(`field suspends a negligible hero strip below the header at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await inspectIdleField(page);
+    await page.goto(origin);
+    await expectFieldIdle(page);
+    await page.evaluate(() => {
+      window.heroFieldTest.onQuery({ topic: 'engine', docs: ['HNSW graph search'] });
+      const hero = document.querySelector('.hero').getBoundingClientRect();
+      const header = document.querySelector('.site-header').getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + hero.bottom - header.height - hero.height * .05, behavior: 'instant' });
+    });
+    await page.waitForFunction(() => !window.heroFieldTest.activity.visible);
+    const portion = await page.evaluate(() => {
+      const hero = document.querySelector('.hero').getBoundingClientRect();
+      const header = document.querySelector('.site-header').getBoundingClientRect();
+      return { raw: hero.bottom / hero.height, uncovered: (hero.bottom - header.bottom) / hero.height };
+    });
+    expect(portion.raw).toBeGreaterThan(.1);
+    expect(portion.uncovered).toBeLessThan(.1);
+    await expectFieldIdle(page);
+    const count = await page.evaluate(() => window.heroDrawCount);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = 'dark';
+      window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization'] });
+    });
+    await expectFieldIdle(page);
+    expect(await page.evaluate(() => window.heroDrawCount)).toBe(count);
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await page.waitForFunction(count => window.heroFieldTest.activity.visible && window.heroDrawCount > count, count);
+    await expectFieldIdle(page);
+    expect(await page.evaluate(() => window.heroFieldTest.colors.darkMix)).toBe(1);
+  });
+}
+
+test('field visibility margin follows the sticky header when its height changes', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  const original = await page.evaluate(() => window.heroFieldTest.visibilityMargin);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(previous => window.heroFieldTest.visibilityMargin !== previous, original);
+  expect(await page.evaluate(() => window.heroFieldTest.visibilityMargin)).toBe(await page.evaluate(() => {
+    const height = Math.ceil(document.querySelector('.site-header').getBoundingClientRect().height);
+    return `-${height}px 0px 0px 0px`;
+  }));
   await expectFieldIdle(page);
 });
 
@@ -931,7 +982,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 test('leaving the hero releases the opening hold without a payoff', async ({ page }) => {
   await page.goto(origin);
   await expect(page.locator('.hero-retrieval-note')).toBeVisible();
-  await page.locator('.site-nav a[href="#work"]').click();
+  await page.locator('.site-nav a[href="#profile-about"]').click();
   await expect(page.locator('html')).not.toHaveClass(/hero-retrieving/);
   await expect(page.locator('.chat-think')).not.toHaveClass(/chat-pending/);
   await expect(page.locator('.hero-retrieval-note')).toHaveCount(0);

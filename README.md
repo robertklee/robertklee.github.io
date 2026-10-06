@@ -61,6 +61,17 @@ inactive topic labels dim during dark-mode retrieval and recover afterward.
 The behind-the-scenes overview leaves all topic labels available. None of these
 focus changes remove nodes or connections or alter the graph layout.
 
+The shared homepage/404 field is static once its entrance, retrieval, or
+interaction settles. Hover/parallax, theme changes, resizing, and moving chat
+copy wake it on demand. Completed retrievals hold without animation frames;
+a timer wakes the field for the existing result fade. Drift pauses between
+animation runs rather than jumping ahead after an idle wait. Hidden tabs and
+offscreen heroes cancel both frames and hold timers, then redraw on return.
+Visibility excludes the sticky header and requires at least 10% of the hero's
+area to remain visible. The exclusion tracks header resizing, including mobile
+navigation. Falling below that threshold releases an in-flight chat retrieval
+hold without a payoff; returning does not replay the entrance.
+
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
 The homepage leads directly with Robert's name and role. Its ten opening answers emphasize current vector-search diversity, research-to-production ownership for agentic retrieval, workload benchmarking and billing, and quantization's measured customer impact. The technical-achievements topic highlights distributed algorithm design, verifiable agentic filter generation, and quantization; distinguish ongoing work from shipped results and qualify cost and latency gains by workload. Hybrid relevance and HNSW quota stories remain available as specific deeper follow-ups, but `followupOnly` excludes them from the initial suggestions. Awards questions are explicitly about recognition, not a substitute for engineering achievements.
