@@ -128,7 +128,17 @@ test.afterEach(async ({ page }) => {
 });
 
 async function inspectIdleField(page) {
-  await page.route('**/index.js', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
+  await page.route('**/index.js', route => route.fulfill({
+    contentType: 'text/javascript',
+    body: `
+      const card = document.createElement('div');
+      card.className = 'hero-chat';
+      card.style.height = '250px';
+      card.innerHTML = '<div class="chat-think chat-pending"><div class="txt"></div></div>' +
+        '<div class="chat-answer chat-pending"><div class="txt"></div></div>';
+      document.getElementById('app').appendChild(card);
+    `,
+  }));
   await page.route('**/404.js', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
   const field = readFileSync(resolve(__dirname, '../assets/site/field.js'), 'utf8');
   const hook = '  readColors();\n  layout();';
@@ -147,6 +157,17 @@ async function inspectIdleField(page) {
         get query() { return query; },
         get regions() { return clusterInfo; },
         get motionReduced() { return motionQuery.matches; },
+        get visibility() {
+          return nodes.map(node => ({
+            visibility: node.vis, distance: freeDist(node.sx, node.sy),
+            retrievalClearance: clearAt(node.sx, node.sy, .2)
+          }));
+        },
+        get hoverTarget() {
+          const node = nodes.find(node => node.cluster >= 0 && !insideAny(node.sx, node.sy) && node.vis > .3);
+          const bounds = backdrop.getBoundingClientRect();
+          return node && { x: bounds.left + node.sx, y: bounds.top + node.sy, region: CLUSTERS[node.cluster].id };
+        },
         draw
       };
 ${hook}`),
@@ -165,7 +186,10 @@ ${hook}`),
           if (method === 'beginPath') paths.set(this, []);
           if (method === 'arc') paths.get(this).push(args.slice(0, 3));
           if (paint && ['fill', 'stroke'].includes(method) && this.globalCompositeOperation !== 'destination-out') {
-            paint[method].push({ style: this[method + 'Style'], arcs: [...paths.get(this)] });
+            paint[method].push({
+              style: this[method + 'Style'], arcs: [...paths.get(this)],
+              width: this.lineWidth, dash: this.getLineDash(),
+            });
           }
           if (paint && method === 'fillText') paint.text.push({ text: args[0], style: this.fillStyle });
         }
@@ -270,6 +294,125 @@ test('dark hero texture fades independently of the graph and shared art tokens',
     expect(await texture()).toMatchObject({ glowTransition: '0.6s', gridTransition: '0.6s' });
     await page.emulateMedia({ reducedMotion: 'reduce' });
   }
+});
+
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  test(`dark copy clearance quiets decoration without dimming retrieval at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await inspectIdleField(page);
+    await page.goto(origin);
+    await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+    const light = await page.evaluate(() => window.heroFieldTest.visibility);
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+    await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 1);
+    const dark = await page.evaluate(() => window.heroFieldTest.visibility);
+    const nearCopy = light.map((node, i) => ({ ...node, i }))
+      .filter(node => node.distance > 20 && node.distance < 60 && node.visibility > .05);
+    expect(nearCopy.length).toBeGreaterThan(10);
+    for (const node of nearCopy) {
+      expect(dark[node.i].visibility).toBeLessThan(light[node.i].visibility);
+      expect(dark[node.i].retrievalClearance).toBe(light[node.i].retrievalClearance);
+    }
+    await page.evaluate(() => {
+      document.body.classList.add('convo-active');
+      window.heroFieldTest.draw(performance.now());
+    });
+    const conversation = await page.evaluate(() => window.heroFieldTest.visibility);
+    const unchangedCopy = nearCopy.filter(({ i }) => conversation[i].distance === dark[i].distance);
+    expect(unchangedCopy.length).toBeGreaterThan(0);
+    for (const { i } of unchangedCopy) {
+      expect(conversation[i].visibility).toBeLessThan(dark[i].visibility);
+      expect(conversation[i].retrievalClearance).toBe(dark[i].retrievalClearance);
+    }
+  });
+
+  test(`dark retrieval emphasizes relevant regions and preserves paths and result markers at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await inspectIdleField(page);
+    await page.goto(origin);
+    await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+    const search = () => page.evaluate(() => {
+      document.dispatchEvent(new CustomEvent('herochat:query', {
+        detail: { topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] },
+      }));
+    });
+    const markers = () => page.evaluate(() => {
+      const color = window.heroFieldTest.colors.amber;
+      const rgb = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16)).join(', ');
+      return Object.values(window.heroPaint).flatMap(plane => plane.fill)
+        .filter(operation => operation.style === color || operation.style.startsWith(`rgba(${rgb},`))
+        .map(({ style, arcs }) => ({ alpha: style === color ? 1 : Number(style.slice(style.lastIndexOf(',') + 1, -1)), arcs }));
+    });
+    const paths = () => page.evaluate(() => Object.values(window.heroPaint).flatMap(plane => plane.stroke)
+      .filter(operation => operation.dash.length > 0)
+      .map(({ style, width, dash }) => ({
+        alpha: Number(style.slice(style.lastIndexOf(',') + 1, -1)), width, dash,
+      })));
+    await search();
+    const lightMarkers = await markers();
+    const lightPaths = await paths();
+    expect(lightMarkers.length).toBe(2);
+    expect(lightPaths.length).toBeGreaterThan(0);
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+    await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 1);
+    expect(await markers()).toEqual(lightMarkers);
+    expect(await paths()).toEqual(lightPaths);
+    const retrieval = await page.evaluate(() => ({
+      regions: window.heroFieldTest.regions.map(({ id, attention }) => ({ id, attention })),
+      labels: window.heroPaint['field-canvas field-near'].text,
+    }));
+    expect(retrieval.regions.find(region => region.id === 'performance').attention).toBe(1);
+    expect(retrieval.regions.filter(region => region.id !== 'performance').every(region => region.attention === 0)).toBe(true);
+    const inactive = retrieval.labels.filter(label =>
+      !['PERFORMANCE & COST', 'Scalar quantization', 'Binary quantization'].includes(label.text));
+    expect(inactive.length).toBeGreaterThan(0);
+    expect(meanAlpha(inactive)).toBeLessThan(.2);
+    await page.evaluate(() => document.dispatchEvent(new CustomEvent('herochat:query', {
+      detail: { topic: 'behind-the-scenes' },
+    })));
+    const overview = await page.evaluate(() => ({
+      regions: window.heroFieldTest.regions.map(({ attention }) => attention),
+      labels: window.heroPaint['field-canvas field-near'].text,
+    }));
+    expect(overview.regions.every(value => value === 0)).toBe(true);
+    const restored = overview.labels.filter(label => inactive.some(previous => previous.text === label.text));
+    expect(restored.length).toBeGreaterThan(0);
+    expect(meanAlpha(restored)).toBeGreaterThan(meanAlpha(inactive) * 2);
+  });
+}
+
+test('hover restores a dark idle region and expired retrieval restores topic labels', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+  await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 1);
+  const target = await page.evaluate(() => window.heroFieldTest.hoverTarget);
+  expect(target).toBeTruthy();
+  await page.mouse.move(target.x, target.y);
+  expect(await page.evaluate(id => window.heroFieldTest.regions.find(region => region.id === id).attention, target.region)).toBe(1);
+  await page.mouse.move(0, 0);
+  expect(await page.evaluate(id => window.heroFieldTest.regions.find(region => region.id === id).attention, target.region)).toBe(0);
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('herochat:query', {
+    detail: { topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] },
+  })));
+  const inactive = await page.evaluate(() => window.heroPaint['field-canvas field-near'].text
+    .filter(label => !['PERFORMANCE & COST', 'Scalar quantization', 'Binary quantization'].includes(label.text)));
+  expect(inactive.length).toBeGreaterThan(0);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.evaluate(() => {
+    const query = window.heroFieldTest.query;
+    query.start = performance.now() - query.land - 11000;
+    window.heroFieldTest.draw(performance.now());
+  });
+  await page.waitForFunction(() => window.heroFieldTest.regions.every(region => region.attention < .02));
+  const restored = await page.evaluate(names => window.heroPaint['field-canvas field-near'].text
+    .filter(label => names.includes(label.text)), inactive.map(label => label.text));
+  expect(restored.length).toBeGreaterThan(0);
+  expect(meanAlpha(restored)).toBeGreaterThan(meanAlpha(inactive) * 2);
 });
 
 for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 1920, height: 1080 }]) {

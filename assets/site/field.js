@@ -91,6 +91,7 @@
   let colors = {};
   let palette = [];
   let colorTransition = null;
+  let conversationMix = 0;
   let query = null;
   let hover = null;
   let visible = true;
@@ -234,6 +235,13 @@
   // The search dims where it passes beneath hero copy. On compact screens most
   // of it runs behind the card, so there it stays lit and shows through.
   const clearAt = (x, y, floor) => floor + (1 - floor) * smooth(freeDist(x, y, compact) / 40);
+  // Only idle decoration uses the wider quiet zone; retrieval keeps its own mask.
+  function idleClearAt(x, y) {
+    const dark = colors.darkMix;
+    const floor = 0.2 - dark * (0.08 + 0.06 * conversationMix);
+    const radius = 48 + dark * ((compact ? 16 : 40) + 16 * conversationMix);
+    return floor + (1 - floor) * smooth(freeDist(x, y) / radius);
+  }
 
   // --- Camera ----------------------------------------------------------------
   // A slow sway (plus a little pointer parallax) pivots about the focal plane,
@@ -503,7 +511,7 @@
         docIndex.set(doc, idx);
       });
       const links = shape.links.map(([a, b]) => [members[a], members[b]]);
-      return { id: cluster.id, label: cluster.label, centre, members, links, hub: members[0], f: 1, spot: null };
+      return { id: cluster.id, label: cluster.label, centre, members, links, hub: members[0], f: 1, attention: 0, spot: null };
     });
 
     // 2. Both pages share the same Airy constellation layout.
@@ -1046,7 +1054,7 @@
       n.wx = still ? n.x : n.x + Math.sin(t * n.freq + n.phase) * n.amp;
       n.wy = still ? n.y : n.y + Math.cos(t * n.freq * 0.8 + n.phase) * n.amp;
       project(n.wx, n.wy, n.z, n);
-      n.vis = viewFade(n.sx, n.sy) * (0.2 + 0.8 * smooth(freeDist(n.sx, n.sy) / 48)) * nodeEntrance(n);
+      n.vis = viewFade(n.sx, n.sy) * idleClearAt(n.sx, n.sy) * nodeEntrance(n);
     }
   }
 
@@ -1191,7 +1199,8 @@
   // node lights its links.
   function drawRegion(c) {
     const dim = 0.35 + 0.65 * c.f;
-    const idle = 1 - 0.35 * colors.darkMix;
+    const quiet = colors.darkMix * (1 - c.attention);
+    const idle = 1 - 0.35 * quiet;
     for (const [plane, k] of [[NEAR, c.f], [MID, 1 - c.f]]) {
       if (k < 0.01) continue;
       const ctx = plane.ctx;
@@ -1232,7 +1241,7 @@
           ctx.arc(n.sx, n.sy, r * 2.2, 0, TAU);
           ctx.fill();
           ctx.fillStyle = rgba(colors.point, 0.22 * idle * v);
-          ctx.strokeStyle = rgba(colors.point, (0.92 - 0.37 * colors.darkMix) * v);
+          ctx.strokeStyle = rgba(colors.point, (0.92 - 0.37 * quiet) * v);
           ctx.lineWidth = 1.5 * ui;
           ctx.beginPath();
           ctx.arc(n.sx, n.sy, r, 0, TAU);
@@ -1259,6 +1268,12 @@
     const since = now - q.start - q.focusAt;
     return since < 0 || since > HOLD_MS + q.land - q.focusAt ? 1 : q.focus[i];
   }
+  function retrievalAttention(now, still) {
+    if (!query || query.mode === 'overview') return 0;
+    if (still) return 1;
+    const age = now - query.start;
+    return smooth(age / 280) * (1 - smooth((age - query.land - HOLD_MS) / FADE_MS));
+  }
 
   const tmpC = {};
   function draw(now) {
@@ -1268,6 +1283,9 @@
     updateEntrance(now, still);
     const dt = lastDraw ? Math.min(120, now - lastDraw) : 0;
     lastDraw = now;
+    const settling = 1 - Math.exp(-dt / 280);
+    const conversation = document.body.classList.contains('convo-active') ? 1 : 0;
+    conversationMix = still ? conversation : conversationMix + (conversation - conversationMix) * settling;
     const prevYaw = cam.yaw;
     const prevPitch = cam.pitch;
     setCamera(t, still);
@@ -1277,9 +1295,13 @@
     farSkip = entranceProgress === 1 && !still && !farDirty && dt > 0 && swing < 0.0006 && !farSkip;
     farDirty = false;
     projectNodes(t, still);
+    const attention = retrievalAttention(now, still);
     clusterInfo.forEach((c, i) => {
       const goal = focusTarget(i, now, still);
-      c.f = still ? goal : c.f + (goal - c.f) * (1 - Math.exp(-dt / 280));
+      c.f = still ? goal : c.f + (goal - c.f) * settling;
+      const emphasis = hover != null && nodes[hover].cluster === i ? 1 :
+        query && query.focus && query.focus[i] === 1 ? attention : 0;
+      c.attention = still ? emphasis : c.attention + (emphasis - c.attention) * settling;
     });
 
     PLANES.forEach(p => {
@@ -1362,7 +1384,8 @@
         if (clusterInfo.some(o => o.members.some(i => hit(nodes[i])))) continue;
         placed.push(box);
         c.spot = k;
-        ctx.fillStyle = rgba(colors.faint, 0.8 * viewFade(mx, my) * (0.3 + 0.7 * c.f) * labelEntrance);
+        const quiet = 1 - 0.65 * colors.darkMix * attention * (1 - c.attention);
+        ctx.fillStyle = rgba(colors.faint, 0.8 * quiet * viewFade(mx, my) * (0.3 + 0.7 * c.f) * labelEntrance);
         ctx.fillText(text, s.x, s.y);
         break;
       }

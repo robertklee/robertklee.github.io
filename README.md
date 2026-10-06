@@ -53,6 +53,13 @@ The homepage and 404 share this treatment; site-wide art colors are unchanged.
 Dark mode also fades the hero's decorative grid to 15% and its background glows
 to 45%, with opacity transitions disabled for reduced motion. These changes
 apply only to the hero, not the shared grid/glow tokens or below-hero sky.
+Idle decoration fades within a wider zone around the dark hero copy, strengthening
+during follow-up conversations. Retrieval paths and result markers retain their
+original copy-clearance mask, including their visibility through the compact
+chat card. Relevant or hovered topic regions regain stronger nodes and hub rings;
+inactive topic labels dim during dark-mode retrieval and recover afterward.
+The behind-the-scenes overview leaves all topic labels available. None of these
+focus changes remove nodes or connections or alter the graph layout.
 
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 
