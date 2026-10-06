@@ -21,6 +21,7 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const between = (min, max) => min + Math.random() * (max - min);
+  const twinkleRest = () => between(2000, 5000);
   const profiles = {
     breathe: { duration: [3000, 5000], intensity: [.14, .22], growth: [.18, .35] },
     shimmer: { duration: [4000, 6000], intensity: [.12, .2], growth: [.15, .3] },
@@ -41,7 +42,7 @@
   let animationFrame = 0;
   let layoutFrame = 0;
   let pageActive = true;
-  let nextTwinkle = between(3000, 8000);
+  let nextTwinkle = twinkleRest();
   let nextMeteor = between(15000, 45000);
 
   const inView = y => y >= window.scrollY + headerHeight + 16 && y <= window.scrollY + height - 24;
@@ -103,14 +104,14 @@
     stars = [];
     function addPoint(x, y) {
       const rank = random();
-      const alpha = .14 + random() * .18;
+      const alpha = .18 + random() * .2;
       const warm = random() < .12;
       const shapeRank = random();
       const radius = rank < .7 ? .45 + rank * .8 :
         rank < .94 ? 1.15 + (rank - .7) * 2.5 : 2.1 + (rank - .94) * 10;
       if (clearRect({ x: x - clearance, y: y - clearance, w: clearance * 2, h: clearance * 2 })) {
         stars.push({
-          x, y, alpha, warm, radius: radius * (mobile ? .65 : 1),
+          x, y, alpha, warm, twinkles: 0, radius: radius * (mobile ? .65 : 1),
           shape: shapeRank < .82 ? 'dots' : shapeRank < .92 ? 'diamonds' : 'glints',
         });
       }
@@ -138,10 +139,15 @@
   function startTwinkle() {
     const visible = stars.filter(star => inView(star.y));
     if (!visible.length) return;
+    // Give the visible stars balanced turns instead of repeatedly picking one.
+    const fewestTwinkles = Math.min(...visible.map(star => star.twinkles));
+    const candidates = visible.filter(star => star.twinkles === fewestTwinkles);
     const kind = ['breathe', 'shimmer', 'sparkle'][Math.floor(Math.random() * 3)];
     const profile = profiles[kind];
+    const star = candidates[Math.floor(Math.random() * candidates.length)];
+    star.twinkles++;
     twinkle = {
-      star: visible[Math.floor(Math.random() * visible.length)], start: clock, kind,
+      star, start: clock, kind,
       duration: between(...profile.duration), intensity: between(...profile.intensity),
       growth: between(...profile.growth) * (width <= 860 ? .65 : 1),
     };
@@ -285,7 +291,7 @@
       if (meteor && clock >= meteor.start + meteor.duration) meteor = null;
       if (clock >= nextTwinkle) {
         startTwinkle();
-        nextTwinkle = clock + (twinkle?.duration || 0) + between(3000, 8000);
+        nextTwinkle = clock + (twinkle?.duration || 0) + twinkleRest();
       }
       if (width > 860 && clock >= nextMeteor) {
         startMeteor();

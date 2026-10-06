@@ -164,13 +164,16 @@ test('layered mixed-shape stars stay faint and avoid all copy, cards, controls, 
   expect(new Set(scene.stars.map(star => star.shape))).toEqual(new Set(['dots', 'diamonds', 'glints']));
   expect(Math.max(...scene.stars.map(star => star.radius))).toBeGreaterThan(2);
   expect(Math.min(...scene.stars.map(star => star.radius))).toBeLessThan(.6);
+  expect(Math.min(...scene.stars.map(star => star.alpha))).toBeGreaterThanOrEqual(.18);
+  expect(Math.max(...scene.stars.map(star => star.alpha))).toBeLessThan(.38);
   expect(scene.stars.every(star => scene.protectedRects.every(rect =>
     star.x + 16 <= rect.x || star.x - 16 >= rect.x + rect.w ||
     star.y + 16 <= rect.y || star.y - 16 >= rect.y + rect.h))).toBe(true);
   const painted = await pixels(page);
   expect(painted.lit).toBeGreaterThan(15);
   expect(painted.lit).toBeLessThan(2000);
-  expect(painted.maxAlpha).toBeLessThanOrEqual(82);
+  expect(painted.maxAlpha).toBeGreaterThan(82);
+  expect(painted.maxAlpha).toBeLessThanOrEqual(97);
   for (const selector of ['#profile-about', '#profile-work', '#profile-experience', '#contact']) {
     await showSection(page, selector);
     await page.clock.runFor(100);
@@ -264,6 +267,7 @@ test('twinkles vary by profile, use real animation, and wait without an idle fra
     await page.goto(`${origin}/?sample=${sample}`);
     await page.evaluate(() => document.fonts.ready);
     await page.clock.runFor(100);
+    expect((await state(page)).nextTwinkle).toBe(2000 + sample * 3000);
     await showAbout(page);
     await page.clock.runFor(100);
     const before = await state(page);
@@ -274,13 +278,34 @@ test('twinkles vary by profile, use real animation, and wait without an idle fra
     expect(event.twinkle.kind).toBe(kind);
     expect(event.twinkle.duration).toBeGreaterThanOrEqual(2400);
     expect(event.twinkle.duration).toBeLessThanOrEqual(6000);
-    expect(event.nextTwinkle - event.twinkle.start - event.twinkle.duration).toBeCloseTo(3000 + sample * 5000, 5);
+    expect(event.nextTwinkle - event.twinkle.start - event.twinkle.duration).toBeCloseTo(2000 + sample * 3000, 5);
     const image = await sky(page).evaluate(canvas => canvas.toDataURL());
     await page.clock.runFor(500);
     expect(await sky(page).evaluate(canvas => canvas.toDataURL())).not.toBe(image);
     await page.clock.fastForward(event.twinkle.duration + 100);
     expect((await state(page)).twinkle).toBeNull();
     expect((await state(page)).animationFrame).toBe(false);
+  }
+});
+
+test('several different visible stars take turns twinkling within thirty seconds', async ({ page }) => {
+  await showAbout(page);
+  await page.clock.runFor(100);
+  const initial = await state(page);
+  const seen = new Set();
+  for (let i = 0; i < 4; i++) {
+    const before = await state(page);
+    await page.clock.fastForward(before.nextTwinkle - before.clock + 1);
+    const scene = await state(page);
+    expect(scene.twinkle).not.toBeNull();
+    const { star } = scene.twinkle;
+    const scrollY = await page.evaluate(() => window.scrollY);
+    expect(star.y).toBeGreaterThanOrEqual(scrollY + scene.headerHeight + 16);
+    expect(star.y).toBeLessThanOrEqual(scrollY + scene.height - 24);
+    seen.add(`${star.x},${star.y}`);
+    expect(scene.stars.reduce((sum, point) => sum + point.twinkles, 0)).toBe(i + 1);
+    expect(seen.size).toBe(i + 1);
+    expect(scene.clock - initial.clock).toBeLessThanOrEqual(30000);
   }
 });
 
