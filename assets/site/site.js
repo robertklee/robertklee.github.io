@@ -162,13 +162,50 @@
   });
 
 
-  // Scroll reveals and count-ups. Only content that starts below the fold is hidden,
-  // so nothing already on screen flickers; reduced motion skips all of it.
-  if (reducedMotion.matches || !('IntersectionObserver' in window)) return;
-
   const careerPlot = document.querySelector('.cm-plot');
   const careerCard = careerPlot?.closest('.career-map');
   const mobileCareer = window.matchMedia('(max-width: 860px)');
+  if (careerPlot) {
+    const curve = careerPlot.querySelector('.cm-curve');
+    const lines = [...curve.querySelectorAll('.cm-curve-line')];
+    const flows = lines.map(line => {
+      const flow = line.cloneNode();
+      flow.setAttribute('class', 'cm-curve-flow');
+      line.after(flow);
+      return flow;
+    });
+    const measureCurve = () => {
+      lines.forEach((line, index) => {
+        if (!line.getClientRects().length) return;
+        // Non-scaling strokes need screen-pixel dash lengths, including the mobile SVG transform.
+        const matrix = line.getScreenCTM();
+        const length = line.getTotalLength();
+        let previous = line.getPointAtLength(0).matrixTransform(matrix);
+        let renderedLength = 0;
+        for (let i = 1; i <= 64; i++) {
+          const point = line.getPointAtLength(length * i / 64).matrixTransform(matrix);
+          renderedLength += Math.hypot(point.x - previous.x, point.y - previous.y);
+          previous = point;
+        }
+        for (const path of [line, flows[index]]) path.style.setProperty('--curve-length', `${Math.ceil(renderedLength) + 2}px`);
+      });
+    };
+    measureCurve();
+    new ResizeObserver(measureCurve).observe(curve);
+    let curveVisible = false;
+    const syncFlow = () => careerPlot.classList.toggle('is-flowing', curveVisible && !document.hidden && !reducedMotion.matches);
+    const flowObserver = new IntersectionObserver(entries => {
+      curveVisible = entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= .25);
+      syncFlow();
+    }, { threshold: [0, .25] });
+    flowObserver.observe(curve);
+    document.addEventListener('visibilitychange', syncFlow);
+    reducedMotion.addEventListener('change', syncFlow);
+  }
+
+  // Scroll reveals and count-ups. Only content that starts below the fold is hidden,
+  // so nothing already on screen flickers; reduced motion skips all of it.
+  if (reducedMotion.matches || !('IntersectionObserver' in window)) return;
 
   const countUp = (el, delay) => {
     const text = el.textContent;
@@ -232,25 +269,6 @@
 
   if (careerCard?.classList.contains('reveal')) {
     const curve = careerPlot.querySelector('.cm-curve');
-    const lines = [...curve.querySelectorAll('.cm-curve-line')];
-    const measureCurve = () => {
-      lines.forEach(line => {
-        if (!line.getClientRects().length) return;
-        // Non-scaling strokes need dash lengths in screen pixels, including the mobile SVG transform.
-        const matrix = line.getScreenCTM();
-        const length = line.getTotalLength();
-        let previous = line.getPointAtLength(0).matrixTransform(matrix);
-        let renderedLength = 0;
-        for (let i = 1; i <= 64; i++) {
-          const point = line.getPointAtLength(length * i / 64).matrixTransform(matrix);
-          renderedLength += Math.hypot(point.x - previous.x, point.y - previous.y);
-          previous = point;
-        }
-        line.style.setProperty('--curve-length', `${Math.ceil(renderedLength) + 2}px`);
-      });
-    };
-    measureCurve();
-    new ResizeObserver(measureCurve).observe(curve);
     careerPlot.classList.add('is-animated');
     const curveObserver = new IntersectionObserver(entries => {
       if (!entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.25)) return;

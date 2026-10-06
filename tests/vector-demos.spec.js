@@ -204,7 +204,7 @@ test('SIMD reduces the packed accumulator only after all vector MAC operations',
   }
 });
 
-test('SIMD repeats with an exact two-second hold without repeating live announcements', async ({ page }) => {
+test('SIMD repeats with an exact six-second hold without repeating live announcements', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(page.locator('[data-si-pause]')).toBeVisible();
   await viewSIMD(page);
@@ -219,7 +219,7 @@ test('SIMD repeats with an exact two-second hold without repeating live announce
     await page.clock.runFor(3200);
     await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
     await expect(page.locator('[data-si-vector-total]')).toHaveText(await page.locator('[data-si-scalar-total]').textContent());
-    await page.clock.runFor(1999);
+    await page.clock.runFor(5999);
     await expect(page.locator('[data-si-scalar-ops]')).toHaveText('16 / 16 MAC operations');
     await page.clock.runFor(1);
   }
@@ -341,7 +341,7 @@ const repeatingDemos = [
 
 for (const demo of repeatingDemos) {
   for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
-    test(`${demo.name} repeats with a two-second hold and no duplicate announcements at ${viewport.width}px`, async ({ page }) => {
+    test(`${demo.name} repeats with a six-second hold and no duplicate announcements at ${viewport.width}px`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       await page.reload();
@@ -359,7 +359,7 @@ for (const demo of repeatingDemos) {
         let steps = 0;
         while (!await page.evaluate(demo.done) && steps++ < 60) await page.clock.runFor(demo.step);
         expect(await page.evaluate(demo.done)).toBe(true);
-        await page.clock.runFor(1999);
+        await page.clock.runFor(5999);
         expect(await page.evaluate(demo.done)).toBe(true);
         await page.clock.runFor(1);
         expect(await page.evaluate(demo.done)).toBe(false);

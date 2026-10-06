@@ -60,18 +60,78 @@ function curveLine(page) {
   return page.locator('.cm-curve-desktop .cm-curve-line:visible, .cm-curve-mobile .cm-curve-line:visible');
 }
 
-test('only the current career marker shimmers subtly across themes and layouts', async ({ page }) => {
+test('a subtle curve sweep culminates in only the current marker shimmering across themes and layouts', async ({ page }) => {
   const marker = page.locator('.cm-step-now .cm-node');
+  await marker.scrollIntoViewIfNeeded();
+  await expect(page.locator('.cm-plot')).toHaveClass(/is-flowing/);
+  const starts = await page.locator('.cm-plot').evaluate(async plot => {
+    const animations = plot.getAnimations({ subtree: true }).filter(animation =>
+      ['cm-curve-flow', 'cm-current-shimmer'].includes(animation.animationName)
+    );
+    await Promise.all(animations.map(animation => animation.ready));
+    return animations.map(animation => animation.startTime);
+  });
+  expect(starts).toHaveLength(3);
+  expect(starts[0]).not.toBeNull();
+  expect(starts.every(start => start === starts[0])).toBe(true);
   for (const theme of ['light', 'dark']) {
     await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 1000 });
       await marker.scrollIntoViewIfNeeded();
+      await expect(page.locator('.cm-plot')).toHaveClass(/is-flowing/);
+      const flow = page.locator('.cm-curve-desktop .cm-curve-flow:visible, .cm-curve-mobile .cm-curve-flow:visible');
+      const sweep = await flow.evaluate(path => {
+        const animation = path.getAnimations().find(animation => animation.animationName === 'cm-curve-flow');
+        if (!animation) throw new Error('Missing career curve sweep');
+        animation.pause();
+        const color = document.createElement('span');
+        color.style.color = 'color-mix(in srgb, var(--accent) 35%, white)';
+        document.body.append(color);
+        const expectedStroke = getComputedStyle(color).color;
+        color.remove();
+        const length = parseFloat(path.style.getPropertyValue('--curve-length'));
+        const samples = [0, 6000, 7200, 8400, 9000, 10200, 11400].map(time => {
+          animation.currentTime = time;
+          const style = getComputedStyle(path);
+          return { opacity: Number(style.opacity), offset: parseFloat(style.strokeDashoffset) / length };
+        });
+        return {
+          duration: animation.effect.getTiming().duration,
+          iterations: animation.effect.getTiming().iterations,
+          matchesCurve: path.getAttribute('d') === path.previousElementSibling.getAttribute('d'),
+          dashLength: parseFloat(getComputedStyle(path).strokeDasharray) / length,
+          strokeWidth: parseFloat(getComputedStyle(path).strokeWidth),
+          stroke: getComputedStyle(path).stroke,
+          expectedStroke,
+          filter: getComputedStyle(path).filter,
+          curveFilter: getComputedStyle(path.previousElementSibling).filter,
+          pointerEvents: getComputedStyle(path).pointerEvents,
+          samples,
+        };
+      });
+      expect(sweep.duration).toBe(12000);
+      expect(sweep.iterations).toBe(Infinity);
+      expect(sweep.matchesCurve).toBe(true);
+      expect(sweep.dashLength).toBeCloseTo(.08, 5);
+      expect(sweep.strokeWidth).toBe(2.5);
+      expect(sweep.stroke).toBe(sweep.expectedStroke);
+      expect(sweep.filter).toContain('blur(1px)');
+      expect(sweep.filter).toContain('drop-shadow(');
+      expect(sweep.filter).toContain('2px');
+      expect(sweep.curveFilter).toBe('none');
+      expect(sweep.pointerEvents).toBe('none');
+      for (const [index, opacity] of [0, 0, .45, .45, 0, 0, 0].entries()) {
+        expect(sweep.samples[index].opacity).toBeCloseTo(opacity, 5);
+      }
+      for (const [index, offset] of [.08, .08, -.352, -.784, -1, -1, -1].entries()) {
+        expect(sweep.samples[index].offset).toBeCloseTo(offset, 5);
+      }
       const shimmer = await marker.evaluate(node => {
         const animation = node.getAnimations({ subtree: true }).find(animation => animation.animationName === 'cm-current-shimmer');
         if (!animation) throw new Error('Missing current-role shimmer');
         animation.pause();
-        const samples = [0, 4200, 4800, 5400, 5900].map(time => {
+        const samples = [0, 9000, 10200, 11400, 11900].map(time => {
           animation.currentTime = time;
           const style = getComputedStyle(node, '::after');
           return { opacity: Number(style.opacity), position: style.backgroundPositionX };
@@ -85,7 +145,7 @@ test('only the current career marker shimmers subtly across themes and layouts',
           samples,
         };
       });
-      expect(shimmer.duration).toBe(6000);
+      expect(shimmer.duration).toBe(sweep.duration);
       expect(shimmer.iterations).toBe(Infinity);
       expect(shimmer.pointerEvents).toBe('none');
       expect(shimmer.sheenWidth).toBe(width === 390 ? 12 : 14);
@@ -107,7 +167,34 @@ test('only the current career marker shimmers subtly across themes and layouts',
       const style = getComputedStyle(node, '::after');
       return { animation: style.animationName, opacity: style.opacity };
     })).toEqual({ animation: 'none', opacity: '0' });
+    expect(await page.locator('.cm-curve-flow').evaluateAll(paths =>
+      paths.every(path => getComputedStyle(path).animationName === 'none' && getComputedStyle(path).opacity === '0')
+    )).toBe(true);
   }
+});
+
+test('the periodic curve sweep stops offscreen and in hidden tabs, and restarts after reduced motion', async ({ page }) => {
+  const plot = page.locator('.cm-plot');
+  await expect(plot).not.toHaveClass(/is-flowing/);
+  await showCurve(page);
+  await expect(plot).toHaveClass(/is-flowing/);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(plot).not.toHaveClass(/is-flowing/);
+  await page.evaluate(() => {
+    delete document.hidden;
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(plot).toHaveClass(/is-flowing/);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(plot).not.toHaveClass(/is-flowing/);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(plot).toHaveClass(/is-flowing/);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect(plot).not.toHaveClass(/is-flowing/);
+  await expect(page.locator('.cm-curve-flow')).toHaveCount(2);
 });
 
 test('editorial glow is reserved for three achievements across themes and layouts', async ({ page }) => {

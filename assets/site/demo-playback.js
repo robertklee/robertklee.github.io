@@ -24,7 +24,7 @@
       if (canRepeat()) repeatTimer = setTimeout(() => {
         repeatTimer = 0;
         if (canRepeat()) play(frames);
-      }, 2000);
+      }, 6000);
     };
     const run = () => {
       timer = setInterval(() => {

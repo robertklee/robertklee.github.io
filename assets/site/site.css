@@ -719,6 +719,7 @@ em { font-style: italic; }
 .cm-curve-mobile { display: none; }
 .cm-curve-fill { fill: url(#career-growth-fill); }
 .cm-curve-line { fill: none; stroke: var(--accent); stroke-width: 2.5px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.cm-curve-flow { fill: none; stroke: color-mix(in srgb, var(--accent) 35%, white); stroke-width: 2.5px; stroke-linecap: round; vector-effect: non-scaling-stroke; stroke-dasharray: calc(var(--curve-length) * .08) var(--curve-length); filter: blur(1px) drop-shadow(0 0 2px color-mix(in srgb, var(--accent) 65%, white)); opacity: 0; }
 .cm-milestones { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); padding: 0; list-style: none; }
 .cm-step { grid-column: var(--column); grid-row: 1; }
 .cm-step > a { position: relative; display: flex; flex-direction: column; height: 100%; padding: 0 8px 4px; border-radius: 10px; color: inherit; text-decoration: none; }
@@ -730,12 +731,18 @@ em { font-style: italic; }
 .cm-step-now .cm-node { bottom: calc(var(--rise) * 1px - 9px); left: calc(50% - 9px); width: 18px; height: 18px; border-color: var(--amber-strong); background: var(--amber-strong); box-shadow: 0 0 0 5px var(--amber-soft); }
 .cm-step-now .cm-node::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(110deg, transparent 40%, white 50%, transparent 60%) 100% 0 / 300% 100% no-repeat; opacity: 0; pointer-events: none; }
 @media screen and (prefers-reduced-motion: no-preference) {
-  .cm-step-now .cm-node::after { animation: cm-current-shimmer 6s ease-in-out infinite; }
+  .cm-plot.is-flowing .cm-curve-flow { animation: cm-curve-flow 12s linear infinite; }
+  .cm-plot.is-flowing .cm-step-now .cm-node::after { animation: cm-current-shimmer 12s ease-in-out infinite; }
+}
+@keyframes cm-curve-flow {
+  0%, 50% { stroke-dashoffset: calc(var(--curve-length) * .08); opacity: 0; }
+  53%, 73% { opacity: .45; }
+  75%, 100% { stroke-dashoffset: calc(var(--curve-length) * -1); opacity: 0; }
 }
 @keyframes cm-current-shimmer {
-  0%, 70% { background-position: 100% 0; opacity: 0; }
-  75%, 85% { opacity: .45; }
-  90%, 100% { background-position: 0% 0; opacity: 0; }
+  0%, 75% { background-position: 100% 0; opacity: 0; }
+  80%, 90% { opacity: .45; }
+  95%, 100% { background-position: 0% 0; opacity: 0; }
 }
 .cm-step > a:hover .cm-node, .cm-step > a:focus-visible .cm-node { background: var(--accent); box-shadow: 0 0 0 7px var(--accent-soft); }
 .cm-step-garage > a:hover .cm-node, .cm-step-garage > a:focus-visible .cm-node { background: var(--faint); box-shadow: 0 0 0 7px var(--surface-2); }
