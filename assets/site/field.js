@@ -55,7 +55,7 @@
     { id: 'engine', label: 'Search engine', docs: ['Vector search 1 to N', 'HNSW graph search', 'Subscore fusion', 'Score thresholds', 'HNSW quotas', 'Facet engine', 'Incident response'] },
     { id: 'ml', label: 'Vision & ML', docs: ['Pose estimation', 'Road segmentation', 'Monocular depth', 'Battlesnake RL', 'Chest X-ray app'] },
     { id: 'community', label: 'Community', docs: ['Digital literacy program', 'IEEE workshops', 'Tech & business conference', 'SENG 321 mentor', 'Mentoring engineers'] },
-    { id: 'foundations', label: 'Foundations', docs: ['B.Eng, 97% average', 'Schulich Leader', 'YC AI Startup School', 'National champion', 'Research award', 'Design competitions'] }
+    { id: 'foundations', label: 'Foundations', docs: ['B.Eng, Computational Intelligence', '97% average, 2nd highest CGPA', 'Schulich Leader', 'YC AI Startup School', 'National champion', 'Research award', 'Design competitions'] }
   ];
 
   // Answers name the documents they draw on (`docs` in chat-content.js); a query

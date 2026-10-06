@@ -352,6 +352,8 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         alpha: Number(style.slice(style.lastIndexOf(',') + 1, -1)), width, dash,
       })));
     await search();
+    // Let resize observers refresh copy clearance before comparing themes.
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     const lightMarkers = await markers();
     const lightPaths = await paths();
     expect(lightMarkers.length).toBe(2);

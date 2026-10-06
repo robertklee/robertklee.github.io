@@ -122,7 +122,7 @@ test('amber edge sheen moves briefly then rests without touching card content', 
         const animation = card.getAnimations({ subtree: true }).find(animation => animation.animationName === 'card-accent-sheen');
         if (!animation) throw new Error('Missing card sheen animation');
         animation.pause();
-        const samples = [3000, 6500, 7600, 8800].map(time => {
+        const samples = [3000, 5100, 5900, 6850].map(time => {
           animation.currentTime = time;
           const style = getComputedStyle(card, '::after');
           return { opacity: Number(style.opacity), position: style.backgroundPosition };
@@ -137,7 +137,7 @@ test('amber edge sheen moves briefly then rests without touching card content', 
         };
       }));
       for (const frame of frames) {
-        expect(frame.duration).toBe(9000);
+        expect(frame.duration).toBe(7000);
         expect(frame.iterations).toBe(Infinity);
         expect(frame.pointerEvents).toBe('none');
         expect(frame.mask).toContain('exclude');
