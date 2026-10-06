@@ -80,6 +80,70 @@ test('header navigation separates career growth from detailed experience', async
   }
 });
 
+test('header navigation includes leadership, awards, and education in page order', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+  await expect(navigation.getByRole('link')).toHaveText([
+    'About', 'Career growth', 'Work examples', 'Experience',
+    'Projects', 'Leadership', 'Awards', 'Education',
+  ]);
+  await expect(page.locator('#profile-leadership .eyebrow')).toHaveText('Community leadership & mentoring');
+
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const [name, id] of [
+      ['Leadership', 'profile-leadership'],
+      ['Awards', 'profile-awards'],
+      ['Education', 'profile-education'],
+    ]) {
+      const link = navigation.getByRole('link', { name, exact: true });
+      await expect(link).toHaveAttribute('href', `#${id}`);
+      await link.click();
+      await expect(page).toHaveURL(`${origin}/#${id}`);
+      await expect(page.locator(`#${id}`)).toBeFocused();
+      await expect(link).toHaveAttribute('aria-current', 'location');
+      expect(await page.locator(`#${id}`).evaluate(section => {
+        const offset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+        return Math.abs(section.getBoundingClientRect().top - offset);
+      })).toBeLessThan(2);
+    }
+  }
+});
+
+test('header links fit desktop and scroll independently on narrower screens', async ({ page }) => {
+  await page.evaluate(() => document.fonts.ready);
+  for (const width of [1440, 320, 390, 768, 860, 1024, 1280, 1281, 1366, 1920, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await expect.poll(() => page.locator('.site-header').evaluate(header => {
+      const root = document.documentElement;
+      return Math.abs(parseFloat(getComputedStyle(root).getPropertyValue('--header-h')) - header.getBoundingClientRect().height);
+    })).toBeLessThan(1);
+    const layout = await page.locator('.site-header').evaluate(header => {
+      const brand = header.querySelector('.brand').getBoundingClientRect();
+      const navigation = header.querySelector('.site-nav');
+      const nav = navigation.getBoundingClientRect();
+      const actions = header.querySelector('.header-actions').getBoundingClientRect();
+      return {
+        height: header.getBoundingClientRect().height,
+        pageWidth: document.documentElement.scrollWidth,
+        separated: brand.right <= actions.left,
+        navBelow: nav.top >= Math.max(brand.bottom, actions.bottom),
+        desktopFit: nav.left >= brand.right && nav.right <= actions.left && navigation.scrollWidth <= navigation.clientWidth,
+        overflow: getComputedStyle(navigation).overflowX,
+      };
+    });
+    expect(layout.pageWidth).toBe(width);
+    expect(layout.separated).toBe(true);
+    if (width <= 1280) {
+      expect(layout.navBelow).toBe(true);
+      expect(layout.overflow).toBe('auto');
+    } else {
+      expect(layout.desktopFit).toBe(true);
+      expect(layout.height).toBe(68);
+    }
+  }
+});
+
 test('the career card preserves its desktop and mobile curve geometry while allowing copy updates', () => {
   const source = readFileSync(resolve(__dirname, '../index.html'), 'utf8');
   const card = source.match(/<figure class="career-map"[\s\S]*?<\/figure>/)[0];

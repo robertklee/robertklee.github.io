@@ -526,7 +526,7 @@ window.HeroChatContent = (function () {
       category: 'general',
       weight: 2,
       docs: ['Digital literacy program', 'IEEE workshops', 'Tech & business conference'],
-      sources: [['profile-leadership', 'Community & mentoring']],
+      sources: [['profile-leadership', 'Community leadership & mentoring']],
       prompts: [
         "What has Robert done for his community?",
         "What has Robert started outside of work?"
@@ -547,7 +547,7 @@ window.HeroChatContent = (function () {
       category: 'general',
       weight: 2,
       docs: ['SENG 321 mentor', 'Mentoring engineers'],
-      sources: [['profile-leadership', 'Community & mentoring'], ['profile-work-entry-1', 'Senior Software Engineer']],
+      sources: [['profile-leadership', 'Community leadership & mentoring'], ['profile-work-entry-1', 'Senior Software Engineer']],
       prompts: [
         "Does Robert mentor other engineers?",
         "How does Robert approach mentoring?"
