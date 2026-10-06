@@ -877,6 +877,36 @@ test('the chosen demos are permanent Work chapters with valid headings and citat
   expect(topics.find(topic => topic.id === 'reliability').sources).toContainEqual(['work-hnsw', 'HNSW graph search']);
 });
 
+for (const width of [1440, 390]) {
+  test(`education presents degree and distinctions without a code block at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    const card = page.locator('#profile-education-entry-1');
+    await card.scrollIntoViewIfNeeded();
+    await expect(card.locator('details, summary, pre, code, .cv-technologies')).toHaveCount(0);
+    await expect(card.getByRole('heading', { level: 3 })).toHaveText('Bachelor of Electrical & Computer Engineering');
+    await expect(card.locator('.education-specialization')).toHaveText('Computational Intelligence Specialization');
+    await expect(card.locator('dd')).toHaveText(['97%', '2nd highest', "Dean's List"]);
+    await expect(card.locator('dt').nth(1)).toHaveText("CGPA across the university's graduating class");
+    await expect(card.locator('.cv-record-body')).toContainText('hardware acceleration for machine-learning neural networks');
+    for (const theme of ['light', 'dark']) {
+      await page.locator('html').evaluate((node, theme) => node.dataset.theme = theme, theme);
+      for (const distinction of await card.locator('.education-distinctions > div').all()) {
+        await expect(distinction).toBeVisible();
+      }
+      expect(await card.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+    await card.getByRole('link', { name: '20+ scholarships and awards worth over $100,000' }).click();
+    await expect(page).toHaveURL(/#profile-awards$/);
+    const education = await page.evaluate(() => window.HeroChatContent.TOPICS.find(topic => topic.id === 'education'));
+    for (const variant of education.variants) {
+      expect(variant.answer).toContain('Computational Intelligence');
+      expect(variant.answer).toContain("Dean's List");
+      expect(variant.answer).toContain("second-highest CGPA across the university's graduating class");
+    }
+  });
+}
+
 test('experience, examples, full role details, and biography stay connected', async ({ page }) => {
   expect(await page.locator('main > section').evaluateAll(sections => sections.map(section => section.id))).toEqual([
     'top', 'profile-about', 'profile-work', 'profile-projects', 'profile-leadership', 'profile-awards', 'profile-education', 'contact'

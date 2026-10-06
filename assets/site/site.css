@@ -802,6 +802,15 @@ em { font-style: italic; }
 .cv-record-body > a { display: inline-block; margin-top: 18px; font-size: 14px; }
 .cv-record-body .cv-technologies { margin-bottom: 20px; padding: 12px 14px; border-radius: 10px; background: var(--bg); color: var(--muted); font: 12px/1.8 var(--font-mono); }
 
+.cv-record-education { scroll-margin-top: calc(var(--header-h) + 16px); box-shadow: var(--shadow); }
+.education-heading { padding: 24px 28px; }
+.education-university { margin-bottom: 6px; color: var(--heading); font-size: 16px; font-weight: 600; }
+.education-specialization { margin-top: 8px; color: var(--muted); font-size: 15px; }
+.education-distinctions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 0 0 24px; }
+.education-distinctions > div { display: flex; flex-direction: column; gap: 8px; }
+.education-distinctions dt { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.education-distinctions dd { order: -1; margin: 0; color: var(--accent); font-size: clamp(22px, 2.5vw, 30px); font-weight: 600; line-height: 1.2; letter-spacing: -.02em; }
+
 .cv-records-projects { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 20px; }
 /* Show each headline image whole; a blurred copy of it fills the rest of the frame. */
 .cv-project-image { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border-bottom: 1px solid var(--line); background: #11151b; isolation: isolate; }
@@ -1003,6 +1012,9 @@ em { font-style: italic; }
   .cv-record-meta { flex-direction: column; gap: 4px; }
   .cv-employer-team { text-align: left; }
   .cv-record-body { margin-inline: 20px; font-size: 15px; }
+  .education-heading { padding: 20px; }
+  .education-distinctions { grid-template-columns: 1fr; gap: 18px; }
+  .education-distinctions > div { gap: 4px; }
   .cv-records-projects { grid-template-columns: 1fr; }
   .cv-project-image { aspect-ratio: 4 / 3; }
   .metrics { gap: 16px; }

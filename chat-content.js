@@ -588,7 +588,7 @@ window.HeroChatContent = (function () {
       id: 'education',
       category: 'general',
       weight: 1,
-      docs: ['B.Eng, 97% average', 'Research award', 'Design competitions'],
+      docs: ['B.Eng, Computational Intelligence', '97% average, 2nd highest CGPA', 'Research award'],
       sources: [['profile-education', 'Education'], ['profile-awards', 'Awards']],
       prompts: [
         "What's Robert's academic background?",
@@ -597,11 +597,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "State the degree, result, research area, and design competitions directly. Hardware acceleration is a useful technical term here, not jargon that needs to be replaced with a vague description.",
-          answer: "I earned a Bachelor of Electrical and Computer Engineering at the University of Victoria in 2021, with a 97% cumulative average. Through the Jamie Cassels Undergraduate Research Award, I researched hardware acceleration for neural networks. I also won engineering design competitions, including first place at the Western Engineering Competition."
+          answer: "I earned a Bachelor of Electrical and Computer Engineering at the University of Victoria in 2021, specializing in Computational Intelligence. I graduated with a 97% cumulative average, the second-highest CGPA across the university's graduating class, and Dean's List recognition. Through the Jamie Cassels Undergraduate Research Award, I researched hardware acceleration for neural networks."
         },
         {
           thought: "Show the degree's breadth with concrete fields, but keep the answer approachable. Retain the research award and hardware acceleration, then the competition robot as a tangible example of hands-on engineering.",
-          answer: "I studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a 97% average. The degree spanned software, embedded systems, signal processing, and ML. A research award supported my work on hardware acceleration for neural networks, and design competitions gave me hands-on challenges, including a robot built to collect Martian artifacts."
+          answer: "I studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a Computational Intelligence specialization and a 97% average—the second-highest CGPA across the university's graduating class. I received Dean's List recognition and researched hardware acceleration for neural networks. Design competitions also gave me hands-on challenges, including a robot built to collect Martian artifacts."
         }
       ]
     },
