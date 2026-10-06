@@ -859,6 +859,57 @@ em { font-style: italic; }
 .award-list p { color: var(--muted); font-size: 14.5px; line-height: 1.6; }
 .award-list strong { display: block; margin-bottom: 2px; color: var(--heading); font-weight: 600; }
 
+/* Editorial emphasis, reserved for three standout achievements. */
+.card-accent {
+  --card-accent-strength: 18%;
+  position: relative;
+  box-shadow: -5px -5px 20px -10px color-mix(in srgb, var(--amber-strong) var(--card-accent-strength), transparent);
+}
+.card-accent::before,
+.card-accent::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.card-accent::before {
+  background: radial-gradient(ellipse 260px 180px at top left, var(--amber-strong), transparent);
+  opacity: .7;
+  transition: opacity .2s ease;
+}
+.card-accent::after {
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--amber-strong) 65%, white), transparent 65%) -160px -80px / 160px 160px no-repeat;
+  opacity: 0;
+}
+:root[data-theme="dark"] .card-accent { --card-accent-strength: 24%; }
+:root[data-theme="dark"] .card-accent::before { opacity: .85; }
+.card-accent:has(.cv-details[open]) {
+  box-shadow: var(--shadow), -5px -5px 20px -10px color-mix(in srgb, var(--amber-strong) var(--card-accent-strength), transparent);
+}
+.card-accent:focus-within::before { opacity: 1; }
+@media (hover: hover) {
+  .card-accent:hover::before { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .card-accent::after { animation: card-accent-sheen 7s ease-in-out infinite; }
+}
+@keyframes card-accent-sheen {
+  0%, 65% { background-position: -160px -80px; opacity: 0; }
+  70% { opacity: .8; }
+  88% { opacity: .8; }
+  95%, 100% { background-position: 320px -80px; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-accent::before { transition: none; }
+}
+
 /* Contact */
 .contact-card {
   position: relative;

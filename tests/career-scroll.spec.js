@@ -60,6 +60,122 @@ function curveLine(page) {
   return page.locator('.cm-curve-desktop .cm-curve-line:visible, .cm-curve-mobile .cm-curve-line:visible');
 }
 
+test('editorial glow is reserved for three achievements across themes and layouts', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const accents = page.locator('.card-accent');
+  await expect(accents).toHaveCount(3);
+  await expect(accents.locator('.cv-record-title, h3')).toHaveText([
+    'Senior Software Engineer, Microsoft Azure AI Search',
+    "Founder & Program Director, Senior's Digital Literacy Program, University of Victoria",
+    'Schulich Leader Scholarship',
+  ]);
+  await expect(page.locator('#profile-work-entry-2').locator('..')).not.toHaveClass(/card-accent/);
+  await expect(page.locator('.chapter-figure.card-accent')).toHaveCount(0);
+
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      const styles = await accents.evaluateAll(cards => cards.map(card => {
+        const style = getComputedStyle(card);
+        const edge = getComputedStyle(card, '::before');
+        const sheen = getComputedStyle(card, '::after');
+        return {
+          shadow: style.boxShadow,
+          background: style.backgroundImage,
+          mask: edge.maskComposite,
+          gradient: edge.backgroundImage,
+          pointerEvents: edge.pointerEvents,
+          animation: edge.animationName,
+          transition: edge.transitionDuration,
+          opacity: edge.opacity,
+          sheenAnimation: sheen.animationName,
+          sheenOpacity: sheen.opacity,
+        };
+      }));
+      for (const style of styles) {
+        expect(style.shadow).not.toBe('none');
+        expect(style.mask.split(',').map(value => value.trim())).toEqual(['exclude', 'exclude']);
+        expect(style.gradient).toContain('radial-gradient');
+        expect(style.pointerEvents).toBe('none');
+        expect(style.animation).toBe('none');
+        expect(style.transition).toBe('0s');
+        expect(Number(style.opacity)).toBeLessThan(1);
+        expect(style.sheenAnimation).toBe('none');
+        expect(style.sheenOpacity).toBe('0');
+      }
+      expect(styles[0].background).toContain('linear-gradient');
+      expect(styles[1].background).toBe('none');
+      expect(styles[2].background).toBe('none');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    }
+  }
+});
+
+test('amber edge sheen moves briefly then rests without touching card content', async ({ page }) => {
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      const frames = await page.locator('.card-accent').evaluateAll(cards => cards.map(card => {
+        const sheen = getComputedStyle(card, '::after');
+        const animation = card.getAnimations({ subtree: true }).find(animation => animation.animationName === 'card-accent-sheen');
+        if (!animation) throw new Error('Missing card sheen animation');
+        animation.pause();
+        const samples = [3000, 6500, 7600, 8800].map(time => {
+          animation.currentTime = time;
+          const style = getComputedStyle(card, '::after');
+          return { opacity: Number(style.opacity), position: style.backgroundPosition };
+        });
+        return {
+          duration: animation.effect.getTiming().duration,
+          iterations: animation.effect.getTiming().iterations,
+          pointerEvents: sheen.pointerEvents,
+          mask: sheen.maskComposite,
+          edge: getComputedStyle(card, '::before').backgroundImage,
+          samples,
+        };
+      }));
+      for (const frame of frames) {
+        expect(frame.duration).toBe(9000);
+        expect(frame.iterations).toBe(Infinity);
+        expect(frame.pointerEvents).toBe('none');
+        expect(frame.mask).toContain('exclude');
+        expect(frame.edge).toContain(theme === 'light' ? '224, 138, 30' : '244, 185, 100');
+        expect(frame.samples[0].opacity).toBe(0);
+        expect(frame.samples[1].opacity).toBeCloseTo(.8);
+        expect(frame.samples[2].opacity).toBeCloseTo(.8);
+        expect(frame.samples[1].position).not.toBe(frame.samples[2].position);
+        expect(frame.samples[3].opacity).toBe(0);
+      }
+    }
+  }
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  expect(await page.locator('.card-accent').evaluateAll(cards =>
+    cards.every(card => getComputedStyle(card, '::after').animationName === 'none')
+  )).toBe(true);
+});
+
+test('accent glow preserves disclosure interaction, focus, and open-card shadow', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const id of ['profile-work-entry-1', 'profile-leadership-entry-3']) {
+    const details = page.locator(`#${id}`);
+    const summary = details.locator(':scope > summary');
+    await summary.focus();
+    expect(await details.evaluate(details => getComputedStyle(details.parentElement, '::before').opacity)).toBe('1');
+    await page.keyboard.press('Enter');
+    await expect(details).toHaveAttribute('open', '');
+    const shadow = await details.evaluate(details => getComputedStyle(details.parentElement).boxShadow);
+    expect(shadow.split(/,(?![^(]*\))/)).toHaveLength(3);
+    await page.keyboard.press('Enter');
+    await expect(details).not.toHaveAttribute('open');
+  }
+  const awardLink = page.locator('.award-card.card-accent a');
+  await awardLink.focus();
+  await expect(awardLink).toBeFocused();
+  expect(await page.locator('.award-card.card-accent').evaluate(card => getComputedStyle(card, '::before').opacity)).toBe('1');
+});
+
 test('header navigation separates career growth from detailed experience', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const navigation = page.getByRole('navigation', { name: 'Main navigation' });
