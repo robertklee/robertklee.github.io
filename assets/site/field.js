@@ -33,6 +33,12 @@
   if (PLANES.some(p => !p.ctx)) return;
   PLANES.forEach(p => backdrop.appendChild(p.canvas));
   const [FAR, MID, NEAR] = PLANES;
+  const qualityMonitor = window.HeroFieldQuality.create();
+  let quality = qualityMonitor.current;
+  let traversalPlane = null;
+  let backgroundDirty = true;
+  let backgroundLabels = [];
+  let traversalFocused = false;
 
   // The readout sits above the conversation dim layer, so it lives on the hero.
   const readout = document.createElement('p');
@@ -186,7 +192,7 @@
     };
     const now = performance.now();
     updateColors(now);
-    if (!colors.point || motionQuery.matches) {
+    if (!colors.point || motionQuery.matches || quality.traversalOnly) {
       colors = next;
       colorTransition = null;
       updatePalette();
@@ -204,6 +210,7 @@
     return { x: r.left - b.left - pad, y: r.top - b.top - pad, w: r.width + pad * 2, h: r.height + pad * 2 };
   }
   function readProtected() {
+    backgroundDirty = true;
     const sel = '.hero-eyebrow, .hero-viewport > h1, .hero-tagline, .hero-chat, .chat-mobile-followups, .scroll-cue, .field-readout';
     protectedRects = [...hero.querySelectorAll(sel)].map(el => {
       const r = relRect(el, 10);
@@ -471,19 +478,58 @@
     return best;
   }
 
-  function layout() {
-    const box = backdrop.getBoundingClientRect();
-    width = Math.max(1, Math.round(box.width));
-    height = Math.max(1, Math.round(box.height));
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    PLANES.forEach(p => {
+  function sizeCanvases() {
+    dpr = Math.min(window.devicePixelRatio || 1, quality.maxDpr);
+    FAR.res = quality.farResolution;
+    MID.res = quality.midResolution;
+    for (const p of [...PLANES, ...(traversalPlane ? [traversalPlane] : [])]) {
       p.scale = dpr * p.res;
       p.canvas.width = Math.max(1, Math.round(width * p.scale));
       p.canvas.height = Math.max(1, Math.round(height * p.scale));
       p.canvas.style.width = width + 'px';
       p.canvas.style.height = height + 'px';
-    });
-    farDirty = true;
+    }
+    farDirty = backgroundDirty = true;
+  }
+  function applyQuality(next) {
+    quality = next;
+    hero.dataset.fieldQuality = quality.name;
+    hero.style.setProperty('--field-far-blur', `${quality.farBlur}px`);
+    hero.style.setProperty('--field-mid-blur', `${quality.midBlur}px`);
+    hero.style.setProperty('--field-chat-filter', quality.chatFilter);
+    if (quality.traversalOnly && !traversalPlane) {
+      const canvas = document.createElement('canvas');
+      canvas.className = 'field-canvas field-traversal';
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Hero field: traversal canvas is unavailable.');
+      traversalPlane = { canvas, ctx, res: 1, scale: 1 };
+      backdrop.appendChild(canvas);
+      cam.tx = cam.px;
+      cam.ty = cam.py;
+      finishEntrance();
+      if (colorTransition) {
+        colors = colorTransition.to;
+        colorTransition = null;
+        updatePalette();
+      }
+    } else if (!quality.traversalOnly && traversalPlane) {
+      traversalPlane.canvas.remove();
+      traversalPlane.canvas.width = traversalPlane.canvas.height = 1;
+      traversalPlane = null;
+    }
+    sizeCanvases();
+    lastDraw = lastFrame = 0;
+  }
+  function sampleQuality(now) {
+    const next = qualityMonitor.frame(now);
+    if (next) applyQuality(next);
+  }
+  function layout() {
+    const box = backdrop.getBoundingClientRect();
+    width = Math.max(1, Math.round(box.width));
+    height = Math.max(1, Math.round(box.height));
+    qualityMonitor.reset(performance.now());
+    sizeCanvases();
     layoutProtected();
     F = Math.max(width, height) * 1.15;
     unit = F / 1650;
@@ -1106,11 +1152,13 @@
       prev = cur;
     }
     PLANES.forEach(p => p.ctx.setLineDash([]));
+    if (traversalPlane) traversalPlane.ctx.setLineDash([]);
   }
   // The search stays legible as it travels: deep stretches are only lightly soft.
-  const pathPlane = zz => (zz < F * 0.3 ? NEAR : MID);
+  const pathPlane = zz => traversalPlane || (zz < F * 0.3 ? NEAR : MID);
+  const frontContext = () => traversalPlane ? traversalPlane.ctx : NEAR.ctx;
   function glow(p, color, radius, core, coreColor) {
-    const ctx = NEAR.ctx;
+    const ctx = frontContext();
     if (underGlass(p.sx, p.sy)) { radius *= 2; core *= 1.5; }
     ctx.globalAlpha = clearAt(p.sx, p.sy, 0.2);
     const g = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, radius);
@@ -1143,7 +1191,7 @@
   }
 
   function drawLabel(text, p, color, placed, strong) {
-    const ctx = NEAR.ctx;
+    const ctx = frontContext();
     ctx.font = (strong ? '500 ' : '400 ') + '11px "IBM Plex Mono", ui-monospace, monospace';
     // Narrow gutters can't fit a long label on one line; break it in two.
     const mid = text.length / 2;
@@ -1292,30 +1340,63 @@
   }
 
   const tmpC = {};
+  function drawTraversal(now, still) {
+    const { ctx, scale } = traversalPlane;
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+    const placed = backgroundLabels.slice();
+    if (query) drawQuery(now, placed, still);
+    drawHover(placed);
+  }
+  function drawHover(placed) {
+    if (entranceProgress !== 1 || hover == null || !nodes[hover]) return;
+    const p = nodes[hover];
+    ring(p, colors.accent, 0.9, 6, 1.5);
+    drawLabel(p.label || CLUSTERS[p.cluster].label, p, colors.dark ? colors.point : colors.accent, placed, true);
+  }
   function draw(now) {
     const still = motionQuery.matches;
+    const focused = query && query.mode !== 'overview' &&
+      (still || now < query.start + query.land + HOLD_MS + FADE_MS);
+    if (quality.traversalOnly) {
+      if (Boolean(focused) !== traversalFocused) backgroundDirty = true;
+      traversalFocused = Boolean(focused);
+      if (!backgroundDirty) {
+        lastDraw = now;
+        drawTraversal(now, still);
+        return;
+      }
+    }
+    backgroundDirty = false;
     updateColors(now);
-    updateEntrance(now, still);
+    updateEntrance(now, still || quality.traversalOnly);
     const elapsed = lastDraw ? Math.min(250, now - lastDraw) : 0;
     const dt = Math.min(120, elapsed);
     lastDraw = now;
     // Keep drift speed independent of FPS, without jumping after static waits.
-    if (!still && (needsAnimation(now) || now - idleSince < IDLE_STOP_MS)) sceneTime += elapsed;
+    if (!still && !quality.traversalOnly && (needsAnimation(now) || now - idleSince < IDLE_STOP_MS)) sceneTime += elapsed;
     const t = sceneTime;
     const settling = 1 - Math.exp(-dt / 280);
     const conversation = document.body.classList.contains('convo-active') ? 1 : 0;
-    conversationMix = still ? conversation : approach(conversationMix, conversation, settling);
+    conversationMix = still || quality.traversalOnly ? conversation : approach(conversationMix, conversation, settling);
     const prevYaw = cam.yaw;
     const prevPitch = cam.pitch;
-    setCamera(t, still);
+    if (!quality.traversalOnly || still) setCamera(t, still);
     // The far plane is blurred and drifts slowly, so it repaints at half rate
     // unless the camera swings quickly (pointer parallax) or the scene changed.
     const swing = Math.abs(cam.yaw - prevYaw) + Math.abs(cam.pitch - prevPitch);
-    farSkip = entranceProgress === 1 && !still && !farDirty && dt > 0 && swing < 0.0006 && !farSkip;
+    farSkip = entranceProgress === 1 && !still && !quality.traversalOnly && !farDirty && dt > 0 && swing < 0.0006 && !farSkip;
     farDirty = false;
     projectNodes(t, still);
     const attention = retrievalAttention(now, still);
     clusterInfo.forEach((c, i) => {
+      if (quality.traversalOnly) {
+        c.f = focused && query.focus ? query.focus[i] : 1;
+        const emphasized = (hover != null && nodes[hover].cluster === i) ||
+          (focused && query.focus && query.focus[i] === 1);
+        c.attention = emphasized ? 1 : 0;
+        return;
+      }
       const goal = focusTarget(i, now, still);
       c.f = still ? goal : approach(c.f, goal, settling);
       const emphasis = attentionTarget(i, now, still);
@@ -1328,13 +1409,12 @@
       p.ctx.clearRect(0, 0, width, height);
     });
 
-    const dark = colors.dark;
     const bgEdge = (0.4 - 0.2 * colors.darkMix) * AIRY.opacity;
     const bgDot = 0.6 - 0.22 * colors.darkMix;
     const depthA = s => 0.3 + 0.7 * s;
 
     const idleEdges = backdropEdges;
-    for (let e = 0; e < idleEdges.length; e += 2) {
+    for (let e = 0; e < idleEdges.length; e += 2 * quality.backgroundStep) {
       const A = nodes[idleEdges[e]];
       const B = nodes[idleEdges[e + 1]];
       const length = Math.hypot(A.sx - B.sx, A.sy - B.sy);
@@ -1351,7 +1431,9 @@
         A.sx, A.sy, grow === 1 ? B.sx : A.sx + (B.sx - A.sx) * grow,
         grow === 1 ? B.sy : A.sy + (B.sy - A.sy) * grow);
     }
-    for (const n of nodes) {
+    for (let i = 0; i < nodes.length; i++) {
+      if (i % quality.backgroundStep !== 0) continue;
+      const n = nodes[i];
       if (n.vis < 0.02 || n.cluster >= 0) continue;
       const plane = planeFor(n.zz) === FAR ? FAR : MID;
       const r = n.r * (0.6 + 1.4 * n.s) * (n.level ? 1.35 : 1) * (plane === FAR ? 1.5 : 1);
@@ -1365,7 +1447,7 @@
 
     // The answer's documents claim label space first; region names fit around.
     const placed = [];
-    if (query) drawQuery(now, placed, still);
+    if (query && !quality.traversalOnly) drawQuery(now, placed, still);
     const ctx = NEAR.ctx;
     const labelEntrance = smooth((entranceProgress - 0.68) / 0.32);
     ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
@@ -1409,11 +1491,10 @@
       }
     });
 
-    if (entranceProgress === 1 && hover != null && nodes[hover]) {
-      const p = nodes[hover];
-      ring(p, colors.accent, 0.9, 6, 1.5);
-      drawLabel(p.label || CLUSTERS[p.cluster].label, p, dark ? colors.point : colors.accent, placed, true);
-    }
+    if (quality.traversalOnly) {
+      backgroundLabels = placed;
+      drawTraversal(now, still);
+    } else drawHover(placed);
   }
 
   function drawSteps(steps, age, fade, still) {
@@ -1429,7 +1510,7 @@
         let tag = still ? 0 : clamp(Math.min((age - st.t0) / 200, (st.t0 + 1600 - age) / 500), 0, 1) * fade;
         if (tag > 0) tag *= smooth(freeDist(at.sx + 14, at.sy - 9, compact) / 16);
         if (tag > 0) {
-          const c = NEAR.ctx;
+          const c = frontContext();
           c.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
           c.textBaseline = 'middle';
           c.fillStyle = rgba(colors.dark ? colors.point : colors.accent, 0.85 * tag);
@@ -1483,7 +1564,7 @@
       if (q.mode === 'miss' && landed) {
         const steps = q.branches[0];
         const last = nodes[steps.length ? steps[steps.length - 1].from : entry];
-        const c = NEAR.ctx;
+        const c = frontContext();
         c.setLineDash([2, 5]);
         c.strokeStyle = rgba(colors.faint, 0.8 * markFade);
         c.lineWidth = 1.2;
@@ -1502,7 +1583,7 @@
       const p = nodes[r.i];
       if (q.target) {
         const from = project(q.target.x, q.target.y, q.target.z, {});
-        const c = NEAR.ctx;
+        const c = frontContext();
         c.strokeStyle = rgba(colors.amber, 0.55 * markFade);
         c.lineWidth = 1.2;
         c.beginPath();
@@ -1513,9 +1594,9 @@
       disc(p, colors.amber, markFade, 3.4 * k * ui);
       ring(p, colors.amber, 0.35 * markFade, 8 * k * ui, 1);
       if (k > 0.6 && p.label && markFade > 0.5) {
-        NEAR.ctx.globalAlpha = Math.min(1, (k - 0.6) / 0.4);
+        frontContext().globalAlpha = Math.min(1, (k - 0.6) / 0.4);
         drawLabel(p.label, p, colors.amberText, placed, true);
-        NEAR.ctx.globalAlpha = 1;
+        frontContext().globalAlpha = 1;
       }
     });
     if (entranceEffect && entranceEffect.queryLanded && !q.notified) {
@@ -1529,10 +1610,14 @@
 
   // --- Loop and wiring -----------------------------------------------------------
   function needsAnimation(now) {
+    if (quality.traversalOnly) return queryNeedsAnimation(now);
     if (entranceProgress < 1 || colorTransition ||
         cam.px !== cam.tx || cam.py !== cam.ty ||
         conversationMix !== (document.body.classList.contains('convo-active') ? 1 : 0) ||
         clusterInfo.some((c, i) => c.f !== focusTarget(i, now, false) || c.attention !== attentionTarget(i, now, false))) return true;
+    return queryNeedsAnimation(now);
+  }
+  function queryNeedsAnimation(now) {
     if (!query || query.mode === 'overview') return false;
     const age = now - query.start;
     const settledAt = Math.max(query.land + (query.target ? 1600 : 0), ...query.results.map(result => result.t + 380));
@@ -1540,6 +1625,7 @@
   }
   function frameInterval(now) {
     if (!visible || document.hidden || motionQuery.matches) return 0;
+    if (quality.traversalOnly) return needsAnimation(now) ? FRAME_MS : 0;
     if (needsAnimation(now) || now - idleSince < IDLE_GRACE_MS) return FRAME_MS;
     return now - idleSince < IDLE_STOP_MS ? IDLE_FRAME_MS : 0;
   }
@@ -1549,6 +1635,7 @@
       frame = requestAnimationFrame(tick);
       return;
     }
+    qualityMonitor.pause();
     let deadline = interval ? Math.min(lastFrame + interval, idleSince + IDLE_STOP_MS) : Infinity;
     if (query && query.mode !== 'overview') {
       const fadeAt = query.start + query.land + HOLD_MS;
@@ -1564,6 +1651,7 @@
     }
   }
   function stop() {
+    qualityMonitor.reset(performance.now());
     cancelAnimationFrame(frame);
     clearTimeout(wakeTimer);
     frame = wakeTimer = 0;
@@ -1573,6 +1661,8 @@
     frame = 0;
     if (!visible || document.hidden) return;
     const interval = frameInterval(now);
+    if (interval === FRAME_MS && !motionQuery.matches) sampleQuality(now);
+    else qualityMonitor.pause();
     if (interval && now - lastFrame < interval) {
       scheduleFrame(now);
       return;
@@ -1610,13 +1700,18 @@
     if (!spec || !spec.topic) return;
     if (!entranceEffect) finishEntrance();
     planQuery(spec, performance.now());
+    backgroundDirty = true;
     if (!visible && entranceEffect) entranceEffect.interrupt();
     activate();
   }
 
   document.addEventListener('herochat:query', e => onQuery(e.detail));
-  document.addEventListener('site:themechange', () => { readColors(); activate(); });
-  motionQuery.addEventListener('change', activate);
+  document.addEventListener('site:themechange', () => { readColors(); backgroundDirty = true; activate(); });
+  motionQuery.addEventListener('change', () => {
+    qualityMonitor.reset(performance.now());
+    backgroundDirty = true;
+    activate();
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (entranceStart != null || entranceEffect) finishEntrance();
@@ -1624,7 +1719,10 @@
     }
     lastDraw = 0;
     if (document.hidden) stop();
-    else activate();
+    else {
+      qualityMonitor.reset(performance.now());
+      activate();
+    }
   });
 
   let resizeTimer = 0;
@@ -1639,7 +1737,7 @@
   const copyObserver = new ResizeObserver(() => { readProtected(); kick(); });
   if (app) copyObserver.observe(app);
   copyObserver.observe(readout);
-  new MutationObserver(kick).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(() => { backgroundDirty = true; kick(); }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
   const header = document.querySelector('.site-header');
   let visibilityObserver = null;
@@ -1655,7 +1753,10 @@
       if (visible) {
         lastDraw = 0;
         if (wasVisible) kick();
-        else activate();
+        else {
+          qualityMonitor.reset(performance.now());
+          activate();
+        }
       }
       else {
         stop();
@@ -1685,16 +1786,24 @@
         });
       }
       hover = next;
+      if (quality.traversalOnly) {
+        cam.tx = cam.px;
+        cam.ty = cam.py;
+      }
+      backgroundDirty = true;
       activate();
     });
     hero.addEventListener('pointerleave', () => {
       cam.tx = 0;
       cam.ty = 0;
       hover = null;
+      backgroundDirty = true;
       activate();
     });
   }
 
+  applyQuality(quality);
+  qualityMonitor.reset(performance.now());
   readColors();
   layout();
   if (window.HeroChatLastQuery) onQuery(window.HeroChatLastQuery);

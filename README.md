@@ -31,6 +31,7 @@ The demos use hand-made, illustrative data. They show the idea behind each piece
   - **`entrance.js`** and **`entrance.css`:** the homepage's retrieval-first entrance and content-sized mobile chat.
   - **`site.js`:** navigation, theme sync, click-to-reveal email, scroll reveals, and count-ups. On a fresh page or reload, hash navigation is realigned after browser scroll restoration so changing record heights cannot leave a bookmarked role offscreen. This realignment is skipped for back/forward-cache restores.
   - **`field.js`:** the hero's embedding field, drawn across three blurred depth planes. The homepage and 404 always share the same self-contained Airy constellation backdrop: irregular communities on two depth sheets, varied hubs and leaves, and occasional short bridges. Idle connections are capped at 100 projected pixels and fade near the cap. Decoration is separate from the connected HNSW-style search graph, whose upper layers retain longer animated jumps. The pages retain their own chat and entrance pacing. The backdrop has no dependencies on the retained spike previews.
+  - **`field-quality.js`:** five configured hero quality tiers and the visible-frame performance policy, shared by the homepage and 404. This does not adapt the below-hero sky or Work demos.
   - **`meteor-watch.js`** and **`meteor-watch.css`:** the homepage's standalone dark-mode sky below the hero. Scattered stars have layered sizes, mostly round dots with occasional diamonds and four-point glints, mixed breathing/shimmer/sparkle twinkles, and a faint navy wash; there are no constellation lines. Resting stars use 18–38% opacity, fading in below the hero. One star twinkles at a time for 2.4–6 seconds, with 2–5-second rests. Selection favors visible stars that have twinkled least since the last layout, so several different points take turns rather than repeatedly choosing the same one. Shooting stars vary greatly in travel and tail length; the first waits 15–45 seconds of active viewing, with 45–90-second rests after later flights. Stars and full meteor tracks avoid text, controls, cards, and figures. At 860px and below, stars are smaller and sparser and meteors are disabled. Light mode hides the sky; reduced motion keeps static stars and wash only. Animation clocks pause above the sky, in hidden tabs, and during page suspension, and idle waits use timers rather than continuous animation frames. Embedded pages omit this treatment so their host can supply its own effects. These assets do not import or depend on `spikes/`; all spike files remain unchanged. Run `npm run test:meteor-watch` for built-homepage coverage.
   - **`diversity.js`**, **`agentic.js`**, and **`quantization.js`:** the Work figures.
   - **`demo-playback.js`:** shared visibility-aware playback and repeat controls for SIMD, HNSW, and filter validation.
@@ -75,6 +76,50 @@ Visibility excludes the sticky header and requires at least 10% of the hero's
 area to remain visible. The exclusion tracks header resizing, including mobile
 navigation. Falling below that threshold releases an in-flight chat retrieval
 hold without a payoff; returning does not replay the entrance.
+
+### Adaptive hero quality
+
+The field starts at **High**, the second-highest of five tiers. Quality changes
+only decorative rendering: the graph layout, connectivity, topic/document nodes,
+retrieval results, and traversal timing stay unchanged. Settings and thresholds
+are centralized in `assets/site/field-quality.js`.
+
+| Tier | Maximum pixel ratio | Far / mid resolution | Background detail | Far / mid / chat blur | Motion |
+|---|---|---|---|---|---|
+| Full | 2 | .5 / .75 | All | 1.8 / .9 / 14px | Normal |
+| High (initial) | 1.75 | .5 / .75 | All | 1.8 / .9 / 12px | Normal |
+| Balanced | 1.25 | .4 / .6 | Every second decorative dot/link | 1 / .5 / 8px | Normal |
+| Low | 1 | .35 / .5 | Every third decorative dot/link | None | Normal |
+| Traversal (last resort) | 1 | .35 / .5 | Every fourth decorative dot/link | None | Only graph traversal |
+
+Far/mid resolution multiplies the capped device pixel ratio; the sharp plane
+uses the full capped ratio. Chat filtering also covers compact follow-up controls.
+No tier changes the existing 30 FPS active paint cap or the 8 FPS idle cap.
+
+During continuous, visible animation, the monitor samples delivered
+`requestAnimationFrame` cadence in one-second windows, not the deliberately
+capped canvas paint rate. Below 24 FPS for three sampled seconds lowers quality
+one tier. Low must stay slow for six sampled seconds before entering Traversal.
+At least 50 FPS for twelve sampled seconds recovers one tier. Each change has a
+four-second measurement cooldown; initial loading, resizing, and resuming have a
+1.2-second warm-up. Intermediate or opposite performance breaks a streak.
+One stalled frame contributes at most one slow window, not a full downgrade.
+Intentional idle waits count no time; evidence can span active windows separated
+by idle pauses, allowing the last-resort tier to recover across traversals.
+Hidden/offscreen periods, resize, and reduced-motion changes reset the evidence.
+Reduced motion never starts adaptive sampling or traversal animation.
+
+Traversal freezes the camera and decorative drift and retains the three
+background canvases as a cached image. Only a separate foreground traversal
+canvas is cleared and painted each animated frame. Theme, copy-clearance,
+viewport, hover, and query changes redraw the cached scene on demand. Result
+holds use timers, and the traversal still lands and releases the chat's retrieval
+hold. Recovering removes the extra canvas and resumes normal motion without
+rebuilding the graph or replaying the entrance. Inspect `.hero`'s
+`data-field-quality` attribute to see the current tier.
+
+Run `npm run test:field-quality` for deterministic policy coverage and
+`npm run test:hero` for built-page rendering and retrieval coverage.
 
 Project artwork uses two native lazy-loaded images: an accessible, uncropped
 foreground and an empty-alt, cover-cropped decorative backdrop. Both reference

@@ -58,8 +58,8 @@
   z-index: 1;
   display: block;
 }
-.field-far { filter: blur(1.8px); }
-.field-mid { filter: blur(.9px); }
+.field-far { filter: blur(var(--field-far-blur, 1.8px)); }
+.field-mid { filter: blur(var(--field-mid-blur, .9px)); }
 
 .field-readout {
   position: absolute;
@@ -300,8 +300,8 @@ body.convo-active .hero-scroll-fade.cue-hidden { opacity: 0; }
   text-align: left;
   font-size: 16px;
   background: var(--chat-surface);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: var(--field-chat-filter, blur(14px) saturate(1.2));
+  backdrop-filter: var(--field-chat-filter, blur(14px) saturate(1.2));
   box-shadow: var(--shadow);
   transition: background .6s ease, border-color .6s ease, box-shadow .6s ease;
 }
@@ -740,7 +740,7 @@ body.chat-compact .hero-tagline { flex: none; margin-top: 10px; font-size: 13.5p
 body.chat-compact #app { display: flex; flex: 1; flex-direction: column; min-height: 0; margin-top: 18px; border-radius: 18px; box-shadow: var(--shadow); }
 body.chat-compact .hero-chat { flex: 1; min-height: 0; padding: 14px 16px; border-radius: 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; font-size: 15px; box-shadow: none; }
 body.chat-compact .hero-chat.has-followups { border-bottom: 0; border-radius: 18px 18px 0 0; }
-body.chat-compact .chat-mobile-followups:not([hidden]) { display: block; flex: none; padding: 8px 16px 10px; border: 1px solid var(--line); border-radius: 0 0 18px 18px; background: var(--chat-surface-strong); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); }
+body.chat-compact .chat-mobile-followups:not([hidden]) { display: block; flex: none; padding: 8px 16px 10px; border: 1px solid var(--line); border-radius: 0 0 18px 18px; background: var(--chat-surface-strong); -webkit-backdrop-filter: var(--field-chat-filter, blur(14px) saturate(1.2)); backdrop-filter: var(--field-chat-filter, blur(14px) saturate(1.2)); }
 body.chat-compact .retry-menu { position: static; max-height: min(240px, 40svh); margin-top: 8px; }
 body.chat-compact .scroll-cue { bottom: 8px; min-height: 32px; padding: 6px 12px; border-color: var(--line); background: color-mix(in srgb, var(--surface) 82%, transparent); }
 body.chat-compact .scroll-cue-label { display: none; }

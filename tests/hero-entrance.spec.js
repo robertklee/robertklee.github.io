@@ -127,8 +127,8 @@ test.afterEach(async ({ page }) => {
   expect(errors.get(page)).toEqual([]);
 });
 
-async function inspectIdleField(page) {
-  await page.route('**/index.js', route => route.fulfill({
+async function inspectIdleField(page, { stubChat = true } = {}) {
+  if (stubChat) await page.route('**/index.js', route => route.fulfill({
     contentType: 'text/javascript',
     body: `
       const card = document.createElement('div');
@@ -139,8 +139,16 @@ async function inspectIdleField(page) {
       document.getElementById('app').appendChild(card);
     `,
   }));
-  await page.route('**/404.js', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
-  const field = readFileSync(resolve(__dirname, '../assets/site/field.js'), 'utf8');
+  if (stubChat) await page.route('**/404.js', route => route.fulfill({ body: '', contentType: 'text/javascript' }));
+  const field = readFileSync(resolve(__dirname, '../assets/site/field.js'), 'utf8').replace(
+    '  function tick(now) {',
+    `  function tick(now) {
+      if (window.heroContinuousFrames) idleSince = performance.now();
+      if (window.heroSlowFrames) {
+        const until = performance.now() + 65;
+        while (performance.now() < until) {}
+      }`
+  );
   const hook = '  readColors();\n  layout();';
   expect(field.split(hook)).toHaveLength(2);
   await page.route('**/assets/site/field.js', route => route.fulfill({
@@ -163,6 +171,15 @@ async function inspectIdleField(page) {
         get visibilityMargin() { return visibilityObserver.rootMargin; },
         get regions() { return clusterInfo; },
         get motionReduced() { return motionQuery.matches; },
+        get quality() { return { ...quality, dpr, fps: qualityMonitor.fps }; },
+        qualityMonitor,
+        sampleQuality,
+        setQuality(name) {
+          const next = window.HeroFieldQuality.tiers.find(tier => tier.name === name);
+          if (!next) throw new Error('Unknown field quality: ' + name);
+          applyQuality(next);
+          kick();
+        },
         get visibility() {
           return nodes.map(node => ({
             visibility: node.vis, distance: freeDist(node.sx, node.sy),
@@ -185,6 +202,7 @@ ${hook}`),
   await page.addInitScript(() => {
     window.heroPaint = {};
     window.heroDrawCount = 0;
+    window.heroTraversalDrawCount = 0;
     const proto = CanvasRenderingContext2D.prototype;
     const paths = new WeakMap();
     for (const method of ['clearRect', 'beginPath', 'arc', 'fill', 'stroke', 'fillText']) {
@@ -195,6 +213,7 @@ ${hook}`),
           if (method === 'clearRect') {
             window.heroPaint[name] = { fill: [], stroke: [], text: [] };
             if (this.canvas.classList.contains('field-near')) window.heroDrawCount++;
+            if (this.canvas.classList.contains('field-traversal')) window.heroTraversalDrawCount++;
           }
           const paint = window.heroPaint[name];
           if (method === 'beginPath') paths.set(this, []);
@@ -220,6 +239,165 @@ function meanAlpha(operations) {
   });
   return alphas.reduce((sum, alpha) => sum + alpha, 0) / alphas.length;
 }
+
+test('adaptive quality starts high and changes resolution, detail and blur without rebuilding retrieval', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  const graph = await page.evaluate(() => window.heroFieldTest.graph);
+  const sample = (fps, duration) => page.evaluate(({ fps, duration }) => {
+    const field = window.heroFieldTest;
+    window.qualityClock = (window.qualityClock || performance.now()) + 5000;
+    field.qualityMonitor.reset(window.qualityClock);
+    field.sampleQuality(window.qualityClock);
+    const end = window.qualityClock + duration;
+    for (; window.qualityClock < end; window.qualityClock += 1000 / fps) field.sampleQuality(window.qualityClock);
+    field.kick();
+    return field.quality;
+  }, { fps, duration });
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+  expect((await sample(10, 4500)).name).toBe('balanced');
+  await expect(page.locator('.hero-chat')).toHaveCSS('backdrop-filter', 'blur(8px) saturate(1.1)');
+  expect((await sample(10, 4500)).name).toBe('low');
+  await expect(page.locator('.hero-chat')).toHaveCSS('backdrop-filter', 'none');
+  await expect(page.locator('.field-far')).toHaveCSS('filter', 'blur(0px)');
+  expect((await sample(10, 4500)).name).toBe('low');
+  expect((await sample(10, 7500)).name).toBe('traversal');
+  await expect(page.locator('.field-traversal')).toHaveCount(1);
+  expect((await sample(60, 14000)).name).toBe('low');
+  await expect(page.locator('.field-traversal')).toHaveCount(0);
+  expect((await sample(60, 14000)).name).toBe('balanced');
+  expect((await sample(60, 14000)).name).toBe('high');
+  expect((await sample(60, 14000)).name).toBe('full');
+  expect(await page.evaluate(() => window.heroFieldTest.graph)).toEqual(graph);
+  expect(await page.evaluate(() => window.heroFieldTest.quality.dpr)).toBeLessThanOrEqual(2);
+});
+
+test('visible slow frames automatically downgrade and sustained smooth frames recover', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  await page.evaluate(() => {
+    window.heroContinuousFrames = window.heroSlowFrames = true;
+    window.heroFieldTest.qualityMonitor.reset(performance.now());
+    window.heroFieldTest.activate();
+  });
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'balanced', { timeout: 10000 });
+  const slowFps = await page.evaluate(() => window.heroFieldTest.quality.fps);
+  expect(slowFps).toBeLessThan(24);
+  await page.evaluate(() => { window.heroSlowFrames = false; });
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high', { timeout: 25000 });
+  await page.evaluate(() => { window.heroContinuousFrames = false; });
+  await expectFieldIdle(page);
+});
+
+test('quality pixel-ratio and plane-resolution settings resize backing buffers monotonically', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    await inspectIdleField(page);
+    await page.goto(origin);
+    await page.waitForFunction(() => window.heroFieldTest.activity.visible);
+    const sizes = await page.evaluate(() => ['full', 'high', 'balanced', 'low', 'traversal'].map(name => {
+      window.heroFieldTest.setQuality(name);
+      return {
+        name, dpr: window.heroFieldTest.quality.dpr,
+        planes: [...document.querySelectorAll('.field-canvas:not(.field-traversal)')].map(canvas => ({
+          width: canvas.width, height: canvas.height, cssWidth: parseFloat(canvas.style.width),
+        })),
+      };
+    }));
+    expect(sizes.map(size => size.dpr)).toEqual([2, 1.75, 1.25, 1, 1]);
+    for (let i = 0; i < sizes.length; i++) {
+      const tier = await page.evaluate(name => window.HeroFieldQuality.tiers.find(tier => tier.name === name), sizes[i].name);
+      const resolutions = [tier.farResolution, tier.midResolution, 1];
+      sizes[i].planes.forEach((plane, j) => {
+        expect(plane.width).toBe(Math.round(plane.cssWidth * sizes[i].dpr * resolutions[j]));
+        if (i) expect(plane.width).toBeLessThanOrEqual(sizes[i - 1].planes[j].width);
+      });
+    }
+  } finally {
+    await context.close();
+  }
+});
+
+for (const pathname of ['/', '/404.html']) {
+  test(`last-resort quality caches the backdrop and only animates traversal on ${pathname}`, async ({ page }) => {
+    await inspectIdleField(page);
+    await page.goto(origin + pathname);
+    await expectFieldIdle(page);
+    await page.evaluate(() => window.heroFieldTest.setQuality('traversal'));
+    await expectFieldIdle(page);
+    const initial = await page.evaluate(() => ({ graph: window.heroFieldTest.graph, positions: window.heroFieldTest.positions, time: window.heroFieldTest.sceneTime }));
+    await page.evaluate(() => window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] }));
+    await page.waitForFunction(() => window.heroTraversalDrawCount > 2);
+    const counts = await page.evaluate(() => ({ base: window.heroDrawCount, traversal: window.heroTraversalDrawCount }));
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => window.heroDrawCount)).toBe(counts.base);
+    expect(await page.evaluate(() => window.heroTraversalDrawCount)).toBeGreaterThan(counts.traversal + 7);
+    expect(await page.evaluate(() => ({ graph: window.heroFieldTest.graph, positions: window.heroFieldTest.positions, time: window.heroFieldTest.sceneTime }))).toEqual(initial);
+    if (pathname === '/') await page.waitForFunction(() => window.heroFieldTest.query.notified);
+    await page.evaluate(() => {
+      const query = window.heroFieldTest.query;
+      query.start = performance.now() - query.land - 2000;
+      window.heroFieldTest.kick();
+    });
+    await expectFieldIdle(page, true);
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
+    await expectFieldIdle(page, true);
+    expect(await page.evaluate(() => window.heroFieldTest.colors.darkMix)).toBe(1);
+    expect(await page.evaluate(() => window.heroFieldTest.positions)).toEqual(initial.positions);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForFunction(() => document.querySelector('.field-traversal').style.width === '390px');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expectFieldIdle(page);
+    const staticCount = await page.evaluate(() => window.heroTraversalDrawCount);
+    await page.waitForTimeout(350);
+    expect(await page.evaluate(() => window.heroTraversalDrawCount)).toBe(staticCount);
+    await page.evaluate(() => window.heroFieldTest.setQuality('low'));
+    await expect(page.locator('.field-traversal')).toHaveCount(0);
+    await expectFieldIdle(page);
+  });
+}
+
+test('downgrading to traversal-only during a real chat retrieval preserves the hold and releases the answer', async ({ page }) => {
+  await accelerateStreams(page);
+  await inspectIdleField(page, { stubChat: false });
+  await page.goto(origin);
+  await expect(page.locator('.hero-retrieval-note')).toBeVisible();
+  await page.evaluate(() => window.heroFieldTest.setQuality('traversal'));
+  await expectRetrievalBeforeOutput(page, page.locator('.hero-chat'), 1, 3380);
+  await expect(page.locator('.suggest-chip').first()).toBeVisible();
+  await expect(page.locator('html')).not.toHaveClass(/hero-retrieving/);
+});
+
+test('idle, hidden, reduced-motion and resumed frames do not accumulate adaptation evidence', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  await page.evaluate(() => {
+    const field = window.heroFieldTest;
+    field.qualityMonitor.reset(performance.now());
+    field.activate();
+    field.idleSince = performance.now() - 9000;
+  });
+  await page.waitForTimeout(3300);
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForTimeout(500);
+  await page.evaluate(() => {
+    delete document.hidden;
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expectFieldIdle(page);
+  await page.waitForTimeout(500);
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+});
 
 async function expectFieldIdle(page, holding = false) {
   await page.evaluate(async () => {
