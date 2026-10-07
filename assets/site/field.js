@@ -18,6 +18,7 @@
   const hero = backdrop.parentElement;
   const root = document.documentElement;
   const AIRY = { spacing: 210, members: 8, localDegree: 3, hubDegree: 6, leafShare: 0.4, closure: 0.75, limit: 100, opacity: 0.65 };
+  const layoutSeed = Math.floor(Math.random() * 4294967296);
 
   // Depth of field: the far and mid planes render at lower resolution and are
   // blurred in CSS (on the GPU); the near plane, the focal plane, stays sharp.
@@ -33,8 +34,10 @@
   if (PLANES.some(p => !p.ctx)) return;
   PLANES.forEach(p => backdrop.appendChild(p.canvas));
   const [FAR, MID, NEAR] = PLANES;
-  const qualityMonitor = window.HeroFieldQuality.create();
-  let quality = qualityMonitor.current;
+  const qualitySettings = window.HeroFieldQuality;
+  let qualityMonitor = qualitySettings.create();
+  let reducedEffects = root.dataset.reducedEffects === 'true';
+  let quality = reducedEffects ? qualitySettings.tiers[qualitySettings.tiers.length - 1] : qualityMonitor.current;
   let traversalPlane = null;
   let backgroundDirty = true;
   let backgroundLabels = [];
@@ -93,6 +96,11 @@
   let nodes = [];
   let edges = [];
   let backdropEdges = [];
+  let decorationOrder = [];
+  let decorationEdgeOrder = [];
+  let drawnDecorationNodes = [];
+  let drawnDecorationEdges = [];
+  let projectionNodes = null;
   let adj = [];
   let entry = 0;
   let clusterInfo = [];
@@ -105,10 +113,12 @@
   let query = null;
   let hover = null;
   let visible = false;
+  let heroInView = false;
   let frame = 0;
   let wakeTimer = 0;
   let lastFrame = 0;
   let lastDraw = 0;
+  let lastBackgroundDraw = 0;
   let idleSince = performance.now();
   let farDirty = true;
   let farSkip = false;
@@ -118,7 +128,7 @@
   const cam = { cy: 1, sy: 0, cp: 1, sp: 0, px: 0, py: 0, tx: 0, ty: 0, yaw: 0, pitch: 0 };
 
   // --- Utilities -------------------------------------------------------------
-  // Deterministic layout per viewport size so the field doesn't reshuffle.
+  // Reuse the visit's seed so redraws and quality changes don't reshuffle the field.
   function rng(seed) {
     let s = seed >>> 0;
     return () => {
@@ -479,13 +489,21 @@
   }
 
   function sizeCanvases() {
-    dpr = Math.min(window.devicePixelRatio || 1, quality.maxDpr);
-    FAR.res = quality.farResolution;
-    MID.res = quality.midResolution;
+    const area = Math.max(1, width * height);
+    const sharpPlanes = traversalPlane ? 2 : 1;
+    const softWeight = quality.farResolution ** 2 + quality.midResolution ** 2;
+    // Spend the pixel budget on sharp content first, shrinking blurred planes before DPR.
+    dpr = Math.min(window.devicePixelRatio || 1, quality.maxDpr,
+      Math.sqrt(quality.maxPixels / (area * (sharpPlanes + softWeight * .16))),
+      qualitySettings.limits.canvasDimension / Math.max(1, width, height));
+    const softScale = Math.max(.4, Math.min(1,
+      Math.sqrt(Math.max(0, quality.maxPixels / (area * dpr * dpr) - sharpPlanes) / softWeight)));
+    FAR.res = quality.farResolution * softScale;
+    MID.res = quality.midResolution * softScale;
     for (const p of [...PLANES, ...(traversalPlane ? [traversalPlane] : [])]) {
       p.scale = dpr * p.res;
-      p.canvas.width = Math.max(1, Math.round(width * p.scale));
-      p.canvas.height = Math.max(1, Math.round(height * p.scale));
+      p.canvas.width = Math.max(1, Math.floor(width * p.scale));
+      p.canvas.height = Math.max(1, Math.floor(height * p.scale));
       p.canvas.style.width = width + 'px';
       p.canvas.style.height = height + 'px';
     }
@@ -497,13 +515,19 @@
     hero.style.setProperty('--field-far-blur', `${quality.farBlur}px`);
     hero.style.setProperty('--field-mid-blur', `${quality.midBlur}px`);
     hero.style.setProperty('--field-chat-filter', quality.chatFilter);
-    if (quality.traversalOnly && !traversalPlane) {
+    if (quality.backgroundFps < 30 && !traversalPlane) {
       const canvas = document.createElement('canvas');
       canvas.className = 'field-canvas field-traversal';
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Hero field: traversal canvas is unavailable.');
       traversalPlane = { canvas, ctx, res: 1, scale: 1 };
       backdrop.appendChild(canvas);
+    } else if (quality.backgroundFps === 30 && traversalPlane) {
+      traversalPlane.canvas.remove();
+      traversalPlane.canvas.width = traversalPlane.canvas.height = 1;
+      traversalPlane = null;
+    }
+    if (quality.traversalOnly) {
       cam.tx = cam.px;
       cam.ty = cam.py;
       finishEntrance();
@@ -512,17 +536,67 @@
         colorTransition = null;
         updatePalette();
       }
-    } else if (!quality.traversalOnly && traversalPlane) {
-      traversalPlane.canvas.remove();
-      traversalPlane.canvas.width = traversalPlane.canvas.height = 1;
-      traversalPlane = null;
     }
     sizeCanvases();
-    lastDraw = lastFrame = 0;
+    selectDecoration();
+    lastDraw = lastFrame = lastBackgroundDraw = 0;
   }
-  function sampleQuality(now) {
-    const next = qualityMonitor.frame(now);
+  function sampleQuality(now, interval = FRAME_MS) {
+    if (reducedEffects) return;
+    const next = qualityMonitor.frame(now, Math.round(1000 / interval), interval > FRAME_MS,
+      entranceProgress === 1 && !queryNeedsAnimation(now));
     if (next) applyQuality(next);
+  }
+  function orderDecoration() {
+    const buckets = new Map();
+    nodes.forEach((node, i) => {
+      if (node.cluster >= 0) return;
+      const x = Math.floor(clamp(node.sx / width, 0, .999) * 8);
+      const y = Math.floor(clamp(node.sy / height, 0, .999) * 6);
+      const cell = (node.sheet ?? 2) * 48 + y * 8 + x;
+      if (!buckets.has(cell)) buckets.set(cell, []);
+      buckets.get(cell).push(i);
+    });
+    const rank = i => Math.imul(i + 1, 2654435761) >>> 0;
+    const cells = [...buckets.keys()].sort((a, b) => rank(a) - rank(b)).map(key =>
+      buckets.get(key).sort((a, b) => rank(a) - rank(b)));
+    decorationOrder = [];
+    for (let offset = 0; cells.some(cell => offset < cell.length); offset++) {
+      cells.forEach(cell => { if (offset < cell.length) decorationOrder.push(cell[offset]); });
+    }
+    decorationEdgeOrder = Array.from({ length: backdropEdges.length / 2 }, (_, i) => i)
+      .sort((a, b) => rank(a) - rank(b));
+    selectDecoration();
+  }
+  function selectProjection() {
+    const indices = new Set(drawnDecorationNodes);
+    clusterInfo.forEach(region => region.members.forEach(i => indices.add(i)));
+    if (query) {
+      query.results.forEach(result => indices.add(result.i));
+      query.branches.forEach(steps => steps.forEach(step => {
+        if (step.descend) indices.add(step.at);
+        else {
+          indices.add(step.from);
+          indices.add(step.to);
+          step.scan.forEach(i => indices.add(i));
+        }
+      }));
+    }
+    projectionNodes = [...indices].filter(i => nodes[i]).map(i => nodes[i]);
+  }
+  function selectDecoration() {
+    const ranks = new Map(decorationOrder.map((id, rank) => [id, rank]));
+    let candidates = decorationEdgeOrder;
+    for (const tier of qualitySettings.tiers) {
+      const count = Math.min(tier.maxNodes, Math.ceil(decorationOrder.length * tier.density));
+      candidates = candidates.filter(e =>
+        ranks.get(backdropEdges[e * 2]) < count && ranks.get(backdropEdges[e * 2 + 1]) < count).slice(0, tier.maxEdges);
+      if (tier.name !== quality.name) continue;
+      drawnDecorationNodes = decorationOrder.slice(0, count);
+      drawnDecorationEdges = candidates.flatMap(e => [backdropEdges[e * 2], backdropEdges[e * 2 + 1]]);
+      break;
+    }
+    selectProjection();
   }
   function layout() {
     const box = backdrop.getBoundingClientRect();
@@ -537,7 +611,7 @@
     oy = height * 0.46;
     setCamera(0, true);
 
-    const rand = rng(width * 7919 + height * 104729);
+    const rand = rng(layoutSeed ^ (width * 7919 + height * 104729));
     const wide = width >= 900;
     sigma = compact ? clamp(width * 0.032, 11, 22) : Math.max(16, Math.min(40, Math.min(width, height) * 0.042));
     ui = clamp(Math.min(width, height) / 600, 0.75, 1);
@@ -605,8 +679,10 @@
 
     buildGraph(rand);
     if (entranceEffect) entranceEffect.layout({ nodes, edges, entry });
+    projectionNodes = null;
     projectNodes(0, true);
     buildBackdropEdges(rand);
+    orderDecoration();
 
     readoutStats.textContent = nodes.length + ' vectors · ' + (TOP + 1) + '-layer HNSW · ' + CLUSTERS.length + ' topics';
     if (query) planQuery(query.spec, query.start);
@@ -618,7 +694,14 @@
     [0.5, 1.65].forEach((depth, sheet) => {
       const z = F * depth;
       const occupied = [];
+      const tendrils = CLUSTERS.length * (width >= 900 ? 8 : 5);
+      const capacity = Math.floor((qualitySettings.limits.generatedNodes - tendrils) / 2);
+      let spacing = AIRY.spacing;
+      // Budget whole communities across the viewport rather than truncating the bottom.
+      while (Math.ceil((width + 30) / spacing) * Math.ceil((height + 10) / (spacing * .86)) *
+        (AIRY.members + 2) > capacity * .8) spacing *= 1.08;
       const scatter = (x, y, module, degree, hub = false) => {
+        if (occupied.length >= capacity) return false;
         if (occupied.some(p => Math.hypot(p.x - x, p.y - y) < 22)) return false;
         occupied.push({ x, y });
         const id = add(unproject(x, y, z), -1);
@@ -627,9 +710,9 @@
       };
       let module = sheet * 10000;
       let row = 0;
-      for (let y = 30; y < height + 40; y += AIRY.spacing * 0.86, row++) {
-        for (let x = 10; x < width + 40; x += AIRY.spacing) {
-          const cx = x + (row % 2) * AIRY.spacing / 2 + (rand() - 0.5) * 65 + sheet * 76;
+      for (let y = 30; y < height + 40; y += spacing * 0.86, row++) {
+        for (let x = 10; x < width + 40; x += spacing) {
+          const cx = x + (row % 2) * spacing / 2 + (rand() - 0.5) * 65 + sheet * 76;
           const cy = y + (rand() - 0.5) * 55 + sheet * 53;
           const radiusX = 60 + rand() * 55;
           const radiusY = 40 + rand() * 42;
@@ -649,7 +732,7 @@
           module++;
         }
       }
-      const looseCount = Math.round(width * height / 20000);
+      const looseCount = Math.min(Math.round(width * height / 20000), Math.floor(capacity * .15));
       let placed = 0;
       for (let attempt = 0; attempt < looseCount * 25 && placed < looseCount; attempt++) {
         if (scatter(-30 + rand() * (width + 60), -30 + rand() * (height + 60),
@@ -669,6 +752,7 @@
     const neighbours = nodes.map(() => new Set());
     const keyOf = (i, j) => Math.min(i, j) + ':' + Math.max(i, j);
     const link = (i, j) => {
+      if (backdropEdges.length / 2 >= qualitySettings.limits.generatedEdges) return;
       const key = keyOf(i, j);
       if (linked.has(key)) return;
       linked.add(key);
@@ -934,6 +1018,7 @@
       q.mode = 'overview';
       q.focus = clusterInfo.map(() => 1);
       query = q;
+      selectProjection();
       setReadout('Illustrative graph · scripted chat', false);
       return;
     }
@@ -1018,6 +1103,7 @@
       q.focusAt *= scale;
     }
     query = q;
+    selectProjection();
   }
 
   function setReadout(text, active) {
@@ -1108,7 +1194,7 @@
   }
 
   function projectNodes(t, still) {
-    for (const n of nodes) {
+    for (const n of projectionNodes || nodes) {
       n.wx = still ? n.x : n.x + Math.sin(t * n.freq + n.phase) * n.amp;
       n.wy = still ? n.y : n.y + Math.cos(t * n.freq * 0.8 + n.phase) * n.amp;
       project(n.wx, n.wy, n.z, n);
@@ -1358,10 +1444,11 @@
     const still = motionQuery.matches;
     const focused = query && query.mode !== 'overview' &&
       (still || now < query.start + query.land + HOLD_MS + FADE_MS);
-    if (quality.traversalOnly) {
+    if (traversalPlane) {
       if (Boolean(focused) !== traversalFocused) backgroundDirty = true;
       traversalFocused = Boolean(focused);
-      if (!backgroundDirty) {
+      const interval = backgroundFrameInterval(now);
+      if (!backgroundDirty && !still && (!interval || now - lastBackgroundDraw + .5 < interval)) {
         lastDraw = now;
         drawTraversal(now, still);
         return;
@@ -1370,9 +1457,10 @@
     backgroundDirty = false;
     updateColors(now);
     updateEntrance(now, still || quality.traversalOnly);
-    const elapsed = lastDraw ? Math.min(250, now - lastDraw) : 0;
+    const elapsed = lastDraw && lastBackgroundDraw ? Math.min(250, now - lastBackgroundDraw) : 0;
     const dt = Math.min(120, elapsed);
     lastDraw = now;
+    lastBackgroundDraw = now;
     // Keep drift speed independent of FPS, without jumping after static waits.
     if (!still && !quality.traversalOnly && (needsAnimation(now) || now - idleSince < IDLE_STOP_MS)) sceneTime += elapsed;
     const t = sceneTime;
@@ -1413,8 +1501,8 @@
     const bgDot = 0.6 - 0.22 * colors.darkMix;
     const depthA = s => 0.3 + 0.7 * s;
 
-    const idleEdges = backdropEdges;
-    for (let e = 0; e < idleEdges.length; e += 2 * quality.backgroundStep) {
+    const idleEdges = drawnDecorationEdges;
+    for (let e = 0; e < idleEdges.length; e += 2) {
       const A = nodes[idleEdges[e]];
       const B = nodes[idleEdges[e + 1]];
       const length = Math.hypot(A.sx - B.sx, A.sy - B.sy);
@@ -1431,8 +1519,7 @@
         A.sx, A.sy, grow === 1 ? B.sx : A.sx + (B.sx - A.sx) * grow,
         grow === 1 ? B.sy : A.sy + (B.sy - A.sy) * grow);
     }
-    for (let i = 0; i < nodes.length; i++) {
-      if (i % quality.backgroundStep !== 0) continue;
+    for (const i of drawnDecorationNodes) {
       const n = nodes[i];
       if (n.vis < 0.02 || n.cluster >= 0) continue;
       const plane = planeFor(n.zz) === FAR ? FAR : MID;
@@ -1447,7 +1534,7 @@
 
     // The answer's documents claim label space first; region names fit around.
     const placed = [];
-    if (query && !quality.traversalOnly) drawQuery(now, placed, still);
+    if (query && !traversalPlane) drawQuery(now, placed, still);
     const ctx = NEAR.ctx;
     const labelEntrance = smooth((entranceProgress - 0.68) / 0.32);
     ctx.font = '500 10px "IBM Plex Mono", ui-monospace, monospace';
@@ -1491,7 +1578,7 @@
       }
     });
 
-    if (quality.traversalOnly) {
+    if (traversalPlane) {
       backgroundLabels = placed;
       drawTraversal(now, still);
     } else drawHover(placed);
@@ -1609,13 +1696,16 @@
   }
 
   // --- Loop and wiring -----------------------------------------------------------
-  function needsAnimation(now) {
-    if (quality.traversalOnly) return queryNeedsAnimation(now);
+  function backgroundNeedsAnimation(now) {
+    if (quality.traversalOnly) return false;
     if (entranceProgress < 1 || colorTransition ||
         cam.px !== cam.tx || cam.py !== cam.ty ||
         conversationMix !== (document.body.classList.contains('convo-active') ? 1 : 0) ||
         clusterInfo.some((c, i) => c.f !== focusTarget(i, now, false) || c.attention !== attentionTarget(i, now, false))) return true;
-    return queryNeedsAnimation(now);
+    return false;
+  }
+  function needsAnimation(now) {
+    return backgroundNeedsAnimation(now) || queryNeedsAnimation(now);
   }
   function queryNeedsAnimation(now) {
     if (!query || query.mode === 'overview') return false;
@@ -1625,9 +1715,13 @@
   }
   function frameInterval(now) {
     if (!visible || document.hidden || motionQuery.matches) return 0;
-    if (quality.traversalOnly) return needsAnimation(now) ? FRAME_MS : 0;
-    if (needsAnimation(now) || now - idleSince < IDLE_GRACE_MS) return FRAME_MS;
-    return now - idleSince < IDLE_STOP_MS ? IDLE_FRAME_MS : 0;
+    return queryNeedsAnimation(now) ? FRAME_MS : backgroundFrameInterval(now);
+  }
+  function backgroundFrameInterval(now) {
+    if (!visible || document.hidden || motionQuery.matches || !quality.backgroundFps) return 0;
+    const active = 1000 / quality.backgroundFps;
+    if (backgroundNeedsAnimation(now) || now - idleSince < IDLE_GRACE_MS) return active;
+    return now - idleSince < IDLE_STOP_MS ? Math.max(IDLE_FRAME_MS, active) : 0;
   }
   function scheduleFrame(now) {
     const interval = frameInterval(now);
@@ -1635,7 +1729,7 @@
       frame = requestAnimationFrame(tick);
       return;
     }
-    qualityMonitor.pause();
+    if (!interval || (interval === IDLE_FRAME_MS && !backgroundNeedsAnimation(now))) qualityMonitor.pause();
     let deadline = interval ? Math.min(lastFrame + interval, idleSince + IDLE_STOP_MS) : Infinity;
     if (query && query.mode !== 'overview') {
       const fadeAt = query.start + query.land + HOLD_MS;
@@ -1660,15 +1754,24 @@
   function tick(now) {
     frame = 0;
     if (!visible || document.hidden) return;
+    if (!reducedEffects && !motionQuery.matches && entranceProgress === 1 && !queryNeedsAnimation(now)) {
+      const next = qualityMonitor.recover(now);
+      if (next) applyQuality(next);
+    }
     const interval = frameInterval(now);
-    if (interval === FRAME_MS && !motionQuery.matches) sampleQuality(now);
+    const monitoring = !reducedEffects && !motionQuery.matches && interval &&
+      (needsAnimation(now) || now - idleSince < IDLE_GRACE_MS);
+    if (monitoring) sampleQuality(now, interval);
     else qualityMonitor.pause();
-    if (interval && now - lastFrame < interval) {
+    if (interval && lastFrame && now - lastFrame + .5 < interval) {
       scheduleFrame(now);
       return;
     }
-    lastFrame = now;
+    if (interval && lastFrame) lastFrame += Math.max(1, Math.floor((now - lastFrame + .5) / interval)) * interval;
+    else lastFrame = now;
+    const started = performance.now();
     draw(now);
+    if (monitoring) qualityMonitor.paint(performance.now() - started);
     if (!motionQuery.matches) scheduleFrame(now);
   }
   function kick() {
@@ -1706,6 +1809,33 @@
   }
 
   document.addEventListener('herochat:query', e => onQuery(e.detail));
+  const effectsButtons = [...document.querySelectorAll('[data-reduced-effects-toggle]')];
+  function syncEffectsButtons() {
+    effectsButtons.forEach(button => {
+      if (!heroInView && document.activeElement === button) document.getElementById('theme-toggle')?.focus({ preventScroll: true });
+      button.hidden = !heroInView;
+      button.setAttribute('aria-pressed', String(reducedEffects));
+      button.title = reducedEffects ? 'Restore automatic hero effects' : 'Reduce hero effects';
+    });
+  }
+  function setReducedEffects(enabled, persist) {
+    reducedEffects = enabled;
+    root.dataset.reducedEffects = String(enabled);
+    qualityMonitor = qualitySettings.create();
+    qualityMonitor.reset(performance.now());
+    applyQuality(enabled ? qualitySettings.tiers[qualitySettings.tiers.length - 1] : qualityMonitor.current);
+    syncEffectsButtons();
+    if (persist) {
+      try { localStorage.setItem('reduced-effects', String(enabled)); }
+      catch (error) { console.warn('Hero effects: preference could not be saved; it applies to this page only.', error); }
+    }
+    activate();
+  }
+  effectsButtons.forEach(button => button.addEventListener('click', () => setReducedEffects(!reducedEffects, true)));
+  window.addEventListener('storage', event => {
+    if (event.key === 'reduced-effects' || event.key === null) setReducedEffects(event.newValue === 'true', false);
+  });
+  syncEffectsButtons();
   document.addEventListener('site:themechange', () => { readColors(); backgroundDirty = true; activate(); });
   motionQuery.addEventListener('change', () => {
     qualityMonitor.reset(performance.now());
@@ -1749,6 +1879,8 @@
     if (visibilityObserver) visibilityObserver.disconnect();
     visibilityObserver = new IntersectionObserver(entries => {
       const wasVisible = visible;
+      heroInView = entries.some(e => e.isIntersecting);
+      syncEffectsButtons();
       visible = entries.some(e => e.isIntersecting && e.intersectionRatio >= 0.1);
       if (visible) {
         lastDraw = 0;

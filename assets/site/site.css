@@ -294,6 +294,12 @@ em { font-style: italic; }
 .site-nav a[aria-current] { color: var(--heading); background: var(--surface-2); }
 
 .header-actions { display: flex; flex-shrink: 0; align-items: center; gap: 8px; }
+.effects-toggle { gap: 7px; }
+.effects-toggle svg { width: 18px; height: 18px; fill: var(--surface); stroke: currentColor; stroke-width: 1.6; }
+.effects-toggle[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+@media (max-width: 640px) {
+  .effects-toggle .effects-label { display: none; }
+}
 
 /* Sections */
 .section {

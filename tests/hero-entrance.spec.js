@@ -155,6 +155,7 @@ async function inspectIdleField(page, { stubChat = true } = {}) {
     contentType: 'text/javascript',
     body: field.replace(hook, `
       window.heroFieldTest = {
+        get layoutSeed() { return layoutSeed; },
         get colors() { return { ...colors }; },
         get graph() {
           return {
@@ -172,7 +173,15 @@ async function inspectIdleField(page, { stubChat = true } = {}) {
         get regions() { return clusterInfo; },
         get motionReduced() { return motionQuery.matches; },
         get quality() { return { ...quality, dpr, fps: qualityMonitor.fps }; },
-        qualityMonitor,
+        get qualityMonitor() { return qualityMonitor; },
+        get budgets() {
+          return {
+            generated: nodes.filter(node => node.cluster < 0).length,
+            nodes: [...drawnDecorationNodes], edges: [...drawnDecorationEdges],
+            projected: projectionNodes.map(node => nodes.indexOf(node)),
+            resolutions: [FAR.res, MID.res, NEAR.res],
+          };
+        },
         sampleQuality,
         setQuality(name) {
           const next = window.HeroFieldQuality.tiers.find(tier => tier.name === name);
@@ -240,6 +249,39 @@ function meanAlpha(operations) {
   return alphas.reduce((sum, alpha) => sum + alpha, 0) / alphas.length;
 }
 
+test('per-visit seeds vary shape and node count at a fixed viewport but remain stable within a visit', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await inspectIdleField(page);
+  const visits = [];
+  for (const sample of [.11, .35, .67, .89]) {
+    await page.goto(`${origin}/?sample=${sample}`);
+    await expectFieldIdle(page);
+    const initial = await page.evaluate(() => ({
+      seed: window.heroFieldTest.layoutSeed, graph: window.heroFieldTest.graph,
+    }));
+    const states = await page.evaluate(() => {
+      document.documentElement.dataset.theme = 'dark';
+      return ['balanced', 'low', 'traversal', 'high'].map(name => {
+        window.heroFieldTest.setQuality(name);
+        return { seed: window.heroFieldTest.layoutSeed, graph: window.heroFieldTest.graph };
+      });
+    });
+    await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 1);
+    states.forEach(state => expect(state).toEqual(initial));
+    expect(await page.evaluate(() => window.heroFieldTest.graph)).toEqual(initial.graph);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForFunction(() => document.querySelector('.field-near').style.width === '390px');
+    expect(await page.evaluate(() => window.heroFieldTest.layoutSeed)).toBe(initial.seed);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.waitForFunction(() => document.querySelector('.field-near').style.width === '1440px');
+    expect(await page.evaluate(() => window.heroFieldTest.layoutSeed)).toBe(initial.seed);
+    visits.push(initial);
+  }
+  expect(new Set(visits.map(visit => visit.seed)).size).toBe(visits.length);
+  expect(new Set(visits.map(visit => visit.graph.nodes.length)).size).toBeGreaterThan(1);
+  expect(new Set(visits.map(visit => JSON.stringify(visit.graph.nodes.map(node => [node.x, node.y, node.z])))).size).toBe(visits.length);
+});
+
 test('adaptive quality starts high and changes resolution, detail and blur without rebuilding retrieval', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await inspectIdleField(page);
@@ -248,7 +290,7 @@ test('adaptive quality starts high and changes resolution, detail and blur witho
   const graph = await page.evaluate(() => window.heroFieldTest.graph);
   const sample = (fps, duration) => page.evaluate(({ fps, duration }) => {
     const field = window.heroFieldTest;
-    window.qualityClock = (window.qualityClock || performance.now()) + 5000;
+    window.qualityClock = (window.qualityClock || performance.now()) + 20000;
     field.qualityMonitor.reset(window.qualityClock);
     field.sampleQuality(window.qualityClock);
     const end = window.qualityClock + duration;
@@ -257,24 +299,26 @@ test('adaptive quality starts high and changes resolution, detail and blur witho
     return field.quality;
   }, { fps, duration });
   await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
-  expect((await sample(10, 4500)).name).toBe('balanced');
-  await expect(page.locator('.hero-chat')).toHaveCSS('backdrop-filter', 'blur(8px) saturate(1.1)');
-  expect((await sample(10, 4500)).name).toBe('low');
+  expect((await sample(10, 7400)).name).toBe('balanced');
+  await expect(page.locator('.hero-chat')).toHaveCSS('backdrop-filter', 'blur(12px) saturate(1.2)');
+  expect((await sample(10, 7400)).name).toBe('low');
   await expect(page.locator('.hero-chat')).toHaveCSS('backdrop-filter', 'none');
   await expect(page.locator('.field-far')).toHaveCSS('filter', 'blur(0px)');
-  expect((await sample(10, 4500)).name).toBe('low');
-  expect((await sample(10, 7500)).name).toBe('traversal');
+  expect((await sample(10, 7400)).name).toBe('low');
+  expect((await sample(10, 13400)).name).toBe('traversal');
   await expect(page.locator('.field-traversal')).toHaveCount(1);
-  expect((await sample(60, 14000)).name).toBe('low');
+  expect((await sample(60, 32400)).name).toBe('low');
+  await expect(page.locator('.field-traversal')).toHaveCount(1);
+  expect((await sample(60, 32400)).name).toBe('balanced');
   await expect(page.locator('.field-traversal')).toHaveCount(0);
-  expect((await sample(60, 14000)).name).toBe('balanced');
-  expect((await sample(60, 14000)).name).toBe('high');
-  expect((await sample(60, 14000)).name).toBe('full');
+  expect((await sample(60, 32400)).name).toBe('high');
+  expect((await sample(60, 32400)).name).toBe('full');
   expect(await page.evaluate(() => window.heroFieldTest.graph)).toEqual(graph);
   expect(await page.evaluate(() => window.heroFieldTest.quality.dpr)).toBeLessThanOrEqual(2);
 });
 
 test('visible slow frames automatically downgrade and sustained smooth frames recover', async ({ page }) => {
+  test.setTimeout(90000);
   await inspectIdleField(page);
   await page.goto(origin);
   await expectFieldIdle(page);
@@ -287,7 +331,7 @@ test('visible slow frames automatically downgrade and sustained smooth frames re
   const slowFps = await page.evaluate(() => window.heroFieldTest.quality.fps);
   expect(slowFps).toBeLessThan(24);
   await page.evaluate(() => { window.heroSlowFrames = false; });
-  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high', { timeout: 25000 });
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high', { timeout: 60000 });
   await page.evaluate(() => { window.heroContinuousFrames = false; });
   await expectFieldIdle(page);
 });
@@ -308,12 +352,12 @@ test('quality pixel-ratio and plane-resolution settings resize backing buffers m
         })),
       };
     }));
-    expect(sizes.map(size => size.dpr)).toEqual([2, 1.75, 1.25, 1, 1]);
+    expect(sizes.map(size => size.dpr)).toEqual([2, 1.75, 1.75, 1, 1]);
     for (let i = 0; i < sizes.length; i++) {
       const tier = await page.evaluate(name => window.HeroFieldQuality.tiers.find(tier => tier.name === name), sizes[i].name);
       const resolutions = [tier.farResolution, tier.midResolution, 1];
       sizes[i].planes.forEach((plane, j) => {
-        expect(plane.width).toBe(Math.round(plane.cssWidth * sizes[i].dpr * resolutions[j]));
+        expect(plane.width).toBe(Math.floor(plane.cssWidth * sizes[i].dpr * resolutions[j]));
         if (i) expect(plane.width).toBeLessThanOrEqual(sizes[i - 1].planes[j].width);
       });
     }
@@ -356,7 +400,7 @@ for (const pathname of ['/', '/404.html']) {
     await page.waitForTimeout(350);
     expect(await page.evaluate(() => window.heroTraversalDrawCount)).toBe(staticCount);
     await page.evaluate(() => window.heroFieldTest.setQuality('low'));
-    await expect(page.locator('.field-traversal')).toHaveCount(0);
+    await expect(page.locator('.field-traversal')).toHaveCount(1);
     await expectFieldIdle(page);
   });
 }
@@ -397,6 +441,378 @@ test('idle, hidden, reduced-motion and resumed frames do not accumulate adaptati
   await expectFieldIdle(page);
   await page.waitForTimeout(500);
   await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+});
+
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 1440, height: 1000 },
+  { width: 3840, height: 2160 },
+  { width: 12000, height: 1000 },
+  { width: 390, height: 12000 },
+]) {
+  test(`hard rendering budgets and nested spatial decoration hold at ${viewport.width}x${viewport.height}`, async ({ browser }) => {
+    const context = await browser.newContext({ viewport, deviceScaleFactor: 3, reducedMotion: 'reduce' });
+    try {
+      const page = await context.newPage();
+      const pageErrors = [];
+      page.on('pageerror', error => pageErrors.push(error.message));
+      await inspectIdleField(page);
+      await page.goto(origin);
+      await page.waitForFunction(() => window.heroFieldTest.activity.visible);
+      const data = await page.evaluate(() => {
+        const field = window.heroFieldTest;
+        const graph = field.graph;
+        const topicNodes = graph.nodes.flatMap((node, i) => node.cluster >= 0 ? [i] : []);
+        const snapshots = window.HeroFieldQuality.tiers.map(tier => {
+          field.setQuality(tier.name);
+          const { nodes, edges, projected, generated } = field.budgets;
+          const positions = field.positions;
+          const bounds = document.querySelector('[data-hero-backdrop]').getBoundingClientRect();
+          const quadrants = new Set(nodes.flatMap(i => {
+            const [x, y] = positions[i];
+            return x >= 0 && x < bounds.width && y >= 0 && y < bounds.height ?
+              [Math.floor(x / bounds.width * 2) + 2 * Math.floor(y / bounds.height * 2)] : [];
+          }));
+          const canvases = [...document.querySelectorAll('.field-canvas')].map(canvas => ({ width: canvas.width, height: canvas.height }));
+          return { tier, nodes, edges, projected, generated, quadrants: quadrants.size, canvases,
+            pixels: canvases.reduce((sum, canvas) => sum + canvas.width * canvas.height, 0) };
+        });
+        field.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] });
+        const query = JSON.stringify(field.query);
+        const participants = new Set(field.query.results.map(result => result.i));
+        field.query.branches.forEach(steps => steps.forEach(step => {
+          if (step.descend) participants.add(step.at);
+          else [step.from, step.to, ...step.scan].forEach(i => participants.add(i));
+        }));
+        field.setQuality('high');
+        field.setQuality('low');
+        return {
+          snapshots, topicNodes, limits: window.HeroFieldQuality.limits,
+          graphPreserved: JSON.stringify(graph) === JSON.stringify(field.graph),
+          queryPreserved: query === JSON.stringify(field.query),
+          participants: [...participants], projected: field.budgets.projected,
+          generatedEdges: graph.decoration.length / 2,
+        };
+      });
+      expect(data.graphPreserved).toBe(true);
+      expect(data.queryPreserved).toBe(true);
+      expect(data.generatedEdges).toBeLessThanOrEqual(data.limits.generatedEdges);
+      expect(data.topicNodes.length).toBeGreaterThan(35);
+      expect(data.snapshots[1].nodes.length).toBeGreaterThan(data.snapshots[2].nodes.length);
+      expect(data.snapshots[2].nodes.length).toBeGreaterThan(data.snapshots[3].nodes.length);
+      let previousNodes;
+      let previousEdges;
+      for (const snapshot of data.snapshots) {
+        expect(snapshot.generated).toBeLessThanOrEqual(data.limits.generatedNodes);
+        expect(snapshot.nodes.length).toBeLessThanOrEqual(snapshot.tier.maxNodes);
+        expect(snapshot.edges.length / 2).toBeLessThanOrEqual(snapshot.tier.maxEdges);
+        expect(snapshot.pixels).toBeLessThanOrEqual(snapshot.tier.maxPixels);
+        expect(snapshot.quadrants).toBe(4);
+        snapshot.canvases.forEach(canvas => {
+          expect(canvas.width).toBeLessThanOrEqual(data.limits.canvasDimension);
+          expect(canvas.height).toBeLessThanOrEqual(data.limits.canvasDimension);
+        });
+        const nodes = new Set(snapshot.nodes);
+        const edges = new Set();
+        for (let i = 0; i < snapshot.edges.length; i += 2) {
+          expect(nodes.has(snapshot.edges[i]) && nodes.has(snapshot.edges[i + 1])).toBe(true);
+          edges.add(snapshot.edges[i] + ':' + snapshot.edges[i + 1]);
+        }
+        if (previousNodes) {
+          expect([...nodes].every(i => previousNodes.has(i))).toBe(true);
+          expect([...edges].every(edge => previousEdges.has(edge))).toBe(true);
+        }
+        expect(data.topicNodes.every(i => snapshot.projected.includes(i))).toBe(true);
+        previousNodes = nodes;
+        previousEdges = edges;
+      }
+      expect(data.participants.every(i => data.projected.includes(i))).toBe(true);
+      expect(pageErrors).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  });
+}
+
+test('low quality paints decoration at 15 FPS while traversal remains at 30 FPS without slowing drift', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  await page.evaluate(() => window.heroFieldTest.setQuality('low'));
+  await expectFieldIdle(page);
+  await page.evaluate(() => window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] }));
+  await page.waitForFunction(() => window.heroTraversalDrawCount > 2);
+  const before = await page.evaluate(() => ({
+    base: window.heroDrawCount, traversal: window.heroTraversalDrawCount, time: window.heroFieldTest.sceneTime,
+    start: window.heroFieldTest.query.start, land: window.heroFieldTest.query.land,
+  }));
+  await page.waitForTimeout(1000);
+  const after = await page.evaluate(() => ({
+    base: window.heroDrawCount, traversal: window.heroTraversalDrawCount, time: window.heroFieldTest.sceneTime,
+    start: window.heroFieldTest.query.start, land: window.heroFieldTest.query.land,
+  }));
+  expect(after.base - before.base).toBeGreaterThanOrEqual(10);
+  expect(after.base - before.base).toBeLessThanOrEqual(17);
+  expect(after.traversal - before.traversal).toBeGreaterThanOrEqual(26);
+  expect(after.traversal - before.traversal).toBeLessThanOrEqual(32);
+  expect(after.time - before.time).toBeGreaterThanOrEqual(800);
+  expect(after.time - before.time).toBeLessThanOrEqual(1200);
+  expect([after.start, after.land]).toEqual([before.start, before.land]);
+});
+
+test('a saved reduced-effects preference applies before the renderer or entrance can start', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('reduced-effects', 'true'));
+  await inspectIdleField(page);
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  await page.route('**/assets/site/field.js', async route => { await gate; await route.fallback(); });
+  try {
+    await page.goto(origin, { waitUntil: 'commit' });
+    await page.waitForFunction(() => window.HeroFieldEntrance);
+    await expect(page.locator('html')).toHaveAttribute('data-reduced-effects', 'true');
+    await expect(page.locator('html')).not.toHaveClass(/hero-entrance-armed|hero-entrance-running/);
+    await expect(page.getByRole('button', { name: 'Reduced effects', includeHidden: true })).toBeHidden();
+    expect(await page.evaluate(() => Boolean(window.heroFieldTest))).toBe(false);
+  } finally {
+    release();
+  }
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'traversal');
+  await expect(page.getByRole('button', { name: 'Reduced effects' })).toHaveAttribute('aria-pressed', 'true');
+  await expectFieldIdle(page);
+  await expect(page.locator('.scroll-cue svg')).toHaveCSS('animation-name', 'none');
+  expect(await page.evaluate(() => window.heroTimeline.filter(event => event.type === 'entrance'))).toEqual([]);
+});
+
+test('the keyboard reduced-effects override preserves an active path, disables upgrades and persists through reload and 404', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  await page.evaluate(() => window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] }));
+  const before = await page.evaluate(() => ({ graph: window.heroFieldTest.graph, query: window.heroFieldTest.query }));
+  const button = page.getByRole('button', { name: 'Reduced effects' });
+  await button.focus();
+  await button.press('Enter');
+  await expect(button).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'traversal');
+  const after = await page.evaluate(() => {
+    const field = window.heroFieldTest;
+    const start = performance.now() + 20000;
+    field.qualityMonitor.reset(start);
+    for (let t = start; t < start + 60000; t += 1000 / 60) field.sampleQuality(t);
+    return { graph: field.graph, query: field.query, quality: field.quality.name, saved: localStorage.getItem('reduced-effects') };
+  });
+  expect({ graph: after.graph, query: after.query }).toEqual(before);
+  expect(after.quality).toBe('traversal');
+  expect(after.saved).toBe('true');
+  await page.reload();
+  await expect(button).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'traversal');
+  await page.goto(origin + '/404.html');
+  await expect(button).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'traversal');
+  await button.focus();
+  await button.press('Space');
+  await expect(button).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+  expect(await page.evaluate(() => localStorage.getItem('reduced-effects'))).toBe('false');
+  await page.reload();
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+});
+
+test('reduced motion takes precedence over both manual and automatic effects', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => localStorage.setItem('reduced-effects', 'true'));
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  await page.evaluate(() => window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization'] }));
+  await expectFieldIdle(page);
+  const counts = await page.evaluate(() => [window.heroDrawCount, window.heroTraversalDrawCount]);
+  await page.waitForTimeout(350);
+  expect(await page.evaluate(() => [window.heroDrawCount, window.heroTraversalDrawCount])).toEqual(counts);
+  await page.getByRole('button', { name: 'Reduced effects' }).click();
+  await expectFieldIdle(page);
+  expect(await page.evaluate(() => ({ quality: window.heroFieldTest.quality.name, fps: window.heroFieldTest.quality.fps, interval: window.heroFieldTest.activity.interval })))
+    .toEqual({ quality: 'high', fps: null, interval: 0 });
+});
+
+test('unavailable preference storage warns explicitly and still permits a current-page override', async ({ page }) => {
+  const warnings = [];
+  page.on('console', message => { if (message.type() === 'warning') warnings.push(message.text()); });
+  await page.addInitScript(() => {
+    for (const method of ['getItem', 'setItem']) {
+      const original = Storage.prototype[method];
+      Storage.prototype[method] = function (key, ...args) {
+        if (key === 'reduced-effects') throw new Error('Preference storage unavailable');
+        return original.call(this, key, ...args);
+      };
+    }
+  });
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+  const button = page.getByRole('button', { name: 'Reduced effects' });
+  await button.click();
+  await expect(button).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'traversal');
+  expect(warnings.some(message => message.includes('saved preference is unavailable'))).toBe(true);
+  expect(warnings.some(message => message.includes('preference could not be saved; it applies to this page only'))).toBe(true);
+  await button.click();
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+  await page.reload();
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+});
+
+for (const saved of [true, false]) {
+  test(`manual reduced effects preserves real chat retrieval with ${saved ? 'a saved preference' : 'a mid-traversal toggle'}`, async ({ page }) => {
+    if (saved) await page.addInitScript(() => localStorage.setItem('reduced-effects', 'true'));
+    await accelerateStreams(page);
+    await inspectIdleField(page, { stubChat: false });
+    await page.goto(origin);
+    await expect(page.locator('.hero-retrieval-note')).toBeVisible();
+    await expect(page.locator('.hero-chat .chat-think')).toHaveClass(/chat-pending/);
+    await expect(page.locator('.hero-chat .chat-answer .txt')).toBeEmpty();
+    const before = await page.evaluate(() => {
+      const { start, land, results } = window.heroFieldTest.query;
+      return { start, land, results };
+    });
+    if (!saved) await page.getByRole('button', { name: 'Reduced effects' }).click();
+    expect(await page.evaluate(() => {
+      const { start, land, results } = window.heroFieldTest.query;
+      return { start, land, results };
+    })).toEqual(before);
+    await expect(page.locator('.hero-chat .chat-think')).not.toHaveClass(/chat-pending/, { timeout: 10000 });
+    await expect(page.locator('.suggest-chip').first()).toBeVisible();
+    const timeline = await page.evaluate(() => window.heroTimeline);
+    const began = timeline.find(event => event.type === 'query');
+    const output = timeline.find(event => event.type === 'thinking');
+    expect(output.time - began.time).toBeGreaterThanOrEqual(3380);
+    expect(output.time - began.time).toBeLessThan(3700);
+    await expect(page.locator('html')).not.toHaveClass(/hero-retrieving|hero-retrieval-payoff/);
+    await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'traversal');
+    expect(await page.evaluate(() => window.heroFieldTest.query.notified)).toBe(true);
+  });
+}
+
+test('reduced-effects preference changes synchronize between homepage and 404 tabs', async ({ page, context }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  const second = await context.newPage();
+  try {
+    const secondErrors = [];
+    second.on('pageerror', error => secondErrors.push(error.message));
+    await inspectIdleField(second);
+    await second.goto(origin + '/404.html');
+    await page.getByRole('button', { name: 'Reduced effects' }).click();
+    await expect(second.getByRole('button', { name: 'Reduced effects' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(second.locator('.hero')).toHaveAttribute('data-field-quality', 'traversal');
+    await page.evaluate(() => {
+      const hero = document.querySelector('.hero').getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + hero.bottom, behavior: 'instant' });
+    });
+    await expect(page.locator('[data-reduced-effects-toggle]')).toBeHidden();
+    await second.getByRole('button', { name: 'Reduced effects' }).click();
+    await expect(page.locator('[data-reduced-effects-toggle]')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('[data-reduced-effects-toggle]')).toBeHidden();
+    await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await expect(page.getByRole('button', { name: 'Reduced effects' })).toBeVisible();
+    expect(secondErrors).toEqual([]);
+  } finally {
+    await second.close();
+  }
+});
+
+for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
+  test(`the hero-only effects control hides after the hero and returns without moving theme at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await inspectIdleField(page);
+    await page.goto(origin);
+    await page.evaluate(() => window.HeroChat.initThemeToggle());
+    await expectFieldIdle(page);
+    const effects = page.locator('[data-reduced-effects-toggle]');
+    const theme = page.locator('#theme-toggle');
+    await effects.click();
+    const themePosition = await theme.boundingBox();
+    await page.evaluate(() => {
+      const hero = document.querySelector('.hero').getBoundingClientRect();
+      const header = document.querySelector('.site-header').getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + hero.bottom - header.height - hero.height * .05, behavior: 'instant' });
+    });
+    await page.waitForFunction(() => !window.heroFieldTest.activity.visible);
+    await expect(effects).toBeVisible();
+    await effects.focus();
+    await page.evaluate(() => {
+      const hero = document.querySelector('.hero').getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + hero.bottom, behavior: 'instant' });
+    });
+    await expect(effects).toBeHidden();
+    await expect(theme).toBeVisible();
+    await expect(theme).toBeFocused();
+    const hiddenThemePosition = await theme.boundingBox();
+    expect(hiddenThemePosition.x).toBeCloseTo(themePosition.x, 1);
+    expect(hiddenThemePosition.y).toBeCloseTo(themePosition.y, 1);
+    expect(await page.evaluate(() => localStorage.getItem('reduced-effects'))).toBe('true');
+    await theme.press('Enter');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(effects).toBeHidden();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await expect(effects).toBeVisible();
+    await expect(effects).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'traversal');
+  });
+}
+
+test('a deep link starts with the hero-only effects control hidden', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await inspectIdleField(page);
+  await page.goto(origin + '/#profile-projects');
+  await page.waitForFunction(() => document.querySelector('.hero').getBoundingClientRect().bottom <= 0);
+  await expect(page.locator('[data-reduced-effects-toggle]')).toBeHidden();
+  await expect(page.locator('#theme-toggle')).toBeVisible();
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect(page.getByRole('button', { name: 'Reduced effects' })).toBeVisible();
+});
+
+test('effects controls fit narrow headers without overflow or overlap', async ({ page }) => {
+  await inspectIdleField(page);
+  for (const pathname of ['/', '/404.html']) {
+    for (const width of [320, 390, 1440]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto(origin + pathname);
+      await expect(page.getByRole('button', { name: 'Reduced effects' })).toBeVisible();
+      const layout = await page.evaluate(() => {
+        const controls = [...document.querySelectorAll('.site-header .brand, .header-actions > *')].map(node => {
+          const { left, right } = node.getBoundingClientRect();
+          return { left, right };
+        });
+        const effects = document.querySelector('[data-reduced-effects-toggle]');
+        return { controls, effectsBeforeTheme: effects.nextElementSibling.id === 'theme-toggle',
+          width: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth };
+      });
+      expect(layout.effectsBeforeTheme).toBe(true);
+      expect(layout.scrollWidth).toBe(layout.width);
+      layout.controls.forEach((control, i) => {
+        expect(control.left).toBeGreaterThanOrEqual(0);
+        expect(control.right).toBeLessThanOrEqual(layout.width);
+        if (i) expect(control.left).toBeGreaterThanOrEqual(layout.controls[i - 1].right);
+      });
+    }
+  }
+});
+
+test('effects controls remain hidden without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const page = await context.newPage();
+    for (const pathname of ['/', '/404.html']) {
+      await page.goto(origin + pathname);
+      await expect(page.locator('[data-reduced-effects-toggle]')).toBeHidden();
+    }
+  } finally {
+    await context.close();
+  }
 });
 
 async function expectFieldIdle(page, holding = false) {
@@ -985,8 +1401,11 @@ for (const pathname of ['/', '/404.html']) {
       });
       expect(bounds.statsBottom).toBeLessThan(bounds.statusTop);
     }
+    const originalGraph = await page.evaluate(() => JSON.stringify(window.heroFieldTest.graph));
     await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.waitForFunction(count => window.heroFieldTest.graph.nodes.length !== count, nodeCount);
+    await page.waitForFunction(graph =>
+      document.querySelector('.field-near').style.width === '1920px' &&
+      JSON.stringify(window.heroFieldTest.graph) !== graph, originalGraph);
     const resizedCount = await page.evaluate(() => window.heroFieldTest.graph.nodes.length);
     await expect(stats).toHaveText(`${resizedCount} vectors · 3-layer HNSW · 7 topics`);
     await expect(status).toHaveText('Illustrative graph · scripted chat');

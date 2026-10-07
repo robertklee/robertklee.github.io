@@ -80,43 +80,81 @@ hold without a payoff; returning does not replay the entrance.
 ### Adaptive hero quality
 
 The field starts at **High**, the second-highest of five tiers. Quality changes
-only decorative rendering: the graph layout, connectivity, topic/document nodes,
-retrieval results, and traversal timing stay unchanged. Settings and thresholds
+only decorative rendering: the generated graph's layout, connectivity,
+topic/document nodes, retrieval results, and traversal timing stay unchanged. Settings and thresholds
 are centralized in `assets/site/field-quality.js`.
 
-| Tier | Maximum pixel ratio | Far / mid resolution | Background detail | Far / mid / chat blur | Motion |
-|---|---|---|---|---|---|
-| Full | 2 | .5 / .75 | All | 1.8 / .9 / 14px | Normal |
-| High (initial) | 1.75 | .5 / .75 | All | 1.8 / .9 / 12px | Normal |
-| Balanced | 1.25 | .4 / .6 | Every second decorative dot/link | 1 / .5 / 8px | Normal |
-| Low | 1 | .35 / .5 | Every third decorative dot/link | None | Normal |
-| Traversal (last resort) | 1 | .35 / .5 | Every fourth decorative dot/link | None | Only graph traversal |
+Each page load chooses a fresh random seed for the generated constellation.
+Shape and node count can vary between visits at the same viewport size, within
+the hard budgets. The seed is retained for the visit and combined with the hero's
+dimensions when resizing. Theme and quality changes preserve the generated graph;
+quality tiers change visible density rather than regenerating it.
 
-Far/mid resolution multiplies the capped device pixel ratio; the sharp plane
-uses the full capped ratio. Chat filtering also covers compact follow-up controls.
-No tier changes the existing 30 FPS active paint cap or the 8 FPS idle cap.
+| Tier | Maximum pixel ratio | Total canvas pixels | Decorative nodes / edges | Far / mid / chat blur | Background FPS |
+|---|---|---|---|---|---|
+| Full | 2 | 16 million | Up to 1,200 / 2,000 | 1.8 / .9 / 14px | 30 |
+| High (initial) | 1.75 | 12 million | Up to 1,000 / 1,500 | 1.8 / .9 / 12px | 30 |
+| Balanced | 1.75 | 12 million | Half density, up to 500 / 750 | 1.8 / .9 / 12px | 30 |
+| Low | 1 | 4 million | Quarter density, up to 250 / 375 | None | 15 |
+| Traversal (last resort) | 1 | 4 million | Quarter density, up to 250 / 375 | None | Cached |
+
+Generation is capped at 1,200 decorative nodes (including tendrils) and 2,000
+decorative edges regardless of viewport size. Topic regions are never thinned.
+Stable, nested spatial subsets keep decoration spread across the hero; ordinary
+edges connect only retained dots. Projection skips unused decoration but always
+includes every active traversal endpoint, scan neighbour, and result.
+
+The first downgrade reduces density only. Later tiers lower resolution, remove
+blur, and slow or freeze the backdrop. Far/mid resolution starts at .5/.75 for
+Full through Balanced, or .35/.5 for Low/Traversal, multiplying the effective
+pixel ratio. The total pixel budget includes every live canvas, including the
+traversal overlay. Blurred planes shrink before the sharp content's ratio is
+reduced; each canvas dimension is capped at 8,192 pixels. The effective ratio
+can fall below 1 on very large displays. Chat filtering also covers compact
+follow-up controls. Traversal retains a 30 FPS target regardless of tier; idle
+decoration remains capped at 8 FPS and eventually stops.
 
 During continuous, visible animation, the monitor samples delivered
-`requestAnimationFrame` cadence in one-second windows, not the deliberately
-capped canvas paint rate. Below 24 FPS for three sampled seconds lowers quality
-one tier. Low must stay slow for six sampled seconds before entering Traversal.
-At least 50 FPS for twelve sampled seconds recovers one tier. Each change has a
-four-second measurement cooldown; initial loading, resizing, and resuming have a
-1.2-second warm-up. Intermediate or opposite performance breaks a streak.
+`requestAnimationFrame` cadence, actual paint cadence, and mean draw cost in
+three-second windows. Below 24 delivered FPS, paint delivery below 80% of its
+target, or mean drawing above 80% of the frame budget for two poor windows lowers
+quality one tier. Intentional 15 FPS pacing uses its own delivery target rather
+than treating it as overload. Low requires four poor windows before Traversal.
+Recovery requires 30 sampled healthy seconds, at least 45 delivered FPS when
+sampling uncapped callbacks (90% of target when intentionally paced), at least
+90% of target paints, and mean draw cost no higher than half a 30 FPS budget.
+This allows healthy 48-50 Hz displays to recover without assuming a 60 Hz refresh
+rate. Each change has a 15-second measurement cooldown; initial loading,
+resizing, and resuming have a 1.2-second warm-up. Intermediate or opposite performance breaks a streak.
 One stalled frame contributes at most one slow window, not a full downgrade.
-Intentional idle waits count no time; evidence can span active windows separated
-by idle pauses, allowing the last-resort tier to recover across traversals.
+Intentional idle waits count no time; partial windows at the same sampling
+cadence and completed evidence can span active periods separated by idle pauses,
+allowing recovery across short traversals. Cadence changes start fresh windows.
+Upgrades wait until the entrance/traversal has settled; downgrades need not wait.
 Hidden/offscreen periods, resize, and reduced-motion changes reset the evidence.
 Reduced motion never starts adaptive sampling or traversal animation.
 
-Traversal freezes the camera and decorative drift and retains the three
-background canvases as a cached image. Only a separate foreground traversal
+Low updates its backdrop independently at 15 FPS while its foreground traversal
+can continue at 30 FPS. Traversal freezes the camera and decorative drift and
+retains the three background canvases as a cached image. Only a separate foreground traversal
 canvas is cleared and painted each animated frame. Theme, copy-clearance,
 viewport, hover, and query changes redraw the cached scene on demand. Result
 holds use timers, and the traversal still lands and releases the chat's retrieval
-hold. Recovering removes the extra canvas and resumes normal motion without
-rebuilding the graph or replaying the entrance. Inspect `.hero`'s
+hold. Recovering to Balanced removes the extra canvas and resumes normal motion
+without rebuilding the graph or replaying the entrance. Inspect `.hero`'s
 `data-field-quality` attribute to see the current tier.
+
+The header's **Reduced effects** toggle on the homepage and 404 page forces
+Traversal, disables automatic quality changes, and suppresses decorative hero
+pulses. It preserves animated retrieval and leaves the below-hero sky/demos alone.
+The toggle sits before the theme button and hides once the hero scrolls entirely
+behind the sticky header. It reappears on return with its preference intact;
+the theme button remains available in the same position throughout the page.
+The `reduced-effects` local-storage preference is applied before first paint and
+synchronized between tabs. Storage failures warn explicitly; the toggle still
+works for the current page. Turning it off restarts automatic quality at High
+with warm-up. The operating system's reduced-motion preference takes precedence
+and keeps the entire hero static. Without JavaScript, the toggle stays hidden.
 
 Run `npm run test:field-quality` for deterministic policy coverage and
 `npm run test:hero` for built-page rendering and retrieval coverage.
@@ -128,6 +166,11 @@ without a JavaScript loading handler. Browsers disable native lazy loading when
 scripting is disabled; the complete artwork still renders in that fallback.
 Do not restore image URLs in CSS backgrounds, which would bypass native image
 lazy loading even with scripting enabled.
+
+On desktop, the hero's vector count, HNSW layer count, and topic count remain
+visible on a separate line above the live retrieval status, including after the
+opening answer loads. Resizing refreshes the counts to match the current graph.
+The readout remains hidden at widths of 760px and below.
 
 Update CV content in `index.html`; the hero's questions and responses live in `chat-content.js`. Motion respects `prefers-reduced-motion`: reveals, count-ups, and figure autoplay are skipped, and everything stays usable.
 

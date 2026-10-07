@@ -60,6 +60,14 @@
 }
 .field-far { filter: blur(var(--field-far-blur, 1.8px)); }
 .field-mid { filter: blur(var(--field-mid-blur, .9px)); }
+:root[data-reduced-effects="true"] .hero {
+  --field-far-blur: 0px;
+  --field-mid-blur: 0px;
+  --field-chat-filter: none;
+}
+:root[data-reduced-effects="true"] .hero :is(.live-dot, .scroll-cue svg, .gen-orb, .tok, .line-enter, .suggest-enter, .hero-chat) { animation: none; }
+:root[data-reduced-effects="true"] .hero .stream-cursor { animation: none; opacity: 1; }
+:root[data-reduced-effects="true"] .hero .gen-orb { filter: none; box-shadow: none; }
 
 .field-readout {
   position: absolute;
