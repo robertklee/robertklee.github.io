@@ -1507,6 +1507,9 @@ test('all ten opening answers foreground standout work and keep minor features o
     expect([variant.thought, variant.answer, ...variant.docs].join(' ')).not.toMatch(minorFeatures);
     expect(variant.answer).toContain('Senior Software Engineer on Microsoft Azure AI Search');
     expect(variant.answer).toMatch(/vector-search diversity|agentic/i);
+    expect(variant.answer.trim().split(/\s+/).length).toBeLessThanOrEqual(75);
+    expect(variant.answer).toMatch(/\b(?:retrieval|quantization|HNSW|SIMD|distributed|pose estimation)\b/i);
+    expect(variant.answer).not.toMatch(/\btop-k\b/i);
     expect(regions.filter(docs => variant.docs.some(doc => docs.includes(doc))).length).toBeGreaterThanOrEqual(2);
     for (const doc of variant.docs) expect(regions.flat()).toContain(doc);
     await expect(page.locator('.chat-answer .txt')).toContainText(variant.answer);

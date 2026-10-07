@@ -131,9 +131,9 @@
           <div class="cv-about-copy">
               <p><strong>Senior Software Engineer @ Microsoft, Azure AI Search</strong> — building the retrieval that grounds enterprise AI in the right knowledge at billion-vector scale.</p>
               <p>I'm the <strong>technical lead for a team of five engineers and scientists</strong> building a new vector-search diversity capability. I set the technical direction and own delivery end to end, from algorithm analysis and distributed architecture through cross-team alignment and hands-on implementation.</p>
-    <details class="about-more"><summary>More about me</summary><p>My work sits at the intersection of <strong>information retrieval</strong>, <strong>vector search</strong>, and <strong>applied machine learning</strong> — improving relevance for complex global queries, grounding LLMs and multi-agent workflows in governed enterprise knowledge, and turning research prototypes into production-grade <strong>agentic retrieval</strong> and <strong>RAG</strong> capabilities. As a Senior Software Engineer, I'm currently the <strong>technical lead for a team of five engineers and scientists</strong> building a new vector-search diversity capability. I set the technical direction and own delivery end to end, from algorithm analysis and distributed architecture through cross-team alignment and hands-on implementation. I also led research-to-production delivery for agentic-retrieval filter and boost generation.</p>
-<p>Earlier, as a <strong>Software Engineer II</strong>, I was part of the team that took <strong>vector search from 1 to N</strong> and <strong>quantization from 0 to N</strong> — from building the capability to scaling it for broad production adoption. My contributions spanned quantization techniques that cut customer costs by <strong>8–32×</strong> and latency by up to <strong>20×</strong>, a hybrid-search relevance stack, and an extensible facet-aggregation engine built on formal grammar and parsing. I care deeply about <strong>performance, correctness, and distributed systems</strong>, and I'm often the engineer who root-causes the gnarliest production incidents.</p>
-<p>Beyond shipping code, I love building communities. I graduated with a <strong>B.Eng in Electrical &amp; Computer Engineering</strong> (97% CGPA, 20+ awards worth over $100K), drove a <strong>200+ person conference</strong> from vision to reality, and grew a <strong>Senior's Program</strong> to 180+ volunteers and 650+ participants while delivering technical talks to <strong>250+ engineering students</strong>. I also led a student team to train a deep neural network for <strong>human pose estimation</strong> from randomly initialized weights — check it out <a href="https://share.streamlit.io/robertklee/coco-human-pose/main/human_pose_app.py" target="_blank" rel="noopener noreferrer">on Streamlit.</a></p>
+    <details class="about-more"><summary>More about me</summary><p>My work sits at the intersection of <strong>information retrieval</strong>, <strong>vector search</strong>, and <strong>applied machine learning</strong> — improving search relevance, grounding LLM agents in governed enterprise knowledge, and turning research prototypes into production <strong>agentic-retrieval</strong> and <strong>RAG</strong> capabilities. I also led research-to-production delivery for agentic-retrieval filter and boost generation.</p>
+<p>Earlier, as a <strong>Software Engineer II</strong>, I helped build and scale <strong>vector search and quantization</strong> for broad production adoption. My contributions spanned quantization techniques that cut customer costs by <strong>8–32×</strong> and latency by up to <strong>20×</strong>, a hybrid-search relevance stack, and an extensible facet-aggregation engine built on formal grammar and parsing. I care deeply about <strong>performance, correctness, and distributed systems</strong>, and I often investigate complex production incidents.</p>
+<p>Beyond shipping code, I love building communities. I graduated with a <strong>B.Eng in Electrical &amp; Computer Engineering</strong> (97% cumulative average, 20+ awards worth over $100K), founded a <strong>200+ person conference</strong>, and grew a <strong>seniors' digital literacy program</strong> to 180+ volunteers and 650+ participants while delivering technical talks to <strong>250+ engineering students</strong>. I also led a student team to train a deep neural network for <strong>human pose estimation</strong> from randomly initialized weights — check it out <a href="https://share.streamlit.io/robertklee/coco-human-pose/main/human_pose_app.py" target="_blank" rel="noopener noreferrer">on Streamlit.</a></p>
 <p>Please reach out if you'd like to connect!</p></details>
               <div class="cv-contact-links">
                 <button type="button" data-profile-resume>Resume <span aria-hidden="true">↗</span></button>
@@ -149,7 +149,7 @@
     <header class="section-heading">
       <p class="eyebrow">Microsoft · Experience &amp; selected work</p>
       <h2 id="profile-work-title">Experience, <em>visualized.</em></h2>
-      <p class="cv-section-description">Selected contributions from my two most recent roles, followed by a complete experience timeline. The figures explain underlying concepts and are solely for illustrative purposes.</p>
+      <p class="cv-section-description">Selected engineering contributions and the concepts behind them. The demos use illustrative data.</p>
     </header>
     <figure class="career-map" aria-labelledby="career-map-title" aria-describedby="career-map-desc">
         <header class="career-map-head">
@@ -160,7 +160,7 @@
           <p class="career-map-org"><img src="/assets/microsoft-mark.svg" alt="" width="18" height="18"><span>Microsoft</span></p>
         </header>
         <div class="cm-trajectory">
-          <p class="cm-chart-heading"><strong>Azure AI Search</strong><span>Scope &amp; ownership grows &nearr;</span></p>
+          <p class="cm-chart-heading"><strong>Azure AI Search</strong><span>Scope &amp; ownership grow &nearr;</span></p>
           <div class="cm-plot">
             <svg class="cm-curve" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true" focusable="false">
               <defs>
@@ -263,14 +263,13 @@
               <li>Rethought its architecture for distributed execution, with targeted algorithmic and systems innovations that preserve those properties at production scale.</li>
               <li>Owned the effort from leadership buy-in through architecture to cross-functional alignment and implementation.</li>
             </ul>
-            <p class="chapter-uses"><span>Grounding for corpus-spanning questions</span><span>E-commerce</span><span>Recommendations</span></p>
+            <p class="chapter-uses"><span>Grounding for corpus-spanning queries</span><span>E-commerce</span><span>Recommendations</span></p>
           </div>
           <figure class="chapter-figure diversity-demo" data-diversity-demo aria-labelledby="diversity-figure-title" aria-describedby="diversity-caption">
             <header class="figure-heading">
-      <p class="figure-illustration-label">Interactive concept illustration</p>
-      <p class="figure-illustration-scope">The idea behind vector-search diversity</p>
+      <p class="figure-illustration-label">Concept demo</p>
               <h4 id="diversity-figure-title">Same query, broader evidence.</h4>
-              <p>Pure nearest-neighbour ranking can fill the top six with near-copies from one neighbourhood. Turn up search diversity and the results spread across clusters.</p>
+              <p>Nearest-neighbour ranking can produce a homogeneous result set: highly relevant near-duplicates from one topic cluster. Increase search diversity to balance relevance with broader coverage.</p>
             </header>
             <div class="dv-body" hidden>
               <div class="segmented" role="group" aria-label="Example">
@@ -294,7 +293,7 @@
               <ol class="dv-results" data-dv-results aria-label="Top six results"></ol>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-dv-live></p>
             </div>
-            <figcaption id="diversity-caption">A simplified illustration. Shaded regions represent clusters of similar topics.</figcaption>
+            <figcaption id="diversity-caption">Shaded regions group similar topics.</figcaption>
           </figure>
         </article>
 <article class="chapter chapter-flip" id="work-agentic" aria-labelledby="work-agentic-title">
@@ -318,8 +317,7 @@
           </div>
           <figure class="chapter-figure agentic-demo" data-agentic-demo aria-labelledby="agentic-figure-title" aria-describedby="agentic-caption">
             <header class="figure-heading">
-      <p class="figure-illustration-label">Interactive concept illustration</p>
-      <p class="figure-illustration-scope">The idea behind verifiable query operators</p>
+      <p class="figure-illustration-label">Concept demo</p>
               <h4 id="agentic-figure-title">Every constraint, checked.</h4>
               <p>Filters combine only <code>eq</code>, <code>ne</code>, <code>and</code>, and <code>or</code> over categorical fields, and preferences become Lucene boosts. Each is validated against the index before it runs; anything outside the set is left to ranking, not guessed.</p>
             </header>
@@ -337,7 +335,7 @@
               <div class="ag-schema-wrap">
                 <p class="ag-label">Index schema · hotels</p>
                 <ul class="ag-schema" data-ag-schema aria-label="Index fields"></ul>
-                <p class="ag-schema-note">Only low-cardinality <code>string</code>, <code>string[]</code>, and <code>boolean</code> fields are in the operator set; dashed fields are left to ranking.</p>
+                <p class="ag-schema-note">Supported low-cardinality fields (few distinct values): <code>string</code>, <code>string[]</code>, or <code>boolean</code>. Dashed fields are left to ranking.</p>
               </div>
               <ol class="ag-ops" data-ag-ops aria-label="Operators"></ol>
               <div class="ag-output" aria-label="Generated query">
@@ -356,7 +354,7 @@
               <p class="vector-demo-note" data-ag-loop-note hidden>Repeats while in view.</p>
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-ag-live></p>
             </div>
-            <figcaption id="agentic-caption">A simplified illustration.</figcaption>
+            <figcaption id="agentic-caption">Supported conditions become checked filters; preferences become ranking boosts.</figcaption>
           </figure>
         </article>
   </section>
@@ -386,19 +384,18 @@
             <p class="chapter-lede"><span class="chapter-contribution-label">My contribution</span>I drove vector quantization from Public Preview to general availability on Azure AI Search, helping make billion-scale vector search practical through compact representations and efficient distance computation.</p>
             <p class="chapter-role"><span class="role-badge">Drove Preview → GA</span><span>Vector quantization on Azure AI Search</span></p>
             <div class="metrics">
-              <p class="metric"><strong data-count>8–32×</strong><span>Reported customer cost savings</span></p>
-              <p class="metric"><strong data-count>20×</strong><span>Reported latency reduction, up to</span></p>
+              <p class="metric"><strong data-count>8–32×</strong><span>Customer cost savings</span></p>
+              <p class="metric"><strong data-count>20×</strong><span>Latency reduction, up to</span></p>
             </div>
             <ul class="chapter-points">
               <li>Scalar and binary quantization, binary vectors, and SIMD-accelerated distance computation.</li>
               <li>The central tradeoff: reduce the footprint while preserving useful retrieval quality.</li>
             </ul>
-            <p class="fine-print">Figures are reported customer results. They depend on workload and configuration.</p>
+            <p class="fine-print">Reported customer results; gains vary by workload and configuration.</p>
           </div>
           <figure class="chapter-figure quantization-study" aria-labelledby="quantization-title" aria-describedby="quantization-caption">
             <header class="figure-heading quantization-heading">
-      <p class="figure-illustration-label">Interactive concept illustration</p>
-      <p class="figure-illustration-scope">The idea behind reduced precision</p>
+      <p class="figure-illustration-label">Concept demo</p>
               <h4 id="quantization-title">How much detail do you keep?</h4>
               <p>One value. Three representations.</p>
             </header>
@@ -479,13 +476,12 @@
             <h4 id="work-simd-title">Vector-distance kernels</h4>
             <p class="chapter-lede"><span class="chapter-contribution-label">My contribution</span>I optimized vector-distance kernels with SIMD, loop unrolling, independent vector accumulator registers, and fused multiply-add.</p>
             <p class="chapter-role"><span class="role-badge">Kernel optimization</span><span>SIMD · loop unrolling · independent accumulators · FMA</span></p>
-            <ul class="chapter-points"><li>Packed operations allow the CPU to process multiple data per instruction.</li>
+            <ul class="chapter-points"><li>Packed operations allow the CPU to process multiple values per instruction.</li>
 <li>Unrolled across independent vector accumulator registers to break serial dependencies and expose overlapping work.</li></ul>
           </div>
           <figure class="chapter-figure vector-demo-figure" data-simd-demo aria-labelledby="simd-figure-title" aria-describedby="simd-caption">
             <header class="figure-heading">
-      <p class="figure-illustration-label">Interactive concept illustration</p>
-      <p class="figure-illustration-scope">Packed dot products and horizontal reduction</p>
+      <p class="figure-illustration-label">Concept demo</p>
               <h4 id="simd-figure-title">Same dot product. Different machinery.</h4>
               <p>Multiply, accumulate, reduce. Compare a scalar loop with parallel lanes on two 16-dimensional unit vectors.</p>
             </header>
@@ -535,7 +531,7 @@
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-si-live></p>
             </div>
             <figcaption id="simd-caption">
-              <p>SIMD allows for fewer packed operations.</p>
+              <p>SIMD processes more values per instruction.</p>
               <details class="vector-demo-details">
                 <summary>The math behind the kernel</summary>
                 <p>Dot product = sum of query[i] × candidate[i]. Both vectors are normalized before computation: +1 means aligned directions and −1 means opposite directions. Tiles and lane sums are rounded for display; hover an input component for full precision.</p>
@@ -561,16 +557,14 @@
             <ul class="chapter-points"><li>Designed HNSW quota enforcement tied to physical resource utilization, cutting reported limit overshoot by 100×.</li>
 <li>Across the vector engine, built a test suite that caught a critical bug in a new quantization algorithm before release.</li>
 <li>Root-caused cross-team production incidents and reviewed distributed-systems and vector-algorithm changes to drive durable fixes.</li></ul>
-            <p class="fine-print">The demo explains the search structure; it does not imply authorship of HNSW or reproduce the production index.</p>
           </div>
           <figure class="chapter-figure vector-demo-figure" data-hnsw-demo aria-labelledby="hnsw-figure-title" aria-describedby="hnsw-caption">
             <header class="figure-heading">
-      <p class="figure-illustration-label">Interactive concept illustration</p>
-      <p class="figure-illustration-scope">HNSW search structure, not the production reliability work</p>
+      <p class="figure-illustration-label">Concept demo</p>
               <h4 id="hnsw-figure-title">Take the graph's shortcuts.</h4>
               <p>The query vector is the search target, not a stored point. Move it to see how the graph finds nearby vectors without always comparing every one.</p>
             </header>
-            <p data-vector-fallback>Greedy navigation descends through levels 3, 2, and 1 before best-first search on level 0. Real HNSW indexes have a variable number of levels. Larger candidate pools can find neighbours missed by a narrower search.</p>
+            <p data-vector-fallback>Search takes shortcuts through the upper graph levels, then explores candidates at Level 0. Larger candidate pools can find neighbours missed by a narrower search.</p>
             <div class="vector-demo-body" hidden>
               <div class="segmented" role="group" aria-label="HNSW query position">
                 <button type="button" data-hn-query="right" aria-pressed="true">Right cluster</button>
@@ -608,10 +602,10 @@
               <p class="cv-sr-only" aria-live="polite" aria-atomic="true" data-hn-live></p>
             </div>
             <figcaption id="hnsw-caption">
-              <p>Four levels of a fixed, hand-made graph illustrate HNSW query traversal—not index construction or a production index. Distances are straight-line distances in 2D. The returned results are compared with the true nearest three, found by measuring the query's distance to all 24 stored vectors.</p>
+              <p>A hand-made 2D graph illustrates HNSW search, not a production index.</p>
               <details class="vector-demo-details">
                 <summary>The search behind the picture</summary>
-                <p>Starting at A, upper levels greedily move only to a closer neighbour, then descend at the closest point found. Level 0 uses a nearest-first exploration frontier and an efSearch-bounded list of retained neighbours. An unseen neighbour enters both lists if the retained list has room or it is closer than the worst retained point. Search stops when the nearest frontier point is farther than the worst retained point, or the frontier is empty; the closest three retained points are returned.</p>
+                <p>Distances are straight-line distances in 2D. Starting at A, upper levels greedily move only to a closer neighbour, then descend at the closest point found. Level 0 uses a nearest-first exploration frontier and an efSearch-bounded list of retained neighbours. An unseen neighbour enters both lists if the retained list has room or it is closer than the worst retained point. Search stops when the nearest frontier point is farther than the worst retained point, or the frontier is empty; the closest three retained points are returned.</p>
                 <p>“Nearest 3 found” counts matches with the true nearest neighbours; dividing by three gives recall@3. It credits returned points strictly nearer than the third-neighbour cutoff, plus interchangeable ties filling the remaining places. The true-neighbour list shows one valid set, ordered by distance then letter; ties within floating-point roundoff receive equal credit. “Vectors compared” counts unique points, caching distances across levels and excluding the separate all-vector comparison; production systems can evaluate a point more than once. A full pool visits all 24 points in this connected toy graph, but a large efSearch does not universally guarantee exact results on an arbitrary index.</p>
                 <p>Real HNSW construction samples node levels with exponentially decreasing promotion probabilities and selects graph connections; neither is implemented here. Upper levels are nested subsets, and the number of levels varies with the index rather than having a four-level limit. See <a href="https://arxiv.org/abs/1603.09320">Malkov and Yashunin's HNSW paper</a> and <a href="https://github.com/nmslib/hnswlib/blob/master/ALGO_PARAMS.md">hnswlib's search parameters</a>.</p>
               </details>
@@ -624,7 +618,7 @@
         <header class="section-heading">
           <p class="eyebrow">2018–present · Microsoft</p>
           <h3 id="profile-experience-title">Detailed experience.</h3>
-          <p class="cv-section-description">All six roles, newest first. Open a role for full responsibilities and technologies.</p>
+          <p class="cv-section-description">Responsibilities and technologies across six Microsoft roles.</p>
           <button class="text-button" type="button" data-expand-all aria-controls="profile-work-records">Expand all <span aria-hidden="true">+</span></button>
         </header>
         <div class="cv-records" id="profile-work-records">
@@ -656,7 +650,7 @@
                     <li><strong>Technical lead for a team of five engineers and scientists</strong> building a new <strong>vector-search diversity capability</strong>. Set the technical direction and own delivery end to end, from algorithm analysis and distributed architecture through cross-team alignment and hands-on implementation:
                       <ul>
                         <li>Bridged research and production by deeply analyzing the algorithm to distill the fundamental concepts and strengths of each stage, then rethinking its architecture for <strong>distributed execution</strong> and developing a series of targeted <strong>algorithmic and systems innovations</strong> to preserve those properties at production scale, while meeting demanding requirements for scalability, durability, and performance.</li>
-                        <li>Owned the effort from <strong>leadership buy-in</strong> through architecture to cross-functional alignment and implementation. This capability strengthens kNN vector search by reducing homogeneity and redundant results, whether as grounding for complex, corpus-spanning queries or within e-commerce or recommendation systems.</li>
+                        <li>Owned the effort from <strong>leadership buy-in</strong> through architecture to cross-functional alignment and implementation. This capability strengthens nearest-neighbour vector search by reducing result homogeneity and redundancy, whether as grounding for corpus-spanning queries or within e-commerce or recommendation systems.</li>
                       </ul>
                     </li>
                     <li>Led research-to-production delivery for <strong>agentic-retrieval filter and boost generation</strong>. Set the technical direction across research and product teams by reformulating an unbounded filter-synthesis problem into a <strong>bounded, verifiable operator set</strong> which excels in specific filter categories — leveraging production analysis to demonstrate it covered real customer workloads; brought both teams to consensus.</li>
@@ -693,7 +687,7 @@
       </nav>
       <p class="cv-technologies">C++, C#, Java, Python | Vector Search, Vector Quantization, Information Retrieval, RAG, Distributed Systems</p>
       <p>
-                    Part of the team that took <strong>Azure AI Search vector search from 1 to N</strong> and <strong>quantization from 0 to N</strong> — building new capabilities and scaling them for broad production adoption. Drove vector storage, quantization, and relevance across billions of embeddings.
+                    Helped build and scale <strong>Azure AI Search vector search and quantization</strong> for broad production adoption. Drove vector storage, quantization, and relevance across billions of embeddings.
                   </p>
       <ul>
                     <li>Drove <strong>vector quantization from Public Preview through to GA</strong> - now widely adopted by customers - delivering <strong class="cv-impact">8-32x cost savings</strong> and <strong class="cv-impact">up to 20x latency reduction</strong> through binary vectors, scalar and binary quantization, and SIMD-accelerated distance computation.</li>
@@ -851,7 +845,7 @@
       <span class="cv-summary-copy">
       <span class="cv-date">Jan. 2021 - May 2021</span>
       <span class="cv-record-title" role="heading" aria-level="3">Human Pose Estimation using Deep Neural Networks</span>
-      <span class="cv-teaser"><strong>Project and Team Lead</strong> for a student team to develop a deep neural network for human pose estimation (HPE) on the COCO-2017 dataset. I architected our cloud training pipeline, model...</span>
+      <span class="cv-teaser"><strong>Led a student team</strong> to train a human pose estimation network from scratch on COCO-2017, owning the model architecture and cloud training pipeline.</span>
       <span class="cv-disclosure">
       <span class="cv-closed-label">Full details</span>
       <span class="cv-open-label">Less detail</span>
@@ -919,7 +913,7 @@
       <span class="cv-summary-copy">
       <span class="cv-date">Jan. 2020 - May 2020</span>
       <span class="cv-record-title" role="heading" aria-level="3">Computer Vision Project on Monocular Depth Estimation</span>
-      <span class="cv-teaser">Implemented a limited version of Monodepth2, a <strong>self-supervised monocular depth estimation</strong> algorithm, in TensorFlow 1.13.1, replacing the original PyTorch implementation to improve...</span>
+      <span class="cv-teaser">Implemented a limited Monodepth2 variant in TensorFlow for <strong>depth prediction from a single image</strong>, trained without ground-truth depth labels.</span>
       <span class="cv-disclosure">
       <span class="cv-closed-label">Full details</span>
       <span class="cv-open-label">Less detail</span>
@@ -929,7 +923,7 @@
       </summary>
       <div class="cv-record-body">
       <ul>
-                    <li>Implemented a limited version of Monodepth2, a self-supervised monocular depth estimation algorithm, in TensorFlow 1.13.1, replacing the original PyTorch implementation to improve project feasibility.</li>
+                    <li>Implemented a limited Monodepth2 variant for self-supervised monocular depth estimation in TensorFlow 1.13.1.</li>
                     <li>Adapted the model to the DrivingStereo dataset, a large-scale dataset (~136k training image pairs), to enhance depth prediction generalization compared to the smaller KITTI dataset.</li>
                     <li>Designed and trained a fully convolutional U-Net with a ResNet-18 encoder, optimized for stereo image inputs at 640×192 resolution.</li>
                     <li>Integrated <strong>self-supervised learning</strong> using stereo photometric reconstruction and edge-aware smoothness loss <strong>without requiring ground truth depth data</strong>.</li>
@@ -950,7 +944,7 @@
       <span class="cv-summary-copy">
       <span class="cv-date">Jan. 2019 - May 2019</span>
       <span class="cv-record-title" role="heading" aria-level="3">Battlesnake Reinforcement Learning AI Design</span>
-      <span class="cv-teaser">Challenge: Classic snake game mechanics, but with up to 7 opponent snakes. Collisions with longer snakes or starvation result in death. Design algorithm to control snake in real-time...</span>
+      <span class="cv-teaser">Trained a <strong>reinforcement-learning agent</strong> through self-play and games against public snakes to survive against up to seven opponents.</span>
       <span class="cv-disclosure">
       <span class="cv-closed-label">Full details</span>
       <span class="cv-open-label">Less detail</span>
@@ -960,7 +954,7 @@
       </summary>
       <div class="cv-record-body">
       <ul>
-                    <li>Challenge: Classic snake game mechanics, but with up to 7 opponent snakes. Collisions with longer snakes or starvation result in death. Design algorithm to control snake in real-time game. Goal: Survive the longest.</li>
+                    <li>Built an agent for Battlesnake, a real-time survival game against up to seven opponents.</li>
                     <li>Trained keras-rl <strong>reinforcement learning model</strong> with a combination of <strong>self-play</strong> and publicly available snakes.</li>
                   </ul>
       </div>
@@ -1034,8 +1028,8 @@
       <summary>
       <span class="cv-summary-copy">
       <span class="cv-date">Jul. 2015 - Oct. 2021 · 6 yrs 3 mos</span>
-      <span class="cv-record-title" role="heading" aria-level="3">Founder &amp; Program Director, Senior's Digital Literacy Program, University of Victoria</span>
-      <span class="cv-teaser">Founded and directed a seniors' digital literacy program for six years, growing it to <strong class="cv-impact">180 volunteers and 650+ seniors served</strong> across 30 workshops, and handing it off to successors who...</span>
+      <span class="cv-record-title" role="heading" aria-level="3">Founder &amp; Program Director, Seniors' Digital Literacy Program, University of Victoria</span>
+      <span class="cv-teaser">Founded a six-year digital literacy program reaching <strong class="cv-impact">650+ seniors with 180 volunteers</strong> across 30 workshops; successors continued it after my tenure.</span>
       <span class="cv-disclosure">
       <span class="cv-closed-label">Full details</span>
       <span class="cv-open-label">Less detail</span>
@@ -1061,7 +1055,7 @@
       <span class="cv-summary-copy">
       <span class="cv-date">Sep. 2019 - Jan. 2021 · 1 yr 4 mos</span>
       <span class="cv-record-title" role="heading" aria-level="3">Chair &amp; Vice-Chair, IEEE Student Branch</span>
-      <span class="cv-teaser"><strong>Co-led the University of Victoria IEEE Student Branch</strong> under a shared leadership model, alternating Chair and Vice-Chair terms with a co-lead, directing a 6-person executive and a...</span>
+      <span class="cv-teaser"><strong>Co-led the University of Victoria IEEE Student Branch</strong> and built a 14-workshop technical skills series reaching 350+ students.</span>
       <span class="cv-disclosure">
       <span class="cv-closed-label">Full details</span>
       <span class="cv-open-label">Less detail</span>

@@ -8,7 +8,6 @@
 .chapter-role-link { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 20px; color: var(--accent); white-space: nowrap; }
 .chapter-contribution-label, .figure-illustration-label { display: block; margin-bottom: 12px; color: var(--accent); font: 500 11px/1.5 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
 .figure-illustration-label { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--accent-soft); }
-.figure-illustration-scope { color: var(--muted); font-size: 12px; line-height: 1.5; }
 .about-more { margin-top: 20px; }
 .about-more summary { width: fit-content; padding-block: 10px; color: var(--accent); font-size: 14px; cursor: pointer; }
 .about-more p { margin-top: 16px; }

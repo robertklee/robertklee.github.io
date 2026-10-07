@@ -789,7 +789,13 @@ test('current-role copy describes team technical leadership and qualifies search
   await expect(page.locator('.cm-step-now .cm-areas')).toContainText('Technical lead');
   await expect(page.locator('.cm-step-now .cm-areas')).toContainText('Vector diversity');
   await expect(page.locator('label[for="dv-diversity"]')).toHaveText('Search diversity');
+  await expect(page.locator('#work-diversity .figure-heading')).toContainText('near-duplicates');
+  await expect(page.locator('#profile-work-entry-1')).toContainText('redundancy');
   const content = await page.evaluate(() => window.HeroChatContent);
+  for (const variant of content.TOPICS.find(topic => topic.id === 'diversity-why').variants) {
+    expect(variant.answer).toContain('redundancy');
+    expect(variant.answer).not.toContain('top-k');
+  }
   const field = readFileSync(resolve(__dirname, '../assets/site/field.js'), 'utf8');
   expect(field).toContain("label: 'Vector diversity'");
   const fieldDocs = new Set([...field.matchAll(/docs: \[([^\]]+)\]/g)].flatMap(match =>
@@ -823,8 +829,8 @@ test('HNSW reliability work and its graph-search illustration stay distinct from
   await expect(page.locator('#profile-work-entry-2 .cv-record-body')).toContainText(/quota-enforcement mechanism for HNSW indexes/i);
   await expect(page.locator('#work-hnsw-title')).toHaveText('HNSW & vector-engine reliability');
   await expect(page.locator('#work-hnsw .chapter-lede')).toContainText('resource-aware HNSW enforcement');
-  await expect(page.locator('#work-hnsw .figure-illustration-label')).toHaveText('Interactive concept illustration');
-  await expect(page.locator('#work-hnsw .figure-illustration-scope')).toHaveText('HNSW search structure, not the production reliability work');
+  await expect(page.locator('#work-hnsw .figure-illustration-label')).toHaveText('Concept demo');
+  await expect(page.locator('#hnsw-caption > p')).toHaveText('A hand-made 2D graph illustrates HNSW search, not a production index.');
   await expect(page.locator('#work-hnsw .figure-heading')).toContainText('how the graph finds nearby vectors');
   for (const name of ['description', 'twitter:description']) {
     await expect(page.locator(`meta[name="${name}"]`)).toHaveAttribute('content', /vector-search diversity/);
@@ -834,15 +840,17 @@ test('HNSW reliability work and its graph-search illustration stay distinct from
   expect(identity.knowsAbout).toContain('Graph Search');
   expect(identity.knowsAbout).toContain('Vector Search');
   const content = await page.evaluate(() => window.HeroChatContent);
-  expect(content.VARIANTS.filter(variant => /graph search/i.test(variant.answer))).toHaveLength(3);
-  for (const variant of content.VARIANTS.filter(variant => /graph search/i.test(variant.answer))) {
-    expect(variant.docs).toContain('HNSW graph search');
+  const graphVariants = content.VARIANTS.filter(variant => variant.docs.includes('HNSW graph search'));
+  expect(graphVariants).toHaveLength(3);
+  for (const variant of graphVariants) {
+    expect(variant.answer).toContain('HNSW graph search');
   }
   const topic = content.TOPICS.find(topic => topic.id === 'graph-search');
   expect(topic.category).toBe('technical');
   expect(topic.followupOnly).not.toBe(true);
   expect(topic.docs).toEqual(['HNSW graph search', 'HNSW quotas', 'SIMD distance']);
-  await expect(page.locator('#work-hnsw .fine-print')).toContainText('does not imply authorship of HNSW');
+  await expect(page.locator('#work-hnsw .fine-print')).toHaveCount(0);
+  await expect(page.locator('#hnsw-caption details')).toContainText("Malkov and Yashunin's HNSW paper");
 });
 
 test('the chosen demos are permanent Work chapters with valid headings and citations', async ({ page }) => {
@@ -850,7 +858,14 @@ test('the chosen demos are permanent Work chapters with valid headings and citat
   await expect(page.locator('.experience-role').nth(0).locator('.chapter')).toHaveCount(2);
   await expect(page.locator('.experience-role').nth(1).locator('.chapter')).toHaveCount(3);
   await expect(page.locator('.chapter-contribution-label')).toHaveCount(5);
-  await expect(page.locator('.figure-illustration-label')).toHaveText(Array(5).fill('Interactive concept illustration'));
+  await expect(page.locator('.figure-illustration-label')).toHaveText(Array(5).fill('Concept demo'));
+  await expect(page.locator('.figure-illustration-scope')).toHaveCount(0);
+  await expect(page.locator('#diversity-caption')).toHaveText('Shaded regions group similar topics.');
+  await expect(page.locator('#agentic-caption')).toContainText('Supported conditions become checked filters');
+  await expect(page.locator('#work-quantization .fine-print')).toContainText('gains vary by workload and configuration');
+  await expect(page.locator('#quantization-caption')).toContainText('readouts use all 256 codes');
+  await expect(page.locator('#simd-caption details')).toContainText('not CPU cycles');
+  await expect(page.locator('#hnsw-caption details')).toContainText('does not universally guarantee exact results');
   await expect(page.locator('#work .chapter-num')).toHaveText(['01', '02', '03', '04', '05']);
   await expect(page.locator('#vector-spikes, #spike-hybrid, [data-hybrid-spike]')).toHaveCount(0);
   const references = await page.evaluate(() => ({
@@ -902,7 +917,7 @@ for (const width of [1440, 390]) {
     for (const variant of education.variants) {
       expect(variant.answer).toContain('Computational Intelligence');
       expect(variant.answer).toContain("Dean's List");
-      expect(variant.answer).toContain("second-highest CGPA across the university's graduating class");
+      expect(variant.answer).toContain("second-highest cumulative GPA across the university's graduating class");
     }
   });
 }
@@ -1090,7 +1105,8 @@ test('the vector explanations and full role links remain usable without JavaScri
     await expect(page.locator('#work [data-vector-fallback]')).toHaveCount(2);
     await expect(page.locator('.hero-noscript')).toBeVisible();
     await expect(page.locator('.hero-noscript')).toContainText('retrieval systems');
-    await expect(page.locator('#work-hnsw .figure-illustration-scope')).toHaveText('HNSW search structure, not the production reliability work');
+    await expect(page.locator('#work-hnsw .figure-illustration-label')).toHaveText('Concept demo');
+    await expect(page.locator('#hnsw-caption > p')).toContainText('not a production index');
     await expect(page.locator('#work-hnsw .figure-heading')).toContainText('how the graph finds nearby vectors');
     for (const id of ['work-simd', 'work-hnsw']) {
       await expect(page.locator(`#${id} [data-vector-fallback]`)).toBeVisible();

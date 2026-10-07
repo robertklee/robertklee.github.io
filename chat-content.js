@@ -24,59 +24,60 @@ window.HeroChatContent = (function () {
   // Real language models are non-deterministic: the same prompt yields a
   // different chain-of-thought and answer each time. To echo that, we keep a
   // set of {thought, answer} pairs and pick one at random on every page load.
-  // Ten opening answers lead with current work and standout delivered impact.
+  // Ten opening answers pair industry terminology with scope, ownership,
+  // and production impact; technical follow-ups explain the mechanisms.
   // Each names work from at least two field regions (`docs`, as in TOPICS), so
   // the intro runs as a diverse retrieval.
   var VARIANTS = [
     {
-      thought: "Lead with the current role and five-person team's vector-search diversity work. Pair that ongoing effort with shipped agentic filter and boost generation and the measured impact of quantization. Keep building distinct from delivered.",
-      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of five engineers and scientists building vector-search diversity. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
+      thought: "Lead with enterprise retrieval and technical leadership. Connect vector-search diversity to broader evidence and reduced redundancy, then pair that current effort with shipped agentic filter and boost generation and quantization's measured customer impact.",
+      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval systems for enterprise AI. I'm the technical lead for a team of five engineers and scientists building vector-search diversity to reduce redundant results. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
       docs: ['Vector diversity capability', 'Team technical leadership', 'Filter generation', 'Lucene boosts', 'Scalar quantization']
     },
     {
-      thought: "Connect vector search and HNSW graph search to retrieval for AI apps. Explain the strongest work through what customers get: less repetition, natural-language search controls, and cheaper vectors. Identify vector-search diversity as current work and quantization as a shipped capability with workload-dependent impact.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval for AI apps, including vector search and HNSW graph search. I'm currently working on vector-search diversity to reduce repetitive results, and I led filters generated from natural-language requests into production. Earlier, I helped make vector search much cheaper with binary quantization, part of work delivering 8\u201332\u00d7 cost savings depending on the workload.",
+      thought: "Connect vector search and HNSW graph-search engineering to relevance and production performance. Explain current search-diversity work through result coverage, and connect shipped natural-language filters and binary quantization to customer capabilities and cost.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My work spans vector search and HNSW graph search, with a focus on relevance, performance, and production scale. I'm building vector-search diversity to improve result coverage, led natural-language filter generation into production, and helped lower search costs through vector quantization.",
       docs: ['HNSW graph search', 'Redundancy reduction', 'Filter generation', 'Binary quantization']
     },
     {
-      thought: "Make technical leadership concrete: team size, direction, distributed architecture, and hands-on delivery. Pair the current vector-search diversity effort with completed research-to-production ownership for agentic retrieval.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of five engineers and scientists building vector-search diversity, setting the technical direction and owning delivery from distributed architecture through hands-on implementation. I also led agentic-retrieval filter and boost generation from research into production.",
+      thought: "Make technical leadership concrete: team size, technical direction, distributed architecture, and hands-on delivery. Pair the current vector-search diversity effort with completed research-to-production ownership for agentic filter and boost generation.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I bridge retrieval research and production engineering. I'm the technical lead for a team of five engineers and scientists building vector-search diversity, setting technical direction and owning delivery from distributed architecture through hands-on implementation. I also led agentic-retrieval filter and boost generation from research into production.",
       docs: ['Team technical leadership', 'Distributed execution', 'Filter generation', 'Lucene boosts']
     },
     {
-      thought: "Lead with the strongest measured outcome, not a small feature list. Quantization reached general availability with workload-dependent cost and latency gains. Then connect that delivered impact to the current vector-search diversity effort.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of five engineers and scientists building vector-search diversity to make search results less redundant.",
+      thought: "Lead with quantization's shipped cost and latency impact, qualified by workload. Keep preview-to-general-availability ownership explicit, then connect that delivery record to technical leadership for the current vector-search diversity effort.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of five engineers and scientists building vector-search diversity to improve result coverage and reduce redundancy.",
       docs: ['Scalar quantization', 'Binary quantization', 'Team technical leadership', 'Redundancy reduction']
     },
     {
-      thought: "Show systems depth across scales: HNSW graph search, SIMD distance kernels, vector search across billions of embeddings, and the current distributed architecture for vector-search diversity. Preserve team attribution for broad production adoption.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My systems work spans HNSW graph search and SIMD-optimized vector distance kernels, helping scale vector search across billions of embeddings. Now I'm rethinking a research algorithm for distributed execution as part of a new vector-search diversity capability, preserving its strengths under production constraints.",
-      docs: ['HNSW graph search', 'SIMD distance', 'Vector search 1 to N', 'Distributed execution']
+      thought: "Show systems depth across scales: HNSW graph search, SIMD distance kernels, billions of embeddings, and distributed algorithm design. Preserve team attribution for broad adoption, and make production constraints part of the current search-diversity story.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My systems work spans HNSW graph search and SIMD-optimized vector-distance kernels, helping scale vector search across billions of embeddings. I'm now adapting a research algorithm for distributed execution as part of vector-search diversity, preserving its properties under scalability, durability, and performance constraints.",
+      docs: ['HNSW graph search', 'SIMD distance', 'Vector search at scale', 'Distributed execution']
     },
     {
-      thought: "Introduce agentic retrieval through substantial delivery: filter and boost generation, a benchmarking system, and the shipped billing model. Connect retrieval to grounded agents without claiming ownership of the whole agent platform.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval that grounds AI agents in enterprise knowledge. I led agentic filter and boost generation into production, built a workload benchmarking system from scratch, and used those measurements to propose and ship the billing model for agentic retrieval with a new serverless enterprise search offering.",
+      thought: "Introduce agentic retrieval through its purpose and delivery scope: grounded LLM agents, filter and boost generation, workload benchmarking, and a shipped billing model. Connect engineering measurements to the product decision without implying ownership of the whole agent platform.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is agentic retrieval: grounding LLM agents in governed enterprise knowledge. I led filter and boost generation into production, built a workload benchmarking system, and used CPU, memory, and throughput measurements to propose and ship the production billing model for agentic retrieval.",
       docs: ['RAG grounding', 'Filter generation', 'Lucene boosts', 'Workload benchmarks', 'Billing model']
     },
     {
-      thought: "Use research to production as the connecting thread. Vector-search diversity requires preserving algorithmic properties in a distributed engine; agentic filter generation required reformulating an unbounded problem into a bounded, verifiable design.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I turn research ideas into production systems. My current vector-search diversity work rethinks an algorithm for distributed execution; for agentic retrieval, I reframed open-ended filter generation as a bounded, verifiable operator set and led it into production.",
+      thought: "Use research to production as the connecting thread. Vector-search diversity requires preserving algorithmic properties under distributed execution; agentic filter generation required a bounded, verifiable design. Highlight those engineering decisions rather than merely listing features.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I turn retrieval research into production systems. My current vector-search diversity work adapts a research algorithm for distributed execution. For agentic retrieval, I led filter generation into production by reformulating open-ended synthesis as a bounded, verifiable operator set\u2014limit to operations we can reliably generate.",
       docs: ['Vector diversity capability', 'Distributed execution', 'Bounded operator set', 'Filter generation']
     },
     {
-      thought: "Show end-to-end ownership in two recent efforts: technical leadership for vector-search diversity, and benchmarking that informed a production billing model. Keep the distinction between current delivery ownership and the already-shipped billing work.",
+      thought: "Show end-to-end ownership through two substantial efforts: technical leadership for vector-search diversity, and agentic-retrieval benchmarking that informed a shipped billing model. Keep algorithm analysis and implementation visible alongside the product impact.",
       answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of five engineers and scientists building vector-search diversity, owning delivery from algorithm analysis to implementation. I also built agentic-retrieval benchmarks from scratch and turned the workload measurements into a production billing model that I proposed and shipped.",
       docs: ['Team technical leadership', 'Vector diversity capability', 'Workload benchmarks', 'Billing model']
     },
     {
-      thought: "Show applied ML breadth without making older student work the main story. Start with current vector-search diversity, then the pose-estimation project trained from random initialization, with Robert owning the architecture and cloud training pipeline.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I work where algorithms meet real systems: currently, I'm the technical lead for a team of five engineers and scientists building vector-search diversity. Earlier, I led a student team that trained a human pose estimation network from scratch, owning the model architecture and cloud training pipeline.",
+      thought: "Lead with current technical leadership, then show applied-ML breadth through the human pose estimation project. Retain training from random initialization and ownership of the model architecture and cloud pipeline as concrete engineering signals.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of five engineers and scientists building vector-search diversity. My background also includes machine learning: I led a student team that trained a human pose estimation network from scratch, where I owned the model architecture and cloud training pipeline.",
       docs: ['Vector diversity capability', 'Team technical leadership', 'Pose estimation']
     },
     {
-      thought: "Tie the career's strongest engineering work to a clear purpose: better evidence for enterprise AI, at practical cost. Mention current vector-search diversity, shipped agentic filter and boost generation, and quantization at scale rather than smaller relevance controls.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is better evidence for enterprise AI, at a cost customers can use. I'm building vector-search diversity, led agentic filter and boost generation into production, and helped scale vector search, including HNSW graph search, across billions of embeddings. Quantization delivered 8\u201332\u00d7 cost savings depending on the workload.",
-      docs: ['Vector diversity capability', 'Filter generation', 'Lucene boosts', 'Vector search 1 to N', 'HNSW graph search', 'Binary quantization']
+      thought: "Connect retrieval quality, production scale, and cost. Use current vector-search diversity, shipped agentic filter and boost generation, HNSW graph search, and quantization as concrete evidence of that focus, not as an unexplained technology list.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is retrieval quality at production scale. I'm building vector-search diversity for broader evidence, led agentic filter and boost generation into production, and helped scale vector search, including HNSW graph search, across billions of embeddings. Quantization delivered 8\u201332\u00d7 cost savings depending on the workload.",
+      docs: ['Vector diversity capability', 'Filter generation', 'Lucene boosts', 'Vector search at scale', 'HNSW graph search', 'Binary quantization']
     }
   ];
 
@@ -124,7 +125,7 @@ window.HeroChatContent = (function () {
       id: 'diversity-why',
       category: 'technical',
       weight: 3,
-      docs: ['Redundancy reduction', 'Corpus-spanning grounding', 'E-commerce & recs'],
+      docs: ['Redundancy reduction', 'Evidence across documents', 'Shopping & recommendations'],
       sources: [['work-diversity', 'Vector diversity'], ['profile-work-entry-1', 'Senior Software Engineer']],
       prompts: [
         "Why does vector diversity matter?",
@@ -132,12 +133,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Distinguish query relevance from coverage of the result set. kNN ranks candidates by their distance to the query embedding, so individually relevant hits can still be redundant. Explain the consequences for corpus-spanning grounding and e-commerce, without exposing the vector-diversity algorithm.",
-          answer: "kNN ranks candidates by distance to the query embedding, but proximity alone doesn't tell you whether the results add distinct information. Near-duplicates can dominate the top-k, leaving gaps in grounding for corpus-spanning questions or crowding out alternatives in e-commerce and recommendations. I'm the technical lead for the team building a vector-search diversity capability to reduce that redundancy, so relevance isn't the only thing the result set delivers."
+          thought: "Distinguish query relevance from coverage of the result set. Nearest-neighbour search ranks candidates by their distance to the query embedding, so individually relevant hits can still be redundant. Explain the consequences for evidence across a document collection and e-commerce, without exposing the vector-diversity algorithm.",
+          answer: "Nearest-neighbour search ranks candidates by distance to the query embedding, but individually relevant results may still repeat the same evidence. Near-duplicates can dominate the highest-ranked results, limiting coverage for corpus-spanning grounding or crowding out alternatives in e-commerce and recommendations. I'm the technical lead for the team building vector-search diversity to reduce redundancy while retaining relevance."
         },
         {
-          thought: "A good way to put it: relevance is judged one result at a time, but usefulness is judged across the whole set. Ten relevant results that repeat each other are worth less than five that each add something. Make that point, then give the corpus-spanning and shopping examples.",
-          answer: "A relevant top-k isn't necessarily an informative top-k. Ten highly similar passages may all match the query while offering the same evidence. For corpus-spanning grounding, that redundancy limits coverage; for e-commerce and recommendations, it narrows the choices. I'm the technical lead for the team building vector-search diversity to strengthen kNN search by reducing homogeneity across the result set."
+          thought: "A good way to put it: relevance is judged one result at a time, but usefulness is judged across the whole set. Ten relevant results that repeat each other are worth less than five that each add something. Make that point, then give the document-collection and shopping examples.",
+          answer: "Relevance is judged per result; coverage is judged across the result set. Ten highly similar passages may all match the query while supplying the same evidence. That homogeneity limits corpus-spanning grounding and narrows choices in e-commerce and recommendations. I'm the technical lead for the team building vector-search diversity to strengthen nearest-neighbour search through reduced redundancy and broader coverage."
         }
       ]
     },
@@ -154,11 +155,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "This is the research-to-production story. Robert analyzed the algorithm stage by stage to understand what made each stage work, then rethought its architecture for distributed execution, adding targeted algorithmic and systems innovations to keep those properties at scale. Describe the process, but keep the internals out.",
-          answer: "This isn't a code-porting exercise. I analyzed the research algorithm stage by stage to identify the properties that made each stage effective, then rethought its architecture for distributed execution. We're developing targeted algorithmic and systems innovations to preserve those properties at production scale, while meeting scalability, durability, and performance requirements for the vector-diversity capability."
+          answer: "I analyzed the research algorithm stage by stage to identify the properties that made each stage effective, then redesigned its architecture for distributed execution. We're developing algorithmic and systems innovations to preserve those properties at production scale while meeting scalability, durability, and performance requirements for vector-search diversity."
         },
         {
           thought: "The hard part is keeping what makes the algorithm good once it runs across a distributed engine with real production requirements: scalability, durability, and performance. Frame it as preserving properties, not porting code, and stay high level.",
-          answer: "The hard part is preserving the algorithm's strengths under distributed execution and production constraints, not just making it run on more machines. I broke it down stage by stage before redesigning the architecture. That analysis guides the algorithmic and systems innovations needed to make the vector-diversity capability scalable, durable, and performant without losing the properties that motivated it."
+          answer: "The hard part is preserving the algorithm's strengths in a distributed engine. I analyzed it stage by stage before redesigning the architecture. That analysis guides the algorithmic and systems innovations needed to make vector-search diversity scalable, durable, and performant."
         }
       ]
     },
@@ -196,11 +197,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Give the actual field types and operator boundaries, then distinguish hard filters from ranking preferences. The bounded set uses eq/ne with and/or over categorical or low-cardinality string, string[], and bool fields. Boosts are Lucene-style, and unsupported constraints must not be presented as enforced filters.",
-          answer: "It translates a natural-language request into hard filters and ranking preferences. My bounded operator set restricts filters to categorical or low-cardinality string, string[], and bool fields, using eq/ne combined with and/or. Preferences become Lucene-style boosts, which affect ranking rather than eligibility. The filters are schema-verifiable; constraints outside the set aren't enforced as generated filters."
+          answer: "It translates natural-language intent into hard filters and ranking preferences. The supported operator set uses categorical, low-cardinality fields\u2014fields with few distinct values\u2014of type string, string[], or bool. Filters combine equal (eq) and not-equal (ne) with and/or; Lucene-style boosts affect ranking rather than eligibility. Generated filters can be validated against the index schema; unsupported constraints aren't enforced as filters."
         },
         {
           thought: "Explain the research-to-production decision through the actual supported set, not a vague promise of simpler filters. Both variants should retain the field types, operator restrictions, and the distinction between filtering and Lucene boosting.",
-          answer: "I led this from research to production by replacing open-ended filter synthesis with a bounded, verifiable operator set: eq/ne and logical and/or over categorical or low-cardinality string, string[], and bool fields. Filters constrain eligibility; Lucene-style boosts express ranking preferences. That boundary lets us validate generated filters against the schema instead of attempting arbitrary query expressions."
+          answer: "I led this from research to production using a bounded, verifiable operator set: equal (eq), not-equal (ne), and logical and/or over categorical, low-cardinality string, string[], and bool fields with few distinct values. Filters constrain eligibility; Lucene-style boosts express ranking preferences. The restricted set lets us validate generated filters against the index schema."
         }
       ]
     },
@@ -217,11 +218,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "This is about decision-making. For agentic filter generation, the open question was whether a bounded operator set would cover what customers actually need. Robert answered it with production analysis, which brought research and product to agreement. Keep it about the evidence.",
-          answer: "The design question was whether we needed open-ended filter synthesis or a bounded, verifiable operator set. I used production analysis to demonstrate that the bounded set covered real customer workloads and excelled in the filter categories it supported. That gave research and product a shared basis for agreeing on the technical direction."
+          answer: "The design question was which filter operations we needed to support. I analyzed production usage to show that a limited set of operations we could validate covered real customer workloads. That gave research and product a shared basis for agreeing on the technical direction."
         },
         {
           thought: "The general lesson is to turn a debate into a question data can answer. A smaller design only convinces people if it still covers real usage, so Robert measured that directly from production. Tell it as a repeatable approach, using the filter-generation work.",
-          answer: "I try to turn a design debate into a testable question. For agentic filter generation, that meant asking whether a bounded, verifiable operator set covered real usage, rather than treating unrestricted synthesis as the goal. Production analysis demonstrated that coverage, and I brought research and product to consensus around the evidence."
+          answer: "I try to turn a design debate into a testable question. For agentic filter generation, we needed to know whether a limited set of supported operations covered real usage. Production analysis demonstrated that coverage, and I brought research and product to consensus around the evidence."
         }
       ]
     },
@@ -301,7 +302,7 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "This is about the inner loop. Robert optimized the vector distance kernel with SIMD, loop unrolling, multiple independent accumulators, and fused multiply-add. Explain what each one buys, without crediting the whole quantization speedup to one kernel.",
-          answer: "I optimized vector distance kernels with SIMD, loop unrolling, multiple independent accumulators, and fused multiply-add (FMA). SIMD processes several dimensions per instruction; independent accumulators break up the serial dependency chain so the CPU can overlap work. FMA combines multiplication and accumulation. Because this kernel runs for every candidate distance evaluation, its efficiency matters across the whole search."
+          answer: "I optimized vector distance kernels with SIMD (single instruction, multiple data), loop unrolling, multiple independent accumulators, and fused multiply-add (FMA). SIMD processes several dimensions per instruction; independent accumulators break up the serial dependency chain so the CPU can overlap work. FMA combines multiplication and accumulation. Because this kernel runs for every candidate distance evaluation, its efficiency matters across the whole search."
         },
         {
           thought: "Frame it as hardware-aware engineering. Vector search spends much of its time computing distances, so the kernel matters. Robert used SIMD, unrolling, multiple accumulators, and FMA, drawing on an embedded-systems background. Connect those.",
@@ -322,11 +323,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Explain HNSW as graph-based approximate nearest-neighbour search, then tie it to Robert's documented engine work. Distinguish traversal from distance computation and the recall-versus-effort tradeoff from production quota enforcement. Do not imply authorship of HNSW.",
-          answer: "HNSW is a graph search approach to approximate nearest-neighbour retrieval: vectors are nodes, and links guide the search toward nearby candidates. Sparse upper levels provide shortcuts; the base level explores a candidate pool. Keeping more candidates can improve recall, but usually requires more distance comparisons. My work included resource-aware quota enforcement for HNSW indexes and SIMD-optimized distance kernels that make candidate comparisons efficient. The interactive demo shows the graph traversal, not the production index."
+          answer: "HNSW is a graph search approach to approximate nearest-neighbour retrieval: vectors are nodes, and links guide the search toward nearby candidates. Sparse upper levels provide shortcuts; the base level explores a candidate pool. Keeping more candidates can improve recall\u2014the share of true nearest neighbours found\u2014but usually requires more distance comparisons. My work included resource-aware quota enforcement for HNSW indexes and SIMD-optimized distance kernels that process several values per CPU instruction."
         },
         {
           thought: "Start with Robert's contributions, then explain how HNSW graph traversal and SIMD distance kernels fit together. Keep the resource-quota work distinct from search parameters, and make the approximation tradeoff explicit.",
-          answer: "My HNSW graph search work focused on the vector engine: I designed quota enforcement tied to physical resource use and optimized vector-distance kernels with SIMD. HNSW searches by following links between stored vectors, taking shortcuts through sparse upper levels before exploring candidates at the base. Graph traversal determines which vectors to compare; SIMD makes those comparisons efficient. A larger candidate pool can improve recall at the cost of more search effort, but approximate search can still miss true neighbours."
+          answer: "My HNSW graph search work focused on the vector engine: I designed quota enforcement tied to physical resource use and optimized vector-distance kernels with SIMD, processing several values per CPU instruction. HNSW follows links between stored vectors, taking shortcuts through sparse upper levels before exploring candidates at the base. A larger candidate pool can improve recall\u2014the share of true nearest neighbours found\u2014at the cost of more search effort."
         }
       ]
     },
@@ -399,7 +400,7 @@ window.HeroChatContent = (function () {
       id: 'plain-job',
       category: 'general',
       weight: 3,
-      docs: ['Vector search 1 to N', 'Team technical leadership'],
+      docs: ['Vector search at scale', 'Team technical leadership'],
       sources: [['profile-work-entry-1', 'Senior Software Engineer'], ['profile-work-entry-2', 'Software Engineer II']],
       prompts: [
         "What does Robert do at work, in plain English?",
@@ -420,7 +421,7 @@ window.HeroChatContent = (function () {
       id: 'plain-current',
       category: 'general',
       weight: 2,
-      docs: ['Vector diversity capability', 'E-commerce & recs', 'Corpus-spanning grounding'],
+      docs: ['Vector diversity capability', 'Shopping & recommendations', 'Evidence across documents'],
       sources: [['work-diversity', 'Vector diversity'], ['profile-work-entry-1', 'Senior Software Engineer']],
       prompts: [
         "What's Robert working on these days?",
@@ -462,7 +463,7 @@ window.HeroChatContent = (function () {
       id: 'career-arc',
       category: 'general',
       weight: 2,
-      docs: ['Chest X-ray app', 'Vector search 1 to N', 'Team technical leadership'],
+      docs: ['Chest X-ray app', 'Vector search at scale', 'Team technical leadership'],
       sources: [['profile-experience', 'Detailed experience']],
       prompts: [
         "How has Robert's career progressed?",
@@ -471,7 +472,7 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Tell it as growing technical scope: Garage in 2018, search internships in 2019 and 2020, full-time from 2021, scaling vector search, then Senior Software Engineer from 2025. He is currently technical lead for the five-person vector-search diversity team, setting direction and owning delivery.",
-          answer: "I've moved from owning parts of an app to owning broader technical efforts. At Microsoft Garage in 2018, I helped build a chest X-ray classification app; that was separate from my search internships in 2019 and 2020. I joined Azure AI Search full-time in 2021 and helped scale vector search for broad adoption. I've been a Senior Software Engineer since 2025; currently I'm the technical lead for a team of five engineers and scientists building vector-search diversity."
+          answer: "I've moved from owning parts of an app to owning broader technical efforts. At Microsoft Garage in 2018, I helped build a chest X-ray classification app, followed by search internships in 2019 and 2020. I joined Azure AI Search full-time in 2021 and helped scale vector search for broad adoption. I've been a Senior Software Engineer since 2025; currently I'm the technical lead for a team of five engineers and scientists building vector-search diversity."
         },
         {
           thought: "Use the progression to show breadth as well as ownership: mobile ML at Garage, production search features, vector search at scale, and technical leadership for the vector-search diversity team. Keep the emphasis on direction, end-to-end delivery, and hands-on engineering.",
@@ -517,7 +518,7 @@ window.HeroChatContent = (function () {
         },
         {
           thought: "Lead with the reinforcement-learning project for variety, then the Garage app. Battlesnake is a real-time survival game against up to seven opponents, and Robert trained a keras-rl model through self-play. The Garage app classified chest X-rays on the device. Keep both concrete.",
-          answer: "Two favourites. One is a Battlesnake AI: I trained a keras-rl reinforcement-learning agent through self-play to survive real-time games against up to seven opponents. The other is from my Microsoft Garage internship, a mobile app that classified chest X-rays offline, right on the device. For that app I built the image-processing pipeline, CI, and an iOS share extension."
+          answer: "Two favourites. One is a Battlesnake AI: I trained a keras-rl reinforcement-learning agent through self-play to survive real-time games against up to seven opponents. The other is from my Microsoft Garage internship, a mobile app that classified chest X-rays offline, right on the device. For that app I built the image-processing pipeline, continuous integration, and an iOS share extension."
         }
       ]
     },
@@ -588,7 +589,7 @@ window.HeroChatContent = (function () {
       id: 'education',
       category: 'general',
       weight: 1,
-      docs: ['B.Eng, Computational Intelligence', '97% average, 2nd highest CGPA', 'Research award'],
+      docs: ['B.Eng, Computational Intelligence', '97% average, graduating-class rank', 'Research award'],
       sources: [['profile-education', 'Education'], ['profile-awards', 'Awards']],
       prompts: [
         "What's Robert's academic background?",
@@ -597,11 +598,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "State the degree, result, research area, and design competitions directly. Hardware acceleration is a useful technical term here, not jargon that needs to be replaced with a vague description.",
-          answer: "I earned a Bachelor of Electrical and Computer Engineering at the University of Victoria in 2021, specializing in Computational Intelligence. I graduated with a 97% cumulative average, the second-highest CGPA across the university's graduating class, and Dean's List recognition. Through the Jamie Cassels Undergraduate Research Award, I researched hardware acceleration for neural networks."
+          answer: "I earned a Bachelor of Electrical and Computer Engineering at the University of Victoria in 2021, specializing in Computational Intelligence. I graduated with a 97% cumulative average, the second-highest cumulative GPA across the university's graduating class, and Dean's List recognition. Through the Jamie Cassels Undergraduate Research Award, I researched hardware acceleration for neural networks."
         },
         {
           thought: "Show the degree's breadth with concrete fields, but keep the answer approachable. Retain the research award and hardware acceleration, then the competition robot as a tangible example of hands-on engineering.",
-          answer: "I studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a Computational Intelligence specialization and a 97% average—the second-highest CGPA across the university's graduating class. I received Dean's List recognition and researched hardware acceleration for neural networks. Design competitions also gave me hands-on challenges, including a robot built to collect Martian artifacts."
+          answer: "I studied Electrical and Computer Engineering at the University of Victoria, graduating in 2021 with a Computational Intelligence specialization and a 97% average—the second-highest cumulative GPA across the university's graduating class. I received Dean's List recognition and researched hardware acceleration for neural networks. Design competitions also gave me hands-on challenges, including a robot built to collect Martian artifacts."
         }
       ]
     },
