@@ -141,7 +141,7 @@ test.beforeEach(async ({ page }) => {
           twinkle = kind ? {
             star, kind, start: clock - progress * profile.duration[0],
             duration: profile.duration[0], intensity: profile.intensity[1],
-            growth: profile.growth[1] * (width <= 860 ? .65 : 1), points: profile.points,
+            growth: profile.growth[1] * (width <= 860 ? .65 : 1),
           } : null;
           draw();
           schedule();
@@ -152,7 +152,7 @@ test.beforeEach(async ({ page }) => {
           const methods = ['beginPath', 'moveTo', 'bezierCurveTo', 'closePath'];
           const originals = methods.map(method => ctx[method]);
           methods.forEach(method => { ctx[method] = (...args) => commands.push([method, ...args]); });
-          try { traceStar(0, 0, appearance.radius, appearance.arm, appearance.morph); }
+          try { traceStar(0, 0, appearance.armX, appearance.armY, appearance.curve); }
           finally { methods.forEach((method, i) => { ctx[method] = originals[i]; }); }
           return commands;
         };
@@ -207,16 +207,17 @@ test('built homepage owns its sky assets, has no spike dependencies, and leaves 
   }))).toEqual(layout);
 });
 
-test('soft bounded stars mix approximately 40% curved astroids and avoid protected content', async ({ page }) => {
+test('all soft bounded stars are curved astroids and avoid protected content', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(() => { window.omitSkyWash = true; });
   await showAbout(page);
   await page.clock.runFor(100);
   const scene = await state(page);
-  expect(new Set(scene.stars.map(star => star.shape))).toEqual(new Set(['point', 'astroid']));
-  const proportion = scene.stars.filter(star => star.shape === 'astroid').length / scene.stars.length;
-  expect(proportion).toBeGreaterThan(.34);
-  expect(proportion).toBeLessThan(.46);
+  expect(new Set(scene.stars.map(star => star.shape))).toEqual(new Set(['astroid']));
+  expect(scene.stars.some(star => star.scaleX === star.scaleY)).toBe(true);
+  expect(scene.stars.some(star => star.scaleY / star.scaleX > 1.4)).toBe(true);
+  expect(scene.appearances.every(star => star.armY / star.armX >= 1 && star.armY / star.armX <= 1.8)).toBe(true);
+  expect(Math.max(...scene.stars.map(star => star.curve)) - Math.min(...scene.stars.map(star => star.curve))).toBeGreaterThan(.2);
   expect(Math.max(...scene.stars.map(star => star.radius))).toBeGreaterThan(2.3);
   expect(Math.max(...scene.stars.map(star => star.radius))).toBeLessThanOrEqual(2.4);
   expect(Math.min(...scene.stars.map(star => star.radius))).toBeGreaterThanOrEqual(.65);
@@ -361,16 +362,16 @@ test('twinkles vary by profile, use real animation, and wait without an idle fra
   }
 });
 
-test('all profiles smoothly grow concave curved points and return to their bounded resting cores', async ({ page }) => {
+test('all profiles keep curved astroid silhouettes while gently extending their points', async ({ page }) => {
   await showAbout(page);
   await page.clock.runFor(100);
   const scene = await state(page);
   const scrollY = await page.evaluate(() => window.scrollY);
   const visible = star => star.y > scrollY + scene.headerHeight + 24 && star.y < scrollY + scene.height - 24;
-  const point = scene.stars.findIndex(star => star.shape === 'point' && visible(star));
-  const astroid = scene.stars.findIndex(star => star.shape === 'astroid' && visible(star));
-  expect(point).toBeGreaterThanOrEqual(0);
-  expect(astroid).toBeGreaterThanOrEqual(0);
+  const variants = [false, true].map(tall => scene.stars.reduce((best, star, i) =>
+    visible(star) && (star.scaleY > star.scaleX) === tall && scene.appearances[i].arm < 3.5 &&
+    (best < 0 || star.radius > scene.stars[best].radius) ? i : best, -1));
+  expect(variants.every(index => index >= 0)).toBe(true);
   const paint = (index, kind, progress) => page.evaluate(
     ([index, kind, progress]) => window.paintMeteorWatchStar(index, kind, progress), [index, kind, progress]
   );
@@ -378,64 +379,59 @@ test('all profiles smoothly grow concave curved points and return to their bound
     const path = await page.evaluate(appearance => window.meteorWatchPath(appearance), appearance);
     const curves = path.filter(command => command[0] === 'bezierCurveTo');
     expect(curves).toHaveLength(4);
+    expect(path[1]).toEqual(['moveTo', 0, -appearance.armY]);
+    expect(curves[0].slice(-2)).toEqual([appearance.armX, 0]);
+    expect(curves[1].slice(-2)).toEqual([0, appearance.armY]);
     const [, x1, y1, x2, y2, x3, y3] = curves[0];
     // At the diagonal, curved concave sides sit inside a straight diamond edge.
     const x = (3 * x1 + 3 * x2 + x3) / 8;
-    const y = (-appearance.arm + 3 * y1 + 3 * y2 + y3) / 8;
-    expect(x).toBeLessThan(appearance.arm / 2);
-    expect(-y).toBeLessThan(appearance.arm / 2);
+    const y = (-appearance.armY + 3 * y1 + 3 * y2 + y3) / 8;
+    expect(x).toBeLessThan(appearance.armX / 2);
+    expect(-y).toBeLessThan(appearance.armY / 2);
   };
-  const rest = await paint(point, null, 0);
-  const image = await sky(page).evaluate(canvas => canvas.toDataURL());
-  const peaks = [];
-  for (const kind of ['breathe', 'shimmer', 'sparkle']) {
-    const start = await paint(point, kind, 0);
-    expect(start).toEqual(rest);
-    expect(await sky(page).evaluate(canvas => canvas.toDataURL())).toBe(image);
-    let peak;
-    for (const progress of [.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, .999]) {
-      const appearance = await paint(point, kind, progress);
-      expect(appearance.radius).toBe(rest.radius);
-      expect(appearance.alpha).toBeLessThanOrEqual(.52);
-      expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(4.5);
-      if (!peak || appearance.morph > peak.morph) peak = appearance;
-      if (progress === .5) {
-        expect(await sky(page).evaluate(canvas => canvas.toDataURL()) !== image).toBe(true);
-      }
-      if (progress === .001 || progress === .999) {
-        expect(appearance.arm - rest.arm).toBeLessThan(.001);
-        expect(appearance.morph).toBeLessThan(.001);
-      }
-    }
-    await curved(peak);
-    peaks.push(peak.morph);
-    const end = await paint(point, kind, 1);
-    expect(end.radius).toBe(rest.radius);
-    expect(end.morph).toBeCloseTo(0, 10);
-    expect(end.arm).toBeCloseTo(rest.arm, 10);
-    expect(await sky(page).evaluate(canvas => canvas.toDataURL())).toBe(image);
-    const restingAstroid = await paint(astroid, null, 0);
-    await curved(restingAstroid);
-    for (const progress of [0, .3, .5, .7, 1]) {
-      const appearance = await paint(astroid, kind, progress);
-      expect(appearance.morph).toBe(1);
-      expect(appearance.radius).toBe(restingAstroid.radius);
-      expect(appearance.arm).toBeGreaterThanOrEqual(restingAstroid.arm);
-      expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(4.5);
-    }
-    await paint(point, null, 0);
-  }
-  expect(peaks[2]).toBeGreaterThan(peaks[0]);
-  expect(peaks[2]).toBeGreaterThan(peaks[1]);
-  for (const shape of ['point', 'astroid']) {
-    const largest = scene.stars.reduce((best, star, i) =>
-      star.shape === shape && (best < 0 || star.radius > scene.stars[best].radius) ? i : best, -1);
-    expect(scene.stars[largest].radius).toBeGreaterThan(2.3);
+  for (const astroid of variants) {
+    const rest = await paint(astroid, null, 0);
+    await curved(rest);
+    const image = await sky(page).evaluate(canvas => canvas.toDataURL());
+    const peaks = [];
     for (const kind of ['breathe', 'shimmer', 'sparkle']) {
-      const appearance = await paint(largest, kind, kind === 'shimmer' ? .3 : .5);
-      expect(appearance.radius).toBeLessThanOrEqual(2.4);
-      expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(4.5);
+      const start = await paint(astroid, kind, 0);
+      expect(start).toEqual(rest);
+      expect(await sky(page).evaluate(canvas => canvas.toDataURL())).toBe(image);
+      let extension = 0;
+      for (const progress of [.001, .1, .2, .3, .4, .5, .6, .7, .8, .9, .999]) {
+        const appearance = await paint(astroid, kind, progress);
+        expect(appearance.radius).toBe(rest.radius);
+        expect(appearance.armY / appearance.armX).toBeCloseTo(rest.armY / rest.armX, 10);
+        expect(appearance.curve).toBe(rest.curve);
+        expect(appearance.arm).toBeGreaterThanOrEqual(rest.arm);
+        expect(appearance.alpha).toBeLessThanOrEqual(.52);
+        expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(4.5);
+        await curved(appearance);
+        extension = Math.max(extension, appearance.arm - rest.arm);
+        if (progress === .5) {
+          expect(await sky(page).evaluate(canvas => canvas.toDataURL()) !== image).toBe(true);
+        }
+        if (progress === .001 || progress === .999) {
+          expect(appearance.arm - rest.arm).toBeLessThan(.001);
+        }
+      }
+      peaks.push(extension);
+      const end = await paint(astroid, kind, 1);
+      expect(end).toEqual(rest);
+      expect(await sky(page).evaluate(canvas => canvas.toDataURL())).toBe(image);
+      await paint(astroid, null, 0);
     }
+    expect(peaks[2]).toBeGreaterThan(peaks[0]);
+    expect(peaks[2]).toBeGreaterThan(peaks[1]);
+  }
+  const largest = scene.stars.reduce((best, star, i) => star.radius > scene.stars[best].radius ? i : best, 0);
+  expect(scene.stars[largest].radius).toBeGreaterThan(2.3);
+  for (const kind of ['breathe', 'shimmer', 'sparkle']) {
+    const appearance = await paint(largest, kind, kind === 'shimmer' ? .3 : .5);
+    expect(appearance.radius).toBeLessThanOrEqual(2.4);
+    expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(4.5);
+    await curved(appearance);
   }
 });
 
@@ -444,7 +440,7 @@ test('brighter stars have soft cores and faint compact halo edges, not solid dis
   await page.evaluate(() => { window.omitSkyWash = true; });
   const scene = await state(page);
   const bright = scene.stars.find(star => star.halo && star.radius > 2.05 &&
-    star.shape === 'point' && star.y >= scene.skyTop + 180);
+    star.shape === 'astroid' && star.y >= scene.skyTop + 180);
   expect(bright).toBeTruthy();
   await page.evaluate(y => {
     window.scrollTo({ top: y - window.innerHeight / 2, behavior: 'instant' });
@@ -571,6 +567,10 @@ for (const width of [320, 390, 860, 861]) {
     const scene = await state(page);
     expect(scene.width).toBe(width);
     const mobile = width <= 860;
+    expect(new Set(scene.stars.map(star => star.shape))).toEqual(new Set(['astroid']));
+    expect(scene.stars.some(star => star.scaleX === star.scaleY)).toBe(true);
+    expect(scene.stars.some(star => star.scaleY / star.scaleX > 1.4)).toBe(true);
+    expect(scene.appearances.every(star => star.armX <= star.arm && star.armY <= star.arm)).toBe(true);
     expect(scene.nextMeteor).toBe(24000);
     expect(Math.max(...scene.stars.map(star => star.radius))).toBeLessThanOrEqual(mobile ? 1.8 : 2.4);
     expect(Math.min(...scene.stars.map(star => star.radius))).toBeGreaterThanOrEqual(.65);
@@ -858,7 +858,8 @@ for (const ratio of [1, 2]) {
       for (const width of [1440, 390]) {
         await resizeSky(page, width, 1000);
         const scene = await state(page);
-        const points = scene.stars.filter(star => star.shape === 'point' &&
+        const points = scene.stars.filter(star => star.shape === 'astroid' &&
+          star.scaleX === star.scaleY && star.curve >= .53 && star.curve <= .63 &&
           star.y > scene.skyTop + 300 && star.y < scene.skyBottom - 1000 &&
           scene.stars.every(other => other === star || Math.hypot(other.x - star.x, other.y - star.y) > 16));
         expect(points.length).toBeGreaterThan(3);
@@ -908,25 +909,36 @@ for (const ratio of [1, 2]) {
         const scene = await state(page);
         const scrollY = await page.evaluate(() => window.scrollY);
         const visible = star => star.y > scrollY + scene.headerHeight + 24 && star.y < scrollY + scene.height - 24;
-        const largest = shape => scene.stars.reduce((best, star, i) =>
-          star.shape === shape && visible(star) && (best < 0 || star.radius > scene.stars[best].radius) ? i : best, -1);
-        const point = largest('point');
-        const astroid = largest('astroid');
-        expect(point).toBeGreaterThanOrEqual(0);
-        expect(astroid).toBeGreaterThanOrEqual(0);
-        await page.evaluate(index => window.paintMeteorWatchStar(index, null), point);
+        expect(new Set(scene.stars.map(star => star.shape))).toEqual(new Set(['astroid']));
+        const visibleStar = scene.stars.findIndex(visible);
+        const regular = scene.stars.reduce((best, star, i) =>
+          star.scaleX === star.scaleY && star.y > scene.skyTop + 300 && star.y < scene.skyBottom - 1000 &&
+          (best < 0 || star.radius > scene.stars[best].radius) ? i : best, -1);
+        const tall = scene.stars.reduce((best, star, i) =>
+          star.scaleY / star.scaleX > 1.4 && star.y > scene.skyTop + 300 && star.y < scene.skyBottom - 1000 &&
+          (best < 0 || star.radius > scene.stars[best].radius) ? i : best, -1);
+        expect(visibleStar).toBeGreaterThanOrEqual(0);
+        expect(regular).toBeGreaterThanOrEqual(0);
+        expect(tall).toBeGreaterThanOrEqual(0);
+        await page.evaluate(index => window.paintMeteorWatchStar(index, null), visibleStar);
         await page.screenshot({ path: test.info().outputPath(`sky-${width}px-${ratio}x-rest.png`), animations: 'disabled' });
         const samples = [];
         for (const [label, index, kind, progress] of [
-          ['Light point', point, null, 0], ['Curved astroid', astroid, null, 0],
-          ['Breathe', point, 'breathe', .5], ['Shimmer', point, 'shimmer', .3],
-          ['Sparkle', point, 'sparkle', .5], ['Returned point', point, 'sparkle', 1],
+          ['Regular astroid', regular, null, 0], ['Tall astroid', tall, null, 0],
+          ['Breathe', regular, 'breathe', .5], ['Shimmer', regular, 'shimmer', .3],
+          ['Sparkle', regular, 'sparkle', .5], ['Restored astroid', regular, 'sparkle', 1],
         ]) {
+          await page.evaluate(y => {
+            window.scrollTo({ top: y - window.innerHeight / 2, behavior: 'instant' });
+            window.dispatchEvent(new Event('scroll'));
+          }, scene.stars[index].y);
+          await page.clock.runFor(32);
           const appearance = await page.evaluate(
             ([index, kind, progress]) => window.paintMeteorWatchStar(index, kind, progress), [index, kind, progress]
           );
           expect(appearance.radius).toBeLessThanOrEqual(width <= 860 ? 1.8 : 2.4);
           expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(width <= 860 ? 3.5 : 4.5);
+          expect(appearance.armY / appearance.armX).toBeCloseTo(scene.stars[index].scaleY / scene.stars[index].scaleX, 10);
           const image = await sky(page).evaluate((canvas, star) => {
             const ratio = canvas.width / document.documentElement.clientWidth;
             const sample = document.createElement('canvas');

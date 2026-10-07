@@ -25,9 +25,9 @@
   const meteorWait = () => between(12000, 36000);
   const meteorRest = () => between(36000, 72000);
   const profiles = {
-    breathe: { duration: [3000, 5000], intensity: [.14, .22], growth: [.18, .35], points: .65 },
-    shimmer: { duration: [4000, 6000], intensity: [.12, .2], growth: [.15, .3], points: .8 },
-    sparkle: { duration: [2400, 3600], intensity: [.16, .24], growth: [.45, .7], points: 1 },
+    breathe: { duration: [3000, 5000], intensity: [.14, .22], growth: [.18, .35] },
+    shimmer: { duration: [4000, 6000], intensity: [.12, .2], growth: [.15, .3] },
+    sparkle: { duration: [2400, 3600], intensity: [.16, .24], growth: [.45, .7] },
   };
   let width = 0;
   let height = 0;
@@ -125,13 +125,18 @@
       const rank = random();
       const alpha = .18 + rank * .12 + random() * .07;
       const warm = random() < .12;
-      const shapeRank = random();
+      // Vary shapes independently without moving the seeded star positions.
+      const shapeRandom = seededRandom(Math.floor(random() * 4294967296));
+      const tall = shapeRandom() < .35;
       const radius = rank < .58 ? .65 + rank * .7 :
         rank < .9 ? 1.2 + (rank - .58) * 2.1875 : 2.05 + (rank - .9) * 3.5;
       if (clearRect({ x: x - clearance, y: y - clearance, w: clearance * 2, h: clearance * 2 })) {
         stars.push({
           x, y, alpha, warm, twinkles: 0, radius: mobile ? .65 + (radius - .65) * .65 : radius,
-          shape: shapeRank < .4 ? 'astroid' : 'point', halo: rank > .85,
+          shape: 'astroid', halo: rank > .85,
+          scaleX: tall ? .68 + shapeRandom() * .18 : 1,
+          scaleY: tall ? 1.08 + shapeRandom() * .14 : 1,
+          curve: .45 + shapeRandom() * .23,
         });
       }
     }
@@ -168,7 +173,6 @@
       star, start: clock, kind,
       duration: between(...profile.duration), intensity: between(...profile.intensity),
       growth: between(...profile.growth) * (width <= 860 ? .65 : 1),
-      points: profile.points,
     };
   }
 
@@ -233,30 +237,31 @@
     const breath = Math.sin(Math.PI * t) ** 2;
     const pulse = !active ? 0 : twinkle.kind === 'sparkle' ? breath ** 2 :
       twinkle.kind === 'shimmer' ? breath * (1 - .8 * breath) * 3.2 : breath;
-    const morph = star.shape === 'astroid' ? 1 : pulse * (active ? twinkle.points : 0);
+    const stretch = Math.max(star.scaleX, star.scaleY);
     const arm = Math.min(width <= 860 ? 3.25 : 4.5,
-      star.radius * (1 + .55 * morph) + pulse * (active ? twinkle.growth : 0));
+      (star.radius * 1.55 + pulse * (active ? twinkle.growth : 0)) * stretch);
     return {
-      radius: star.radius, arm, morph,
+      radius: star.radius, arm,
+      armX: arm * (star.scaleX / stretch), armY: arm * (star.scaleY / stretch), curve: star.curve,
       alpha: Math.min(.52, star.alpha + pulse * (active ? twinkle.intensity : 0)),
       haloRadius: star.halo ? Math.max(arm, Math.min(width <= 860 ? 3.5 : 4.5, star.radius * 1.9)) : 0,
     };
   }
 
-  function traceStar(x, y, radius, arm, morph) {
-    const round = .55228475 * radius * (1 - morph);
-    const inset = radius * (1 - morph) + arm * .55 * morph;
+  function traceStar(x, y, armX, armY, curve) {
+    const insetX = armX * curve;
+    const insetY = armY * curve;
     ctx.beginPath();
-    ctx.moveTo(x, y - arm);
-    ctx.bezierCurveTo(x + round, y - inset, x + inset, y - round, x + arm, y);
-    ctx.bezierCurveTo(x + inset, y + round, x + round, y + inset, x, y + arm);
-    ctx.bezierCurveTo(x - round, y + inset, x - inset, y + round, x - arm, y);
-    ctx.bezierCurveTo(x - inset, y - round, x - round, y - inset, x, y - arm);
+    ctx.moveTo(x, y - armY);
+    ctx.bezierCurveTo(x, y - insetY, x + insetX, y, x + armX, y);
+    ctx.bezierCurveTo(x + insetX, y, x, y + insetY, x, y + armY);
+    ctx.bezierCurveTo(x, y + insetY, x - insetX, y, x - armX, y);
+    ctx.bezierCurveTo(x - insetX, y, x, y - insetY, x, y - armY);
     ctx.closePath();
   }
 
   function drawStar(star, y, fade) {
-    const { radius, arm, morph, alpha, haloRadius } = starAppearance(star);
+    const { radius, arm, armX, armY, curve, alpha, haloRadius } = starAppearance(star);
     const color = star.warm ? '244,217,176' : '185,202,235';
     if (haloRadius) {
       const halo = ctx.createRadialGradient(star.x, y, 0, star.x, y, haloRadius);
@@ -274,7 +279,7 @@
     light.addColorStop(.85 * radius / arm, `rgba(${color},${alpha * fade * .75})`);
     light.addColorStop(1, `rgba(${color},0)`);
     ctx.fillStyle = light;
-    traceStar(star.x, y, radius, arm, morph);
+    traceStar(star.x, y, armX, armY, curve);
     ctx.fill();
   }
 
