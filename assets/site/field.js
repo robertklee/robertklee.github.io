@@ -120,6 +120,7 @@
   let lastDraw = 0;
   let lastBackgroundDraw = 0;
   let idleSince = performance.now();
+  let recoveryQuietUntil = 0;
   let farDirty = true;
   let farSkip = false;
   let sceneTime = 0;
@@ -544,8 +545,12 @@
   function sampleQuality(now, interval = FRAME_MS) {
     if (reducedEffects) return;
     const next = qualityMonitor.frame(now, Math.round(1000 / interval), interval > FRAME_MS,
-      entranceProgress === 1 && !queryNeedsAnimation(now));
+      canRecoverQuality(now));
     if (next) applyQuality(next);
+  }
+  function canRecoverQuality(now) {
+    return entranceProgress === 1 && !needsAnimation(now) && now >= recoveryQuietUntil &&
+      !hero.querySelector('.gen-orb.on, .is-thinking');
   }
   function orderDecoration() {
     const buckets = new Map();
@@ -1754,15 +1759,15 @@
   function tick(now) {
     frame = 0;
     if (!visible || document.hidden) return;
-    if (!reducedEffects && !motionQuery.matches && entranceProgress === 1 && !queryNeedsAnimation(now)) {
-      const next = qualityMonitor.recover(now);
-      if (next) applyQuality(next);
-    }
     const interval = frameInterval(now);
     const monitoring = !reducedEffects && !motionQuery.matches && interval &&
       (needsAnimation(now) || now - idleSince < IDLE_GRACE_MS);
     if (monitoring) sampleQuality(now, interval);
     else qualityMonitor.pause();
+    if (!reducedEffects && !motionQuery.matches && canRecoverQuality(now)) {
+      const next = qualityMonitor.recover(now);
+      if (next) applyQuality(next);
+    }
     if (interval && lastFrame && now - lastFrame + .5 < interval) {
       scheduleFrame(now);
       return;
@@ -1865,7 +1870,12 @@
   // Protected areas move as the chat streams; refresh them cheaply.
   const app = document.getElementById('app');
   const copyObserver = new ResizeObserver(() => { readProtected(); kick(); });
-  if (app) copyObserver.observe(app);
+  if (app) {
+    copyObserver.observe(app);
+    new MutationObserver(() => {
+      recoveryQuietUntil = performance.now() + qualitySettings.policy.recoveryQuietMs;
+    }).observe(app, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class', 'style'] });
+  }
   copyObserver.observe(readout);
   new MutationObserver(() => { backgroundDirty = true; kick(); }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 

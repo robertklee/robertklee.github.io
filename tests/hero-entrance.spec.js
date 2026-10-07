@@ -183,6 +183,7 @@ async function inspectIdleField(page, { stubChat = true } = {}) {
           };
         },
         sampleQuality,
+        canRecoverQuality,
         setQuality(name) {
           const next = window.HeroFieldQuality.tiers.find(tier => tier.name === name);
           if (!next) throw new Error('Unknown field quality: ' + name);
@@ -288,37 +289,44 @@ test('adaptive quality starts high and changes resolution, detail and blur witho
   await page.goto(origin);
   await expectFieldIdle(page);
   const graph = await page.evaluate(() => window.heroFieldTest.graph);
-  const sample = (fps, duration) => page.evaluate(({ fps, duration }) => {
+  const initial = await page.evaluate(() => ({ budgets: window.heroFieldTest.budgets,
+    pixels: [...document.querySelectorAll('.field-canvas')].reduce((sum, canvas) => sum + canvas.width * canvas.height, 0) }));
+  const sample = (fps, kind = 'downgrade') => page.evaluate(({ fps, kind }) => {
     const field = window.heroFieldTest;
-    window.qualityClock = (window.qualityClock || performance.now()) + 20000;
+    const policy = window.HeroFieldQuality.policy;
+    const duration = policy.warmupMs + policy[kind + 'Ms'] + 300;
+    window.qualityClock = (window.qualityClock || performance.now()) + 60000;
     field.qualityMonitor.reset(window.qualityClock);
     field.sampleQuality(window.qualityClock);
     const end = window.qualityClock + duration;
     for (; window.qualityClock < end; window.qualityClock += 1000 / fps) field.sampleQuality(window.qualityClock);
     field.kick();
     return field.quality;
-  }, { fps, duration });
+  }, { fps, kind });
   await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high');
-  expect((await sample(10, 7400)).name).toBe('balanced');
-  await expect(page.locator('.hero-chat')).toHaveCSS('backdrop-filter', 'blur(12px) saturate(1.2)');
-  expect((await sample(10, 7400)).name).toBe('low');
+  expect((await sample(25)).name).toBe('balanced');
+  await expect(page.locator('.hero-chat')).toHaveCSS('backdrop-filter', 'blur(8px) saturate(1.2)');
+  expect(await page.evaluate(() => ({ nodes: window.heroFieldTest.budgets.nodes, edges: window.heroFieldTest.budgets.edges })))
+    .toEqual({ nodes: initial.budgets.nodes, edges: initial.budgets.edges });
+  expect(await page.evaluate(() => [...document.querySelectorAll('.field-canvas')].reduce((sum, canvas) => sum + canvas.width * canvas.height, 0))).toBeLessThan(initial.pixels);
+  expect((await sample(25)).name).toBe('low');
   await expect(page.locator('.hero-chat')).toHaveCSS('backdrop-filter', 'none');
   await expect(page.locator('.field-far')).toHaveCSS('filter', 'blur(0px)');
-  expect((await sample(10, 7400)).name).toBe('low');
-  expect((await sample(10, 13400)).name).toBe('traversal');
+  expect((await sample(25)).name).toBe('low');
+  expect((await sample(25, 'lastResort')).name).toBe('traversal');
   await expect(page.locator('.field-traversal')).toHaveCount(1);
-  expect((await sample(60, 32400)).name).toBe('low');
+  expect((await sample(60, 'recover')).name).toBe('low');
   await expect(page.locator('.field-traversal')).toHaveCount(1);
-  expect((await sample(60, 32400)).name).toBe('balanced');
+  expect((await sample(60, 'recover')).name).toBe('balanced');
   await expect(page.locator('.field-traversal')).toHaveCount(0);
-  expect((await sample(60, 32400)).name).toBe('high');
-  expect((await sample(60, 32400)).name).toBe('full');
+  expect((await sample(60, 'recover')).name).toBe('high');
+  expect((await sample(60, 'recover')).name).toBe('full');
   expect(await page.evaluate(() => window.heroFieldTest.graph)).toEqual(graph);
   expect(await page.evaluate(() => window.heroFieldTest.quality.dpr)).toBeLessThanOrEqual(2);
 });
 
-test('visible slow frames automatically downgrade and sustained smooth frames recover', async ({ page }) => {
-  test.setTimeout(90000);
+test('visible severe frames reach Low within four seconds and sustained smooth frames recover', async ({ page }) => {
+  test.setTimeout(45000);
   await inspectIdleField(page);
   await page.goto(origin);
   await expectFieldIdle(page);
@@ -327,13 +335,70 @@ test('visible slow frames automatically downgrade and sustained smooth frames re
     window.heroFieldTest.qualityMonitor.reset(performance.now());
     window.heroFieldTest.activate();
   });
-  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'balanced', { timeout: 10000 });
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'low', { timeout: 4000 });
   const slowFps = await page.evaluate(() => window.heroFieldTest.quality.fps);
-  expect(slowFps).toBeLessThan(24);
+  expect(slowFps).toBeLessThan(18);
   await page.evaluate(() => { window.heroSlowFrames = false; });
-  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'high', { timeout: 60000 });
+  await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'balanced', { timeout: 20000 });
   await page.evaluate(() => { window.heroContinuousFrames = false; });
   await expectFieldIdle(page);
+});
+
+for (const pathname of ['/', '/404.html']) {
+  for (const severity of ['moderate', 'severe']) {
+    test(`${severity} automatic relief preserves an active retrieval on ${pathname}`, async ({ page }) => {
+      await inspectIdleField(page);
+      await page.goto(origin + pathname);
+      await expectFieldIdle(page);
+      const result = await page.evaluate(severity => {
+        const field = window.heroFieldTest;
+        field.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] });
+        const graph = JSON.stringify(field.graph);
+        const query = JSON.stringify(field.query);
+        const policy = window.HeroFieldQuality.policy;
+        const start = performance.now() + 60000;
+        field.qualityMonitor.reset(start);
+        const duration = policy.warmupMs + (severity === 'severe' ? policy.severeMs : policy.downgradeMs) + 300;
+        const fps = severity === 'severe' ? 10 : 25;
+        for (let t = start; t < start + duration; t += 1000 / fps) field.sampleQuality(t);
+        return { tier: field.quality.name, graphPreserved: graph === JSON.stringify(field.graph),
+          queryPreserved: query === JSON.stringify(field.query) };
+      }, severity);
+      expect(result).toEqual({ tier: severity === 'severe' ? 'low' : 'balanced', graphPreserved: true, queryPreserved: true });
+      if (pathname === '/') await page.waitForFunction(() => window.heroFieldTest.query.notified);
+    });
+  }
+}
+
+test('recovery waits for generation, chat mutations, retrieval and visual settling to become quiet', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await expectFieldIdle(page);
+  const allowed = () => page.evaluate(() => window.heroFieldTest.canRecoverQuality(performance.now()));
+  await expect.poll(allowed).toBe(true);
+  await page.evaluate(() => {
+    const indicator = document.createElement('span');
+    indicator.id = 'test-generation';
+    indicator.className = 'gen-orb on';
+    document.querySelector('.hero-chat').append(indicator);
+  });
+  await page.waitForTimeout(1200);
+  expect(await allowed()).toBe(false);
+  await page.evaluate(() => document.getElementById('test-generation').remove());
+  expect(await allowed()).toBe(false);
+  await expect.poll(allowed).toBe(true);
+  await page.evaluate(() => { document.querySelector('.hero-chat .txt').textContent = 'Streaming text without a size change.'; });
+  expect(await allowed()).toBe(false);
+  await expect.poll(allowed).toBe(true);
+  await page.evaluate(() => window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] }));
+  expect(await allowed()).toBe(false);
+  await expect.poll(allowed, { timeout: 10000 }).toBe(true);
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'dark';
+    document.dispatchEvent(new Event('site:themechange'));
+  });
+  expect(await allowed()).toBe(false);
+  await expect.poll(allowed).toBe(true);
 });
 
 test('quality pixel-ratio and plane-resolution settings resize backing buffers monotonically', async ({ browser }) => {
@@ -498,7 +563,8 @@ for (const viewport of [
       expect(data.queryPreserved).toBe(true);
       expect(data.generatedEdges).toBeLessThanOrEqual(data.limits.generatedEdges);
       expect(data.topicNodes.length).toBeGreaterThan(35);
-      expect(data.snapshots[1].nodes.length).toBeGreaterThan(data.snapshots[2].nodes.length);
+      expect(data.snapshots[1].nodes).toEqual(data.snapshots[2].nodes);
+      expect(data.snapshots[1].edges).toEqual(data.snapshots[2].edges);
       expect(data.snapshots[2].nodes.length).toBeGreaterThan(data.snapshots[3].nodes.length);
       let previousNodes;
       let previousEdges;

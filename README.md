@@ -94,7 +94,7 @@ quality tiers change visible density rather than regenerating it.
 |---|---|---|---|---|---|
 | Full | 2 | 16 million | Up to 1,200 / 2,000 | 1.8 / .9 / 14px | 30 |
 | High (initial) | 1.75 | 12 million | Up to 1,000 / 1,500 | 1.8 / .9 / 12px | 30 |
-| Balanced | 1.75 | 12 million | Half density, up to 500 / 750 | 1.8 / .9 / 12px | 30 |
+| Balanced | 1.75 | 9 million | Up to 1,000 / 1,500 (same as High) | 1.8 / .9 / 8px | 30 |
 | Low | 1 | 4 million | Quarter density, up to 250 / 375 | None | 15 |
 | Traversal (last resort) | 1 | 4 million | Quarter density, up to 250 / 375 | None | Cached |
 
@@ -104,9 +104,11 @@ Stable, nested spatial subsets keep decoration spread across the hero; ordinary
 edges connect only retained dots. Projection skips unused decoration but always
 includes every active traversal endpoint, scan neighbour, and result.
 
-The first downgrade reduces density only. Later tiers lower resolution, remove
-blur, and slow or freeze the backdrop. Far/mid resolution starts at .5/.75 for
-Full through Balanced, or .35/.5 for Low/Traversal, multiplying the effective
+The ordinary High-to-Balanced downgrade preserves density, sharp-content DPR
+at ordinary viewport sizes, motion, and depth blur. It lowers soft-layer
+resolution and chat blur instead. Later tiers lower sharp resolution, thin
+decoration, remove blur, and slow or freeze the backdrop. Far/mid resolution
+starts at .5/.75 for Full/High, or .35/.5 for Balanced/Low/Traversal, multiplying the effective
 pixel ratio. The total pixel budget includes every live canvas, including the
 traversal overlay. Blurred planes shrink before the sharp content's ratio is
 reduced; each canvas dimension is capped at 8,192 pixels. The effective ratio
@@ -115,22 +117,38 @@ follow-up controls. Traversal retains a 30 FPS target regardless of tier; idle
 decoration remains capped at 8 FPS and eventually stops.
 
 During continuous, visible animation, the monitor samples delivered
-`requestAnimationFrame` cadence, actual paint cadence, and mean draw cost in
-three-second windows. Below 24 delivered FPS, paint delivery below 80% of its
-target, or mean drawing above 80% of the frame budget for two poor windows lowers
-quality one tier. Intentional 15 FPS pacing uses its own delivery target rather
-than treating it as overload. Low requires four poor windows before Traversal.
-Recovery requires 30 sampled healthy seconds, at least 45 delivered FPS when
+`requestAnimationFrame` cadence, canvas draw-call cadence, and mean JavaScript
+draw cost in one-second windows. These are not GPU/compositor measurements or
+displayed FPS. Below 27 delivered FPS, draw delivery below 90% of its target,
+mean drawing above 80% of the frame budget, or at least 20% long callbacks
+(over 1.5 target frame budgets, with at least ten callbacks in the window)
+for three poor windows lowers quality one tier. Low requires six ordinary
+poor windows before Traversal. Intentional 15 FPS pacing uses its own delivery
+target rather than treating it as overload.
+
+Two consecutive severe windows (below 18 delivered FPS, below 60% of target
+draws, or mean drawing exceeding a full frame budget) skip directly to Low;
+continued severe overload at Low reaches Traversal. Paced callbacks use 60%
+of their own target for the severe threshold. Initial loading and every change,
+resize, or resume have a 1.2-second measurement warm-up. Continuous severe
+overload therefore reaches Low in about 3.2 seconds, rather than waiting
+through density-only steps and long measurement cooldowns. One stalled frame
+contributes at most one bad window, not an entire streak.
+
+Recovery requires 15 sampled healthy seconds, at least 45 delivered FPS when
 sampling uncapped callbacks (90% of target when intentionally paced), at least
-90% of target paints, and mean draw cost no higher than half a 30 FPS budget.
+90% of target draws, mean draw cost no higher than half a 30 FPS budget,
+and no more than 5% long callbacks.
 This allows healthy 48-50 Hz displays to recover without assuming a 60 Hz refresh
-rate. Each change has a 15-second measurement cooldown; initial loading,
-resizing, and resuming have a 1.2-second warm-up. Intermediate or opposite performance breaks a streak.
-One stalled frame contributes at most one slow window, not a full downgrade.
+rate. A 10-second hold after each change applies only to recovery, never further
+downgrades. Intermediate or opposite performance breaks a streak.
 Intentional idle waits count no time; partial windows at the same sampling
 cadence and completed evidence can span active periods separated by idle pauses,
 allowing recovery across short traversals. Cadence changes start fresh windows.
-Upgrades wait until the entrance/traversal has settled; downgrades need not wait.
+Upgrades wait until the entrance, traversal, theme, and focus/parallax transitions
+have settled, generation indicators are inactive, and the chat DOM has been
+quiet for one second; downgrades need not wait. Healthy sampling during retrieval
+can still contribute to recovery, but a tier increase waits for a quiet moment.
 Hidden/offscreen periods, resize, and reduced-motion changes reset the evidence.
 Reduced motion never starts adaptive sampling or traversal animation.
 
