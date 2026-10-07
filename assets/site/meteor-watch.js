@@ -21,11 +21,13 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const between = (min, max) => min + Math.random() * (max - min);
-  const twinkleRest = () => between(2000, 5000);
+  const twinkleRest = () => between(800, 2000);
+  const meteorWait = () => between(12000, 36000);
+  const meteorRest = () => between(36000, 72000);
   const profiles = {
-    breathe: { duration: [3000, 5000], intensity: [.14, .22], growth: [.18, .35] },
-    shimmer: { duration: [4000, 6000], intensity: [.12, .2], growth: [.15, .3] },
-    sparkle: { duration: [2400, 3600], intensity: [.16, .24], growth: [.45, .7] },
+    breathe: { duration: [3000, 5000], intensity: [.14, .22], growth: [.18, .35], points: .65 },
+    shimmer: { duration: [4000, 6000], intensity: [.12, .2], growth: [.15, .3], points: .8 },
+    sparkle: { duration: [2400, 3600], intensity: [.16, .24], growth: [.45, .7], points: 1 },
   };
   let width = 0;
   let height = 0;
@@ -33,9 +35,11 @@
   let skyTop = 0;
   let skyBottom = 0;
   let protectedRects = [];
+  let footerRects = [];
   let stars = [];
   let twinkle = null;
   let meteor = null;
+  let meteorPending = false;
   let clock = 0;
   let lastNow = null;
   let timer = 0;
@@ -43,16 +47,29 @@
   let layoutFrame = 0;
   let pageActive = true;
   let nextTwinkle = twinkleRest();
-  let nextMeteor = between(15000, 45000);
+  let nextMeteor = meteorWait();
 
   const inView = y => y >= window.scrollY + headerHeight + 16 && y <= window.scrollY + height - 24;
   const canRun = () => pageActive && !document.hidden && !reducedMotion.matches &&
     root.dataset.theme === 'dark' && window.scrollY + height > skyTop + 24 && window.scrollY < skyBottom;
-  const clearRect = rect => rect.x >= (width <= 860 ? 0 : 8) &&
+  const overlaps = (rect, p) => rect.x < p.x + p.w && rect.x + rect.w > p.x &&
+    rect.y < p.y + p.h && rect.y + rect.h > p.y;
+  const clearBounds = rect => rect.x >= (width <= 860 ? 0 : 8) &&
     rect.x + rect.w <= width - (width <= 860 ? 0 : 8) &&
     rect.y >= skyTop + 8 && rect.y + rect.h <= skyBottom - 8 &&
-    !protectedRects.some(p => rect.x < p.x + p.w && rect.x + rect.w > p.x &&
-      rect.y < p.y + p.h && rect.y + rect.h > p.y);
+    !footerRects.some(p => overlaps(rect, p));
+  const clearRect = rect => clearBounds(rect) && !protectedRects.some(p => overlaps(rect, p));
+  const trackRect = (flight, fraction = 1) => ({
+    x: Math.min(flight.x, flight.x + flight.dx * fraction) - 4,
+    y: Math.min(flight.y, flight.y + flight.dy * fraction) - 4,
+    w: Math.abs(flight.dx * fraction) + 8, h: Math.abs(flight.dy * fraction) + 8,
+  });
+  const meteorFits = flight => {
+    const full = trackRect(flight);
+    return clearBounds(full) && full.y >= window.scrollY + headerHeight + 16 &&
+      full.y + full.h <= window.scrollY + height - 24 &&
+      clearRect(trackRect(flight, flight.mobile ? .7 : 1));
+  };
 
   function advance() {
     const now = performance.now();
@@ -70,7 +87,7 @@
 
   function measure() {
     advance();
-    const wasDesktop = width > 860;
+    if (meteor) finishMeteor();
     width = root.clientWidth;
     height = window.innerHeight;
     headerHeight = header.getBoundingClientRect().height;
@@ -80,12 +97,12 @@
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (!wasDesktop && width > 860) nextMeteor = clock + between(15000, 45000);
     const mobile = width <= 860;
     const selectors = [
       'h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'figure', 'details', 'a', 'button', 'input', 'select',
       '.section-heading', '.cv-about-copy', '.chapter-copy', '.chapter-figure', '.cv-record', '.award-card', '.contact-card',
     ].join(',');
+    footerRects = [];
     protectedRects = [...document.querySelectorAll(`main :is(${selectors}), .site-footer`)]
       .filter(element => !hero.contains(element) && element.getClientRects().length)
       .map(element => {
@@ -93,10 +110,12 @@
         const horizontalPad = mobile ? 4 : 18;
         const bottomPad = mobile ? 8 : 36;
         // Reserve both ends of the existing 28px content-reveal translation.
-        return {
+        const rect = {
           x: r.left - horizontalPad, y: r.top + window.scrollY - 36,
           w: r.width + horizontalPad * 2, h: r.height + 36 + bottomPad,
         };
+        if (element.matches('.site-footer')) footerRects.push(rect);
+        return rect;
       });
     const random = seededRandom(Math.round(width) + 731);
     const cell = mobile ? 112 : 128;
@@ -104,15 +123,15 @@
     stars = [];
     function addPoint(x, y) {
       const rank = random();
-      const alpha = .18 + random() * .2;
+      const alpha = .18 + rank * .12 + random() * .07;
       const warm = random() < .12;
       const shapeRank = random();
-      const radius = rank < .7 ? .45 + rank * .8 :
-        rank < .94 ? 1.15 + (rank - .7) * 2.5 : 2.1 + (rank - .94) * 10;
+      const radius = rank < .58 ? .65 + rank * .7 :
+        rank < .9 ? 1.2 + (rank - .58) * 2.1875 : 2.05 + (rank - .9) * 3.5;
       if (clearRect({ x: x - clearance, y: y - clearance, w: clearance * 2, h: clearance * 2 })) {
         stars.push({
-          x, y, alpha, warm, twinkles: 0, radius: radius * (mobile ? .65 : 1),
-          shape: shapeRank < .82 ? 'dots' : shapeRank < .92 ? 'diamonds' : 'glints',
+          x, y, alpha, warm, twinkles: 0, radius: mobile ? .65 + (radius - .65) * .65 : radius,
+          shape: shapeRank < .4 ? 'astroid' : 'point', halo: rank > .85,
         });
       }
     }
@@ -124,8 +143,7 @@
       if (mobile) addPoint(row++ % 2 ? width - 8 : 8, y + random() * (cell - 24));
     }
     twinkle = null;
-    meteor = null;
-    sync();
+    sync(true);
   }
 
   function queueMeasure() {
@@ -150,15 +168,20 @@
       star, start: clock, kind,
       duration: between(...profile.duration), intensity: between(...profile.intensity),
       growth: between(...profile.growth) * (width <= 860 ? .65 : 1),
+      points: profile.points,
     };
   }
 
   function startMeteor() {
-    const desired = between(70, Math.min(760, width * .65));
+    const mobile = width <= 860;
+    const desired = mobile ? between(36, Math.min(220, width * .55)) :
+      between(70, Math.min(760, width * .65));
     const angle = between(-.11, .11);
     const rightward = Math.random() < .5;
     // Try shallower full-length tracks before shortening to fit a clear gap.
-    for (const distance of [desired, desired * .65, desired * .35, 70]) {
+    const distances = mobile ? [desired, Math.max(28, desired * .65), Math.max(28, desired * .35), 28] :
+      [desired, desired * .65, desired * .35, 70];
+    for (const distance of distances) {
       for (const tilt of [angle, angle * .25]) {
         const dx = Math.cos(tilt) * distance * (rightward ? 1 : -1);
         const dy = Math.sin(tilt) * distance;
@@ -168,47 +191,97 @@
         for (let y = Math.max(skyTop + 16, window.scrollY + headerHeight + 16);
           y <= window.scrollY + height - h - 24; y += 12) {
           for (let x = 12; x <= width - w - 12; x += 32) {
-            if (clearRect({ x, y, w, h })) candidates.push({ x, y });
+            const flight = {
+              x: x + 4 + (dx < 0 ? Math.abs(dx) : 0),
+              y: y + 4 + (dy < 0 ? Math.abs(dy) : 0), dx, dy, mobile,
+            };
+            if (meteorFits(flight)) candidates.push(flight);
           }
         }
         if (!candidates.length) continue;
         const point = candidates[Math.floor(Math.random() * candidates.length)];
         meteor = {
-          x: point.x + 4 + (dx < 0 ? Math.abs(dx) : 0),
-          y: point.y + 4 + (dy < 0 ? Math.abs(dy) : 0),
-          dx, dy, distance, tail: Math.min(260, distance * between(.18, .45)),
+          ...point, distance,
+          tail: mobile ? Math.min(64, distance * between(.12, .28)) :
+            Math.min(260, distance * between(.18, .45)),
           start: clock, duration: between(800, 1300) + distance * .7,
+          displayed: false,
         };
-        return;
+        return true;
       }
+    }
+    return false;
+  }
+
+  function tryMeteor() {
+    meteorPending = false;
+    if (!startMeteor()) {
+      if (width <= 860) meteorPending = true;
+      else nextMeteor = clock + meteorRest();
     }
   }
 
-  function drawStar(x, y, radius, alpha, shape, warm) {
-    ctx.fillStyle = warm ? `rgba(244,217,176,${alpha})` : `rgba(185,202,235,${alpha})`;
+  function finishMeteor() {
+    if (meteor.displayed || !meteor.mobile) nextMeteor = clock + meteorRest();
+    else meteorPending = true;
+    meteor = null;
+  }
+
+  function starAppearance(star) {
+    const active = twinkle?.star === star;
+    const t = active ? Math.min(1, (clock - twinkle.start) / twinkle.duration) : 0;
+    const breath = Math.sin(Math.PI * t) ** 2;
+    const pulse = !active ? 0 : twinkle.kind === 'sparkle' ? breath ** 2 :
+      twinkle.kind === 'shimmer' ? breath * (1 - .8 * breath) * 3.2 : breath;
+    const morph = star.shape === 'astroid' ? 1 : pulse * (active ? twinkle.points : 0);
+    const arm = Math.min(width <= 860 ? 3.25 : 4.5,
+      star.radius * (1 + .55 * morph) + pulse * (active ? twinkle.growth : 0));
+    return {
+      radius: star.radius, arm, morph,
+      alpha: Math.min(.52, star.alpha + pulse * (active ? twinkle.intensity : 0)),
+      haloRadius: star.halo ? Math.max(arm, Math.min(width <= 860 ? 3.5 : 4.5, star.radius * 1.9)) : 0,
+    };
+  }
+
+  function traceStar(x, y, radius, arm, morph) {
+    const round = .55228475 * radius * (1 - morph);
+    const inset = radius * (1 - morph) + arm * .55 * morph;
     ctx.beginPath();
-    if (shape === 'diamonds') {
-      ctx.moveTo(x, y - radius * 1.5);
-      ctx.lineTo(x + radius, y);
-      ctx.lineTo(x, y + radius * 1.5);
-      ctx.lineTo(x - radius, y);
-      ctx.closePath();
-    } else if (shape === 'glints') {
-      const arm = radius * 2.5;
-      const waist = radius * .3;
-      ctx.moveTo(x, y - arm);
-      ctx.lineTo(x + waist, y - waist);
-      ctx.lineTo(x + arm * .75, y);
-      ctx.lineTo(x + waist, y + waist);
-      ctx.lineTo(x, y + arm);
-      ctx.lineTo(x - waist, y + waist);
-      ctx.lineTo(x - arm * .75, y);
-      ctx.lineTo(x - waist, y - waist);
-      ctx.closePath();
-    } else {
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.moveTo(x, y - arm);
+    ctx.bezierCurveTo(x + round, y - inset, x + inset, y - round, x + arm, y);
+    ctx.bezierCurveTo(x + inset, y + round, x + round, y + inset, x, y + arm);
+    ctx.bezierCurveTo(x - round, y + inset, x - inset, y + round, x - arm, y);
+    ctx.bezierCurveTo(x - inset, y - round, x - round, y - inset, x, y - arm);
+    ctx.closePath();
+  }
+
+  function drawStar(star, y, fade) {
+    const { radius, arm, morph, alpha, haloRadius } = starAppearance(star);
+    const color = star.warm ? '244,217,176' : '185,202,235';
+    if (haloRadius) {
+      const halo = ctx.createRadialGradient(star.x, y, 0, star.x, y, haloRadius);
+      // An annular halo softens bright points without double-painting their cores.
+      halo.addColorStop(0, `rgba(${color},0)`);
+      halo.addColorStop(.45, `rgba(${color},0)`);
+      halo.addColorStop(.65, `rgba(${color},${.025 * fade})`);
+      halo.addColorStop(1, `rgba(${color},0)`);
+      ctx.fillStyle = halo;
+      ctx.fillRect(star.x - haloRadius, y - haloRadius, haloRadius * 2, haloRadius * 2);
     }
+    const light = ctx.createRadialGradient(star.x, y, 0, star.x, y, arm);
+    light.addColorStop(0, `rgba(${color},${alpha * fade})`);
+    light.addColorStop(.35 * radius / arm, `rgba(${color},${alpha * fade * .95})`);
+    light.addColorStop(.85 * radius / arm, `rgba(${color},${alpha * fade * .75})`);
+    light.addColorStop(1, `rgba(${color},0)`);
+    ctx.fillStyle = light;
+    traceStar(star.x, y, radius, arm, morph);
     ctx.fill();
+  }
+
+  function meteorOpacity(flight, t) {
+    if (t <= 0 || t >= 1) return 0;
+    const end = flight.mobile ? Math.max(0, (t - .7) / .3) : 0;
+    return Math.sin(Math.PI * t) * .32 * (1 - end * end * (3 - 2 * end));
   }
 
   function draw() {
@@ -228,20 +301,7 @@
     stars.forEach(star => {
       if (star.y < window.scrollY + visibleTop - 16 || star.y > window.scrollY + height + 16) return;
       const fade = Math.min(1, Math.max(0, (star.y - skyTop) / 180));
-      const t = twinkle?.star === star ? Math.min(1, (clock - twinkle.start) / twinkle.duration) : 0;
-      const breath = Math.sin(Math.PI * t) ** 2;
-      const pulse = twinkle?.kind === 'sparkle' ? breath ** 2 :
-        twinkle?.kind === 'shimmer' ? breath * (1 - .8 * breath) * 3.2 : breath;
-      const radius = star.radius + pulse * (twinkle?.growth || 0);
-      if (pulse && twinkle.kind === 'sparkle') {
-        const halo = ctx.createRadialGradient(star.x, star.y - window.scrollY, 0, star.x, star.y - window.scrollY, radius * 3.2);
-        halo.addColorStop(0, `rgba(185,202,235,${pulse * fade * .035})`);
-        halo.addColorStop(1, 'rgba(185,202,235,0)');
-        ctx.fillStyle = halo;
-        ctx.fillRect(star.x - 16, star.y - window.scrollY - 16, 32, 32);
-      }
-      drawStar(star.x, star.y - window.scrollY, radius,
-        Math.min(.52, star.alpha + pulse * (twinkle?.intensity || 0)) * fade, star.shape, star.warm);
+      drawStar(star, star.y - window.scrollY, fade);
     });
     if (meteor) {
       const t = Math.min(1, (clock - meteor.start) / meteor.duration);
@@ -252,7 +312,8 @@
       const tailY = y - meteor.dy * tailFraction;
       const trail = ctx.createLinearGradient(tailX, tailY, x, y);
       trail.addColorStop(0, 'rgba(185,202,235,0)');
-      trail.addColorStop(1, `rgba(185,202,235,${Math.sin(Math.PI * t) * .32})`);
+      const opacity = meteorOpacity(meteor, t);
+      trail.addColorStop(1, `rgba(185,202,235,${opacity})`);
       const nx = -meteor.dy / meteor.distance * .5;
       const ny = meteor.dx / meteor.distance * .5;
       ctx.fillStyle = trail;
@@ -266,6 +327,7 @@
       ctx.moveTo(x + 1, y);
       ctx.arc(x, y, 1, 0, Math.PI * 2);
       ctx.fill();
+      if (opacity > 0 && canRun()) meteor.displayed = true;
     }
     ctx.restore();
   }
@@ -279,7 +341,7 @@
     if (twinkle || meteor) {
       animationFrame = requestAnimationFrame(tick);
     } else {
-      const deadline = width > 860 ? Math.min(nextTwinkle, nextMeteor) : nextTwinkle;
+      const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor);
       timer = setTimeout(tick, Math.max(16, deadline - clock));
     }
   }
@@ -288,24 +350,22 @@
     advance();
     if (canRun()) {
       if (twinkle && clock >= twinkle.start + twinkle.duration) twinkle = null;
-      if (meteor && clock >= meteor.start + meteor.duration) meteor = null;
+      if (meteor && clock >= meteor.start + meteor.duration) finishMeteor();
       if (clock >= nextTwinkle) {
         startTwinkle();
         nextTwinkle = clock + (twinkle?.duration || 0) + twinkleRest();
       }
-      if (width > 860 && clock >= nextMeteor) {
-        startMeteor();
-        nextMeteor = clock + (meteor?.duration || 0) + between(45000, 90000);
-      }
+      if (!meteor && !meteorPending && clock >= nextMeteor) tryMeteor();
     }
     draw();
     schedule();
   }
 
-  function sync() {
+  function sync(retryPending = false) {
     advance();
     if (reducedMotion.matches || (twinkle && !inView(twinkle.star.y))) twinkle = null;
-    if (reducedMotion.matches || width <= 860 || (meteor && !inView(meteor.y))) meteor = null;
+    if (meteor && (reducedMotion.matches || !meteorFits(meteor))) finishMeteor();
+    if (retryPending && meteorPending && canRun()) tryMeteor();
     canvas.hidden = root.dataset.theme !== 'dark';
     draw();
     schedule();
@@ -313,12 +373,12 @@
 
   const resizeObserver = new ResizeObserver(queueMeasure);
   [document.body, hero, header].forEach(element => resizeObserver.observe(element));
-  document.addEventListener('site:themechange', sync);
-  document.addEventListener('visibilitychange', sync);
+  document.addEventListener('site:themechange', () => sync());
+  document.addEventListener('visibilitychange', () => sync());
   document.addEventListener('toggle', queueMeasure, true);
-  reducedMotion.addEventListener('change', sync);
+  reducedMotion.addEventListener('change', () => sync());
   window.addEventListener('resize', queueMeasure);
-  window.addEventListener('scroll', sync, { passive: true });
+  window.addEventListener('scroll', () => sync(true), { passive: true });
   window.addEventListener('pagehide', () => {
     pageActive = false;
     sync();
