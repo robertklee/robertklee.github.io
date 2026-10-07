@@ -216,6 +216,40 @@ python3 -m http.server 4173 --bind 127.0.0.1
 
 Open `http://127.0.0.1:4173/` for the homepage or `http://127.0.0.1:4173/404.html` for the not-found page.
 
+### Hero performance comparison spike
+
+Open `http://127.0.0.1:4173/spikes/hero-performance/` to compare the real hero
+at fixed High quality with **Softer buffers**, **Slower backdrop**, **Combined
+treatment**, or a **Still backdrop** reference. All treatments retain the same
+decorative density, graph, topic/document nodes, and retrieval semantics.
+The slower treatments reuse the renderer's existing independent traversal
+canvas, coalesce streaming-copy clearance updates, and use time-based pointer
+settling. The still reference retains depth and chat blur rather than removing
+the frosted appearance.
+
+Use **Baseline A / Candidate B** for native-size visual and performance
+comparisons; the inactive renderer is stopped. **Side by side** uses identical
+internal viewport sizes but scales wide scenes to fit, and runs both renderers.
+**Freeze scene** aligns the stationary camera/points for a detail comparison.
+Choose light/dark, desktop/tablet/phone widths, replay the entrance or retrieval,
+and bookmark the URL to retain the treatment and layout seed. The same seeded
+chat runs in both scenes; theme/reduced-effects production preferences are not
+read or written. The preview omits non-hero scripts and the page header.
+Both scenes load fonts before starting and generate their layouts against
+untransformed copy bounds, avoiding differences from entrance/setup timing.
+
+Live counters report draw calls, backdrop updates, JavaScript draw mean/p95,
+and actual canvas buffer pixels. An independent traversal canvas can increase
+buffer memory even when it reduces redraw work. The counters are not displayed FPS, GPU measurements,
+or a prediction of performance on another machine. Use an actual browser
+performance trace on the affected MacBook before selecting a production change.
+The preview patches the current renderer in memory using checked source anchors;
+it does not fork the renderer or alter production assets. Automatic tier changes
+are intentionally disabled, so this spike compares visuals/rendering strategies,
+not a new adaptive policy. Nothing under `spikes/` is deployed.
+Run `npm run test:hero-performance` for isolated browser coverage and
+`npm run check:hero-performance` for syntax checks.
+
 Run `npm run check` to syntax-check the scripts, and `npm run build` to create the production `dist/` directory with the pages and their runtime assets.
 
 Run `npm run test:hero` for the homepage entrance browser checks. The tests build

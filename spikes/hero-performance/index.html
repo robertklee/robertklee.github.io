@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Hero performance comparisons</title>
+    <link rel="stylesheet" href="preview.css">
+    <script src="renderer.js" defer></script>
+    <script src="preview.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1>Hero performance <small>Isolated visual spike</small></h1>
+      <p>Keep the constellation, depth, and retrieval. Compare the cost of rendering them.</p>
+      <div class="controls">
+        <label>Candidate
+          <select id="candidate">
+            <option value="soft">Softer buffers</option>
+            <option value="paced">Slower backdrop</option>
+            <option value="combined" selected>Combined treatment</option>
+            <option value="still">Still backdrop</option>
+          </select>
+        </label>
+        <label>Theme
+          <select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select>
+        </label>
+        <label>Scene width
+          <select id="width">
+            <option value="fit">Fit available width</option>
+            <option value="1440">Desktop (1440px)</option>
+            <option value="844">Tablet (844px)</option>
+            <option value="390">Phone (390px)</option>
+          </select>
+        </label>
+        <label>Layout seed <input id="seed" type="number" min="1" max="4294967295" step="1" value="1503238553"></label>
+        <label class="checkbox"><input id="freeze" type="checkbox">Freeze scene for detail comparison</label>
+      </div>
+      <div class="controls">
+        <fieldset>
+          <legend>View</legend>
+          <label><input type="radio" name="view" value="baseline" checked>Baseline A</label>
+          <label><input type="radio" name="view" value="candidate">Candidate B</label>
+          <label><input type="radio" name="view" value="split">Side by side</label>
+        </fieldset>
+        <button id="replay" type="button">Replay entrance</button>
+        <button id="retrieval" type="button" disabled>Replay retrieval</button>
+        <a href="../../index.html">Original site</a>
+      </div>
+      <p id="description"></p>
+      <p id="view-note"></p>
+      <p class="caveat">Both scenes use the same seed and scripted chat. Automatic quality changes are disabled to keep the comparison stable. Draw timings measure JavaScript, not GPU/compositor cost or displayed FPS. Compare performance in A/B view; two live heroes add load.</p>
+      <p id="preview-error" role="alert" hidden></p>
+    </header>
+    <main id="comparison">
+      <section class="panel" id="baseline-panel">
+        <h2>A: Current High quality</h2>
+        <p class="metrics" id="baseline-metrics">Loading renderer...</p>
+        <div class="stage"><iframe id="baseline-preview" title="Baseline hero at fixed High quality"></iframe></div>
+      </section>
+      <section class="panel" id="candidate-panel" hidden>
+        <h2 id="candidate-title">B: Combined treatment</h2>
+        <p class="metrics" id="candidate-metrics">Loading renderer...</p>
+        <div class="stage"><iframe id="candidate-preview" title="Candidate hero rendering treatment"></iframe></div>
+      </section>
+    </main>
+  </body>
+</html>

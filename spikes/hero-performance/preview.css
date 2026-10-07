@@ -1,0 +1,55 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  background: light-dark(#f4f5f7, #141820);
+  color: light-dark(#202936, #e5eaf3);
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 20px; }
+header, main { max-width: 1600px; margin: 0 auto; }
+h1 { font-size: 24px; margin: 0; }
+h1 small { display: inline-block; font-size: 13px; font-weight: 400; opacity: .7; }
+header > p { font-size: 14px; line-height: 1.5; margin: 10px 0; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 14px 0; }
+.controls > label { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+select, input[type="number"], button {
+  font: inherit;
+  color: inherit;
+  background: light-dark(#fff, #222936);
+  border: 1px solid light-dark(#b6c0cd, #4c586b);
+  border-radius: 6px;
+  min-height: 36px;
+  padding: 6px 9px;
+}
+input[type="number"] { width: 145px; }
+button, select, input[type="checkbox"], input[type="radio"] { cursor: pointer; }
+button:disabled { cursor: default; opacity: .5; }
+a { color: light-dark(#245ac8, #94b9ff); }
+fieldset { display: flex; flex-wrap: wrap; gap: 12px; border: 1px solid light-dark(#b6c0cd, #4c586b); border-radius: 8px; }
+legend { font-size: 12px; }
+fieldset label { display: flex; align-items: center; gap: 4px; font-size: 14px; }
+.caveat { opacity: .75; }
+#preview-error { color: light-dark(#a42222, #ffb2b2); }
+#comparison { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+#comparison[data-view="split"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.panel { min-width: 0; overflow: hidden; border: 1px solid light-dark(#b6c0cd, #4c586b); border-radius: 10px; }
+.panel h2 { font-size: 15px; margin: 12px 14px 6px; }
+.metrics { font-size: 12px; font-variant-numeric: tabular-nums; margin: 0 14px 12px; min-height: 32px; line-height: 1.5; }
+.stage { position: relative; overflow: hidden; margin: 0 auto; background: #f5f5f0; }
+iframe { display: block; border: 0; transform-origin: top left; }
+[hidden] { display: none !important; }
+/* Retain measurable iframe geometry; display:none collapses it in WebKit. */
+.panel[hidden] {
+  display: block !important;
+  position: absolute;
+  left: -20000px;
+  top: 0;
+  width: 1440px;
+  visibility: hidden;
+  pointer-events: none;
+}
+:focus-visible { outline: 2px solid light-dark(#245ac8, #94b9ff); outline-offset: 3px; }
+@media (max-width: 600px) {
+  body { padding: 10px; }
+  #comparison[data-view="split"] { grid-template-columns: minmax(0, 1fr); }
+}
