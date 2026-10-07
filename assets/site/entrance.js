@@ -18,7 +18,7 @@
   let retrievalNote = null;
   let payoffTimer = 0;
 
-  if (!motionQuery.matches) root.classList.add('hero-entrance-armed');
+  if (!motionQuery.matches && root.dataset.reducedEffects !== 'true') root.classList.add('hero-entrance-armed');
 
   function finishEntrance() {
     root.classList.remove('hero-entrance-armed', 'hero-entrance-running');
@@ -30,7 +30,7 @@
     if (!completeRetrieval) return;
     root.classList.remove('hero-retrieving');
     retrievalNote.remove();
-    if (payoff && !motionQuery.matches) {
+    if (payoff && !motionQuery.matches && root.dataset.reducedEffects !== 'true') {
       root.classList.add('hero-retrieval-payoff');
       clearTimeout(payoffTimer);
       payoffTimer = setTimeout(() => root.classList.remove('hero-retrieval-payoff'), 750);
