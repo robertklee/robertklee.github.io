@@ -913,12 +913,49 @@
     const deep = all.filter(i => nodes[i].cluster < 0 && nodes[i].z > F && nodes[i].level < TOP);
     let tops = all.filter(i => nodes[i].level === TOP).length;
     while (tops < 4 && deep.length) { nodes[deep.splice(Math.floor(rand() * deep.length), 1)[0]].level = TOP; tops++; }
+    buildUpperLayers();
+    // The entrance wave and 404 use the deepest background entry.
+    entry = all.filter(i => nodes[i].cluster < 0 && nodes[i].level === TOP)
+      .reduce((a, b) => (nodes[b].z > nodes[a].z ? b : a));
+  }
+  function buildUpperLayers() {
+    const all = nodes.map((_, i) => i);
     for (let l = 1; l <= TOP; l++) adj[l] = buildLayer(all.filter(i => nodes[i].level >= l), 8, l === TOP ? 3 : 4);
-    // The entry point is the deepest top-layer node: every search starts far back.
-    entry = all.filter(i => nodes[i].level === TOP).reduce((a, b) => (nodes[b].z > nodes[a].z ? b : a));
   }
 
   // --- Search ------------------------------------------------------------------
+  function selectQueryEntry(regions) {
+    if (!entranceEffect || !regions.length) return entry;
+    const pad = Math.max(24, sigma);
+    const bounds = regions.map(ci => {
+      const points = clusterInfo[ci].members.map(i => {
+        const n = nodes[i];
+        return project(n.wx, n.wy, n.z, {});
+      });
+      return {
+        left: Math.min(...points.map(p => p.sx)) - pad,
+        right: Math.max(...points.map(p => p.sx)) + pad,
+        top: Math.min(...points.map(p => p.sy)) - pad,
+        bottom: Math.max(...points.map(p => p.sy)) + pad
+      };
+    });
+    const clear = nodes.flatMap((n, i) => {
+      if (n.cluster >= 0) return [];
+      const p = project(n.wx, n.wy, n.z, {});
+      return bounds.some(b => p.sx >= b.left && p.sx <= b.right && p.sy >= b.top && p.sy <= b.bottom) ? [] : [i];
+    });
+    const tops = clear.filter(i => nodes[i].level === TOP);
+    const candidates = tops.length ? tops : clear;
+    if (!candidates.length) throw new Error('Hero field: no background entry outside the destination topic regions.');
+    const selected = candidates.reduce((a, b) => nodes[b].z > nodes[a].z ? b : a);
+    // A sparse L2 may have no clear entry; promote a real node, not a synthetic hop.
+    if (nodes[selected].level < TOP) {
+      nodes[selected].level = TOP;
+      buildUpperLayers();
+    }
+    return selected;
+  }
+
   function greedy(layer, from, target, steps) {
     let cur = from;
     for (let guard = 0; guard < 32; guard++) {
@@ -1017,7 +1054,7 @@
 
   function planQuery(spec, start) {
     readProtected();
-    const q = { spec, start, mode: 'miss', branches: [], results: [], target: null, land: 0, focusAt: 0, focus: null };
+    const q = { spec, start, entry, mode: 'miss', branches: [], results: [], target: null, land: 0, focusAt: 0, focus: null };
     // Explaining the illustration should not run a search or produce a miss.
     if (spec.topic === 'behind-the-scenes') {
       q.mode = 'overview';
@@ -1029,6 +1066,8 @@
     }
     const hits = resolveDocs(spec);
     const regions = [...new Set(hits.map(i => nodes[i].cluster))];
+    projectNodes(sceneTime, motionQuery.matches, nodes);
+    q.entry = selectQueryEntry(regions);
     if (regions.length === 1) {
       q.mode = 'knn';
       const ci = regions[0];
@@ -1045,7 +1084,7 @@
         target.y += Math.sin(angle) * sigma * 0.55;
       }
       q.target = target;
-      const { steps } = search(target, ci, entry, TOP);
+      const { steps } = search(target, ci, q.entry, TOP);
       q.land = q.focusAt = schedule(steps, 0);
       q.branches = [steps];
       q.results = hits.slice()
@@ -1063,7 +1102,7 @@
       // One shared descent through the top layer, then a branch per region
       // that lands on its first document and walks L0 to the rest.
       const trunk = [];
-      const fork = greedy(TOP, entry, centroid, trunk);
+      const fork = greedy(TOP, q.entry, centroid, trunk);
       trunk.push({ descend: true, at: fork, layer: TOP - 1 });
       const forkAt = schedule(trunk, 0);
       q.branches = [trunk];
@@ -1089,7 +1128,7 @@
       setReadout('Diverse retrieval · ' + q.results.length + ' results across ' + regions.length + ' topics', true);
     } else {
       q.target = emptiestSpot();
-      const { steps } = search(q.target, null, entry, TOP);
+      const { steps } = search(q.target, null, q.entry, TOP);
       q.land = q.focusAt = schedule(steps, 0);
       q.branches = [steps];
       q.focus = clusterInfo.map(() => 0.55);
@@ -1198,8 +1237,8 @@
     });
   }
 
-  function projectNodes(t, still) {
-    for (const n of projectionNodes || nodes) {
+  function projectNodes(t, still, selected = projectionNodes || nodes) {
+    for (const n of selected) {
       n.wx = still ? n.x : n.x + Math.sin(t * n.freq + n.phase) * n.amp;
       n.wy = still ? n.y : n.y + Math.cos(t * n.freq * 0.8 + n.phase) * n.amp;
       project(n.wx, n.wy, n.z, n);
@@ -1655,7 +1694,7 @@
       }
       if (q.mode === 'miss' && landed) {
         const steps = q.branches[0];
-        const last = nodes[steps.length ? steps[steps.length - 1].from : entry];
+        const last = nodes[steps.length ? steps[steps.length - 1].from : q.entry];
         const c = frontContext();
         c.setLineDash([2, 5]);
         c.strokeStyle = rgba(colors.faint, 0.8 * markFade);

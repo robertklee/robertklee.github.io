@@ -163,6 +163,8 @@ async function inspectIdleField(page, { stubChat = true } = {}) {
             edges: [...edges], decoration: [...backdropEdges]
           };
         },
+        get searchGraph() { return { nodes, adj, entry, sigma }; },
+        get camera() { return cam; },
         get query() { return query; },
         get activity() { return { frame, wakeTimer, visible, entranceProgress, interval: frameInterval(performance.now()) }; },
         get idleSince() { return idleSince; },
@@ -205,7 +207,9 @@ async function inspectIdleField(page, { stubChat = true } = {}) {
         kick,
         activate,
         frameInterval,
-        onQuery
+        onQuery,
+        project,
+        unproject
       };
 ${hook}`),
   }));
@@ -342,6 +346,167 @@ test('visible severe frames reach Low within four seconds and sustained smooth f
   await expect(page.locator('.hero')).toHaveAttribute('data-field-quality', 'balanced', { timeout: 20000 });
   await page.evaluate(() => { window.heroContinuousFrames = false; });
   await expectFieldIdle(page);
+});
+
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }, { width: 700, height: 390 }]) {
+  test(`retrieval starts outside projected destination topic bounds at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await inspectIdleField(page);
+    for (const sample of [.11, .35, .67, .89]) {
+      await page.goto(`${origin}/?sample=${sample}`);
+      await page.waitForFunction(() => window.heroFieldTest?.activity.visible);
+      const snapshots = await page.evaluate(() => {
+        const field = window.heroFieldTest;
+        const { nodes, sigma } = field.searchGraph;
+        const content = window.HeroChatContent;
+        const specs = [
+          ...nodes.filter(node => node.label).map(node => ({ topic: 'single-source', docs: [node.label] })),
+          ...content.VARIANTS.map(variant => ({ topic: 'intro', docs: variant.docs })),
+          ...content.TOPICS.map(topic => ({ topic: topic.id, docs: topic.docs })),
+          { topic: 'all-topics', docs: nodes.filter(node => node.label).map(node => node.label) },
+          { topic: 'intro' },
+          { topic: 'not-found' },
+        ];
+        return ['high', 'low'].flatMap(quality => {
+          field.setQuality(quality);
+          return specs.map(spec => {
+            field.onQuery(spec);
+            const { entry, mode, branches, results } = field.query;
+            const regions = [...new Set(results.map(result => nodes[result.i].cluster))];
+            const pad = Math.max(24, sigma);
+            const bounds = regions.map(ci => {
+              const points = field.regions[ci].members.map(i => field.project(nodes[i].wx, nodes[i].wy, nodes[i].z, {}));
+              return {
+                left: Math.min(...points.map(p => p.sx)) - pad,
+                right: Math.max(...points.map(p => p.sx)) + pad,
+                top: Math.min(...points.map(p => p.sy)) - pad,
+                bottom: Math.max(...points.map(p => p.sy)) + pad,
+              };
+            });
+            const outside = node => {
+              const p = field.project(node.wx, node.wy, node.z, {});
+              return bounds.every(b => p.sx < b.left || p.sx > b.right || p.sy < b.top || p.sy > b.bottom);
+            };
+            const search = field.searchGraph;
+            const first = branches[0][0];
+            return {
+              spec, mode, quality, startsAtEntry: first.from === entry, layer: first.layer,
+              startCluster: nodes[entry].cluster, startLevel: nodes[entry].level,
+              outsideDestinations: outside(nodes[entry]),
+              deepestEligible: nodes[entry].z === Math.max(...nodes.filter(node =>
+                node.cluster < 0 && node.level === 2 && outside(node)).map(node => node.z)),
+              validHops: branches.every(steps => steps.every(step => step.descend ||
+                step.from === step.to || search.adj[step.layer][step.from].includes(step.to))),
+              topicLevels: nodes.filter(node => node.cluster >= 0).map(node => node.level),
+              results: results.map(result => ({ label: nodes[result.i].label, kind: nodes[result.i].kind, cluster: nodes[result.i].cluster })),
+            };
+          });
+        });
+      });
+      for (const query of snapshots) {
+        expect(query.startsAtEntry).toBe(true);
+        expect(query.layer).toBe(2);
+        expect(query.startCluster).toBe(-1);
+        expect(query.startLevel).toBe(2);
+        expect(query.outsideDestinations).toBe(true);
+        expect(query.deepestEligible).toBe(true);
+        expect(query.validHops).toBe(true);
+        expect(query.topicLevels.every(level => level === 0)).toBe(true);
+        expect(query.results.every(node => node.kind === 'doc' && node.cluster >= 0)).toBe(true);
+        expect(query.results.every(node => node.cluster !== query.startCluster)).toBe(true);
+        if (query.spec.docs) {
+          expect(query.results.map(node => node.label).sort()).toEqual([...query.spec.docs].sort());
+        } else if (query.spec.topic === 'not-found') {
+          expect(query.mode).toBe('miss');
+          expect(query.results).toHaveLength(0);
+        } else {
+          expect(query.mode).toBe('diverse');
+          expect(query.results.length).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+}
+
+test('retrieval promotes a clear background entry when all existing L2 nodes overlap a destination', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await page.waitForFunction(() => window.heroFieldTest?.activity.visible);
+  const snapshot = await page.evaluate(() => {
+    const field = window.heroFieldTest;
+    const { nodes } = field.searchGraph;
+    const region = field.regions.find(region => region.id === 'performance');
+    const destination = nodes[region.hub];
+    const point = field.project(destination.wx, destination.wy, destination.z, {});
+    const originalTops = nodes.flatMap((node, i) => node.level === 2 ? [i] : []);
+    originalTops.forEach(i => {
+      const node = nodes[i];
+      Object.assign(node, field.unproject(point.sx, point.sy, node.z));
+      node.wx = node.x;
+      node.wy = node.y;
+    });
+    field.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] });
+    const { entry, branches } = field.query;
+    const { adj } = field.searchGraph;
+    const start = nodes[entry];
+    const startPoint = field.project(start.wx, start.wy, start.z, {});
+    const points = region.members.map(i => field.project(nodes[i].wx, nodes[i].wy, nodes[i].z, {}));
+    const pad = Math.max(24, field.searchGraph.sigma);
+    return {
+      promoted: !originalTops.includes(entry), level: start.level, cluster: start.cluster,
+      clear: startPoint.sx < Math.min(...points.map(p => p.sx)) - pad ||
+        startPoint.sx > Math.max(...points.map(p => p.sx)) + pad ||
+        startPoint.sy < Math.min(...points.map(p => p.sy)) - pad ||
+        startPoint.sy > Math.max(...points.map(p => p.sy)) + pad,
+      connected: [1, 2].every(layer => adj[layer][entry].length > 0),
+      validHops: branches.every(steps => steps.every(step => step.descend ||
+        step.from === step.to || adj[step.layer][step.from].includes(step.to))),
+    };
+  });
+  expect(snapshot).toEqual({ promoted: true, level: 2, cluster: -1, clear: true, connected: true, validHops: true });
+});
+
+test('retrieval excludes destination regions under the current camera and replans after resize', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await inspectIdleField(page);
+  await page.goto(origin);
+  await page.waitForFunction(() => window.heroFieldTest?.activity.visible);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const inspectEntry = () => page.evaluate(() => {
+    const field = window.heroFieldTest;
+    const { nodes, sigma } = field.searchGraph;
+    const { entry, results } = field.query;
+    const regions = [...new Set(results.map(result => nodes[result.i].cluster))];
+    const start = field.project(nodes[entry].wx, nodes[entry].wy, nodes[entry].z, {});
+    const pad = Math.max(24, sigma);
+    return regions.every(ci => {
+      const points = field.regions[ci].members.map(i => field.project(nodes[i].wx, nodes[i].wy, nodes[i].z, {}));
+      return start.sx < Math.min(...points.map(p => p.sx)) - pad ||
+        start.sx > Math.max(...points.map(p => p.sx)) + pad ||
+        start.sy < Math.min(...points.map(p => p.sy)) - pad ||
+        start.sy > Math.max(...points.map(p => p.sy)) + pad;
+    });
+  });
+  for (const direction of [-1, 1]) {
+    await page.evaluate(direction => {
+      const field = window.heroFieldTest;
+      Object.assign(field.camera, { px: .03 * direction, tx: .03 * direction, py: .0175 * direction, ty: .0175 * direction });
+      field.draw(performance.now());
+      const docs = field.searchGraph.nodes.filter(node => node.label).map(node => node.label);
+      field.onQuery({ topic: 'all-topics', docs });
+    }, direction);
+    expect(await inspectEntry()).toBe(true);
+  }
+  const originalQuery = await page.evaluate(() => window.heroFieldTest.query);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(() => document.querySelector('.field-near').style.width === '390px');
+  expect(await inspectEntry()).toBe(true);
+  const resizedQuery = await page.evaluate(() => window.heroFieldTest.query);
+  expect(resizedQuery.spec).toEqual(originalQuery.spec);
+  expect(resizedQuery.start).toBe(originalQuery.start);
+  expect(resizedQuery.entry).toBe(resizedQuery.branches[0][0].from);
 });
 
 for (const pathname of ['/', '/404.html']) {
