@@ -237,6 +237,157 @@
     ctx.globalAlpha = 1;
   }
 
+  // Recognizable schematic patterns, not sky coordinates: [x, y, magnitude, colour?].
+  // Edges are listed in tracing order.
+  const constellationPatterns = [
+    { name: 'Big Dipper', points: [[0, 38, 2], [22, 17, 2], [44, 12, 1], [70, 18, 1], [120, 8, 3], [127, 45, 2], [78, 52, 1]],
+      edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 3]] },
+    { name: 'Orion', points: [[36, 0, 1], [8, 12, 3, '255,180,140'], [62, 16, 2], [26, 50, 2], [36, 47, 2], [46, 44, 2],
+      [14, 90, 2], [68, 86, 3, '166,192,255']],
+      edges: [[1, 0], [0, 2], [2, 5], [5, 4], [4, 3], [3, 1], [3, 6], [5, 7]] },
+    { name: 'Cygnus', points: [[40, 0, 3, '228,232,244'], [42, 34, 2], [44, 62, 1], [46, 92, 2, '244,217,176'], [8, 24, 1], [76, 46, 2]],
+      edges: [[0, 1], [1, 2], [2, 3], [4, 1], [1, 5]] },
+    { name: 'Cassiopeia', points: [[0, 0, 2], [28, 36, 2], [55, 8, 3], [83, 34, 2], [112, 0, 1]],
+      edges: [[0, 1], [1, 2], [2, 3], [3, 4]] },
+    { name: 'Leo', points: [[2, 14, 1], [12, 4, 1], [26, 14, 1], [32, 30, 2, '244,217,176'], [22, 48, 1], [24, 66, 3, '166,192,255'],
+      [88, 52, 1], [86, 30, 2], [124, 48, 2]],
+      edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 8], [8, 7], [7, 3]] },
+    { name: 'Lyra', points: [[10, 0, 3, '210,224,255'], [22, 22, 1], [40, 26, 1], [36, 54, 2], [16, 50, 2]],
+      edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 1]] },
+    { name: 'Crux', points: [[24, 0, 2, '255,180,140'], [20, 66, 3, '166,192,255'], [0, 28, 2], [42, 22, 1], [30, 44, 1]],
+      edges: [[0, 1], [2, 3]] },
+  ];
+  const constellationHold = 2200;
+  const constellationFade = 2400;
+  const constellationFlash = 900;
+  const revealed = new Map();
+  let constellations = [];
+
+  function fitConstellation(pattern, y0, y1, nearby, random) {
+    const mobile = width <= 860;
+    const pad = mobile ? 8 : 24;
+    const step = mobile ? 8 : 16;
+    for (const scale of mobile ? [.75, .6] : [1.1, .9]) {
+      const w = Math.max(...pattern.points.map(([x]) => x)) * scale;
+      const h = Math.max(...pattern.points.map(([, y]) => y)) * scale;
+      const candidates = [];
+      for (let y = y0; y + h <= y1; y += step) {
+        for (let x = 12; x + w <= width - 12; x += step) {
+          const box = { x: x - pad, y: y - pad, w: w + pad * 2, h: h + pad * 2 };
+          if (!nearby.some(rect => overlaps(box, rect))) candidates.push([x, y]);
+        }
+      }
+      if (!candidates.length) continue;
+      const [x, y] = candidates[Math.floor(random() * candidates.length)];
+      const index = constellations.length;
+      const points = pattern.points.map(([px, py, magnitude, color = '185,202,235']) => {
+        const radius = [1.15, 1.6, 2.2][magnitude - 1];
+        return {
+          x: x + px * scale, y: y + py * scale, color, constellation: index, arrival: 0,
+          radius: mobile ? .65 + (radius - .65) * .65 : radius, alpha: .62 + magnitude * .08,
+          halo: magnitude > 1, scaleX: 1, scaleY: 1, curve: .55, twinkles: 0,
+        };
+      });
+      const lengths = pattern.edges.map(([a, b]) => Math.hypot(points[a].x - points[b].x, points[a].y - points[b].y));
+      const total = lengths.reduce((sum, length) => sum + length, 0);
+      const duration = Math.min(4200, Math.max(1800, 900 + total * 9));
+      let traced = 0;
+      pattern.edges.forEach(([a, b], i) => {
+        // Each point flashes when the tracing line first touches it.
+        if (!points[a].arrival) points[a].arrival = traced / total * duration || 1;
+        traced += lengths[i];
+        if (!points[b].arrival) points[b].arrival = traced / total * duration;
+      });
+      return {
+        name: pattern.name, edges: pattern.edges, points, lengths, total, duration,
+        box: { x, y, w, h }, start: revealed.get(pattern.name) ?? null,
+      };
+    }
+    return null;
+  }
+
+  function placeConstellations(random) {
+    const top = skyTop + 220;
+    const span = Math.max(height * 1.4, (skyBottom - top) / constellationPatterns.length);
+    const unused = [...constellationPatterns];
+    constellations = [];
+    for (let band = top; band < skyBottom - 200 && unused.length; band += span) {
+      const last = constellations.at(-1)?.box;
+      // Keep roughly one constellation per screen, even across band edges.
+      const y0 = Math.max(band, last ? last.y + last.h + height * .8 : band);
+      const y1 = Math.min(band + span, skyBottom - 200);
+      const nearby = [...protectedRects, ...footerRects].filter(rect => rect.y < y1 + 32 && rect.y + rect.h > y0 - 160);
+      // Use the next pattern that fits; smaller ones can fill gaps that larger ones cannot.
+      for (const [order, pattern] of unused.entries()) {
+        const constellation = fitConstellation(pattern, y0, y1, nearby, random);
+        if (!constellation) continue;
+        constellations.push(constellation);
+        unused.splice(order, 1);
+        break;
+      }
+    }
+    const clear = width <= 860 ? 10 : 18;
+    stars = stars.filter(star => !constellations.some(({ box }) =>
+      overlaps({ x: star.x, y: star.y, w: 0, h: 0 }, { x: box.x - clear, y: box.y - clear, w: box.w + clear * 2, h: box.h + clear * 2 })));
+  }
+
+  const constellationAge = constellation => constellation.start === null ? -1 : clock - constellation.start;
+  const constellationAnimating = constellation => !reducedMotion.matches && constellationAge(constellation) >= 0 &&
+    constellationAge(constellation) < constellation.duration + constellationHold + constellationFade + constellationFlash;
+
+  function revealConstellations() {
+    if (!canRun()) return;
+    for (const constellation of constellations) {
+      const { box } = constellation;
+      if (constellation.start !== null || box.y < window.scrollY + headerHeight + 24 ||
+        box.y + box.h > window.scrollY + height - 60) continue;
+      constellation.start = clock;
+      revealed.set(constellation.name, clock);
+    }
+  }
+
+  function constellationFlashOf(star) {
+    const constellation = constellations[star.constellation];
+    if (!constellation || reducedMotion.matches) return 0;
+    const t = (constellationAge(constellation) - star.arrival) / constellationFlash;
+    return t < 0 || t > 1 || constellationAge(constellation) < 0 ? 0 : Math.sin(Math.PI * t) ** 2;
+  }
+
+  function drawConstellations() {
+    const mobile = width <= 860;
+    for (const constellation of constellations) {
+      const { box, points, edges, lengths, total, duration } = constellation;
+      if (box.y + box.h < window.scrollY - 20 || box.y > window.scrollY + height + 20) continue;
+      const age = reducedMotion.matches ? Infinity : constellationAge(constellation);
+      if (age > 0) {
+        const fading = Math.min(1, Math.max(0, (age - duration - constellationHold) / constellationFade));
+        const alpha = .38 - .24 * fading * fading * (3 - 2 * fading);
+        let remaining = total * Math.min(1, age / duration);
+        ctx.strokeStyle = `rgba(185,202,235,${alpha})`;
+        ctx.lineWidth = mobile ? .7 : .85;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        edges.forEach(([a, b], i) => {
+          if (remaining <= 0) return;
+          const from = points[a];
+          const to = points[b];
+          const length = lengths[i];
+          // Leave a small gap at each star so lines read as joins, not strokes through cores.
+          const gap = Math.min(length / 3, mobile ? 3 : 4.5);
+          const reach = Math.min(length - gap, remaining);
+          remaining -= length;
+          if (reach <= gap) return;
+          const ux = (to.x - from.x) / length;
+          const uy = (to.y - from.y) / length;
+          ctx.moveTo(from.x + ux * gap, from.y - window.scrollY + uy * gap);
+          ctx.lineTo(from.x + ux * reach, from.y - window.scrollY + uy * reach);
+        });
+        ctx.stroke();
+      }
+      points.forEach(star => drawStar(star, star.y - window.scrollY, 1));
+    }
+  }
+
   function measure() {
     advance();
     if (meteor) finishMeteor();
@@ -304,6 +455,7 @@
       }
       if (mobile) addPoint(row++ % 2 ? width - 8 : 8, y + random() * (cell - 24));
     }
+    placeConstellations(seededRandom(Math.round(width) + 97));
     twinkles = [];
     sync(true);
   }
@@ -395,13 +547,14 @@
     const breath = Math.sin(Math.PI * t) ** 2;
     const pulse = !active ? 0 : twinkle.kind === 'sparkle' ? breath ** 2 :
       twinkle.kind === 'shimmer' ? breath * (1 - .8 * breath) * 3.2 : breath;
+    const flash = star.constellation === undefined ? 0 : constellationFlashOf(star);
     const stretch = Math.max(star.scaleX, star.scaleY);
     const arm = Math.min(width <= 860 ? 4.25 : 6,
-      (star.radius * 1.55 + pulse * (active ? twinkle.growth : 0)) * stretch);
+      (star.radius * 1.55 + pulse * (active ? twinkle.growth : 0) + flash * 1.2) * stretch);
     return {
       radius: star.radius, arm,
       armX: arm * (star.scaleX / stretch), armY: arm * (star.scaleY / stretch), curve: star.curve,
-      alpha: Math.min(1, star.alpha + pulse * (active ? twinkle.intensity : 0)),
+      alpha: Math.min(1, star.alpha + pulse * (active ? twinkle.intensity : 0) + flash * .3),
       haloRadius: star.halo ? Math.max(arm, Math.min(width <= 860 ? 4.5 : 6, star.radius * 2.4)) : 0,
     };
   }
@@ -468,6 +621,7 @@
       const fade = Math.min(1, Math.max(0, (star.y - skyTop) / 180));
       drawStar(star, star.y - window.scrollY, fade);
     });
+    drawConstellations();
     if (meteor) {
       const t = Math.min(1, (clock - meteor.start) / meteor.duration);
       const x = meteor.x + meteor.dx * t;
@@ -505,7 +659,7 @@
     if (!canRun()) return;
     if (meteor) {
       animationFrame = requestAnimationFrame(tick);
-    } else if (twinkles.length) {
+    } else if (twinkles.length || constellations.some(constellationAnimating)) {
       timer = setTimeout(tick, twinkleFrame);
     } else {
       const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor);
@@ -523,6 +677,7 @@
         nextTwinkle = clock + twinkleGap();
       }
       if (!meteor && !meteorPending && clock >= nextMeteor) tryMeteor();
+      revealConstellations();
     }
     draw();
     schedule();
@@ -533,6 +688,7 @@
     twinkles = reducedMotion.matches ? [] : twinkles.filter(active => inView(active.star.y));
     if (meteor && (reducedMotion.matches || !meteorFits(meteor))) finishMeteor();
     if (retryPending && meteorPending && canRun()) tryMeteor();
+    revealConstellations();
     canvas.hidden = root.dataset.theme !== 'dark';
     draw();
     schedule();

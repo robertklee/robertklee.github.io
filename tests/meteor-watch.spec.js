@@ -122,6 +122,11 @@ test.beforeEach(async ({ page }) => {
       }
       return drawImage.apply(this, args);
     };
+    const stroke = proto.stroke;
+    proto.stroke = function (...args) {
+      if (this.canvas.matches('.meteor-watch-canvas') && (window.omitSkyStars || window.omitSkyConstellations)) return;
+      return stroke.apply(this, args);
+    };
     proto.fill = function (...args) {
       if (this.canvas.matches('.meteor-watch-canvas') && window.omitSkyStars &&
           (typeof this.fillStyle === 'string' || starPaints.has(this.fillStyle))) return;
@@ -138,7 +143,7 @@ test.beforeEach(async ({ page }) => {
         window.meteorAttempts = (window.meteorAttempts || 0) + 1;`)
       .replace(/\n\}\)\(\);\s*$/, `
         window.readMeteorWatch = () => ({
-          width, height, headerHeight, skyTop, skyBottom, stars, protectedRects, footerRects,
+          width, height, headerHeight, skyTop, skyBottom, stars, protectedRects, footerRects, constellations,
           appearances: stars.map(starAppearance), meteorPending,
           attempts: window.meteorAttempts || 0,
           clock: clock + (lastNow === null ? 0 : performance.now() - lastNow),
@@ -547,6 +552,65 @@ test('dust layers drift slower than the page for parallax depth, except under re
   await page.emulateMedia({ reducedMotion: 'reduce' });
   expect(await drift()).toEqual([1, 1]);
   expect((await state(page)).stars.map(({ x, y }) => [x, y])).toEqual(positions);
+});
+
+test('familiar constellations sit in clear space, trace in once when scrolled into view, then settle', async ({ page }) => {
+  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; window.omitSkyBand = true; });
+  const scene = await state(page);
+  expect(scene.constellations.length).toBe(7);
+  expect(new Set(scene.constellations.map(({ name }) => name)).size).toBe(7);
+  for (const { box, points } of scene.constellations) {
+    const padded = { x: box.x - 24, y: box.y - 24, w: box.w + 48, h: box.h + 48 };
+    expect(scene.protectedRects.every(rect => padded.x + padded.w <= rect.x || padded.x >= rect.x + rect.w ||
+      padded.y + padded.h <= rect.y || padded.y >= rect.y + rect.h)).toBe(true);
+    expect(scene.stars.some(star => star.x >= box.x && star.x <= box.x + box.w &&
+      star.y >= box.y && star.y <= box.y + box.h)).toBe(false);
+    expect(points.every(point => point.x >= box.x && point.x <= box.x + box.w + .001)).toBe(true);
+    expect(scene.constellations.filter(other => other.box !== box && Math.abs(other.box.y - box.y) < scene.height * .8)).toEqual([]);
+  }
+  const target = scene.constellations[0];
+  expect(target.start).toBeNull();
+  const glow = () => sky(page).evaluate((canvas, box) => {
+    const ratio = canvas.width / document.documentElement.clientWidth;
+    const data = canvas.getContext('2d').getImageData(
+      Math.floor(box.x * ratio), Math.floor((box.y - window.scrollY) * ratio),
+      Math.ceil(box.w * ratio), Math.ceil(box.h * ratio)).data;
+    let total = 0;
+    for (let i = 3; i < data.length; i += 4) total += data[i];
+    return total;
+  }, target.box);
+  await page.evaluate(box => {
+    window.scrollTo({ top: box.y + box.h / 2 - window.innerHeight / 2, behavior: 'instant' });
+    window.dispatchEvent(new Event('scroll'));
+  }, target.box);
+  const started = (await state(page)).constellations[0];
+  expect(started.start).toBe((await state(page)).clock);
+  expect((await state(page)).timer).toBe(true);
+  expect((await state(page)).animationFrame).toBe(false);
+  const samples = [await glow()];
+  for (const at of [started.duration * .5, started.duration + 500, started.duration + 6000]) {
+    const now = await state(page);
+    await page.clock.runFor(Math.ceil(started.start + at - now.clock));
+    samples.push(await glow());
+  }
+  expect(samples[1]).toBeGreaterThan(samples[0]);
+  expect(samples[2]).toBeGreaterThan(samples[1]);
+  expect(samples[3]).toBeLessThan(samples[2]);
+  expect(samples[3]).toBeGreaterThan(samples[0]);
+  await resizeSky(page, 1400, 1000);
+  await resizeSky(page, 1440, 1000);
+  expect((await state(page)).constellations[0].start).toBe(started.start);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const later = (await state(page)).constellations.at(-1);
+  expect(later.start).toBeNull();
+  await page.evaluate(box => {
+    window.scrollTo({ top: box.y + box.h / 2 - window.innerHeight / 2, behavior: 'instant' });
+    window.dispatchEvent(new Event('scroll'));
+  }, later.box);
+  expect((await state(page)).constellations.at(-1).start).toBeNull();
+  const withLines = await pixels(page);
+  await page.evaluate(() => { window.omitSkyConstellations = true; window.dispatchEvent(new Event('scroll')); });
+  expect((await pixels(page)).lit).toBeLessThan(withLines.lit);
 });
 
 test('a faint Milky Way band drifts behind the dust and fades in below the hero', async ({ page }) => {
