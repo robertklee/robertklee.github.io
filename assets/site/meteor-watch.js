@@ -91,7 +91,12 @@
   }
 
   // Faint background dust is pre-rendered into one tile and filled as a pattern,
-  // so hundreds of points cost a single fill per frame.
+  // so hundreds of points cost a single fill per layer per frame. Both parallax
+  // layers share the tile; the nearer one is mirrored and shifted to hide repeats.
+  const dustLayers = [
+    { depth: .35, alpha: .7, mirror: false, shift: 0 },
+    { depth: .65, alpha: 1, mirror: true, shift: 211 },
+  ];
   function buildDust(mobile, dpr) {
     const key = `${mobile}:${dpr}`;
     if (dust?.key === key) return;
@@ -107,7 +112,7 @@
     }
     tileCtx.scale(dpr, dpr);
     const random = seededRandom(9157);
-    for (let i = 0; i < (mobile ? 120 : 140); i++) {
+    for (let i = 0; i < (mobile ? 85 : 100); i++) {
       const x = 1 + random() * (tileWidth - 2);
       const y = 1 + random() * (tileHeight - 2);
       const radius = (.3 + random() ** 3 * .45) * (mobile ? .85 : 1);
@@ -124,19 +129,25 @@
   function drawDust(visibleTop) {
     if (!dust?.pattern) return;
     const top = skyTop - window.scrollY;
-    const offset = Math.round(top * dust.dpr) / dust.dpr;
-    dust.pattern.setTransform(new DOMMatrix().translate(0, offset).scale(1 / dust.dpr));
-    ctx.fillStyle = dust.pattern;
-    // Match the stars' 180px fade-in below the hero with a few stepped bands.
-    for (let band = 0; band < 6; band++) {
-      const y = top + band * 30;
-      if (y + 30 < visibleTop || y > height) continue;
-      ctx.globalAlpha = (band + .5) / 6;
-      ctx.fillRect(0, y, width, 30);
+    const rest = Math.max(visibleTop, top + 180);
+    for (const layer of dustLayers) {
+      // Distant layers drift slower than the page; reduced motion pins them to it.
+      const depth = reducedMotion.matches ? 1 : layer.depth;
+      const offset = Math.round(top * depth * dust.dpr) / dust.dpr;
+      dust.pattern.setTransform(new DOMMatrix().translate(layer.shift, offset)
+        .scale((layer.mirror ? -1 : 1) / dust.dpr, 1 / dust.dpr));
+      ctx.fillStyle = dust.pattern;
+      // Match the stars' 180px fade-in below the hero with a few stepped bands.
+      for (let band = 0; band < 6; band++) {
+        const y = top + band * 30;
+        if (y + 30 < visibleTop || y > height) continue;
+        ctx.globalAlpha = layer.alpha * (band + .5) / 6;
+        ctx.fillRect(0, y, width, 30);
+      }
+      ctx.globalAlpha = layer.alpha;
+      if (rest < height) ctx.fillRect(0, rest, width, height - rest);
     }
     ctx.globalAlpha = 1;
-    const rest = Math.max(visibleTop, top + 180);
-    if (rest < height) ctx.fillRect(0, rest, width, height - rest);
   }
 
   function measure() {

@@ -84,6 +84,12 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem('theme', 'dark');
     const sample = new URL(location.href).searchParams.get('sample');
     Math.random = () => sample === null ? .5 : Number(sample);
+    const setPatternTransform = CanvasPattern.prototype.setTransform;
+    window.patternShifts = [];
+    CanvasPattern.prototype.setTransform = function (matrix) {
+      window.patternShifts = [...window.patternShifts.slice(-7), matrix.f];
+      return setPatternTransform.call(this, matrix);
+    };
     const proto = CanvasRenderingContext2D.prototype;
     const fillRect = proto.fillRect;
     const fill = proto.fill;
@@ -483,6 +489,31 @@ test('faint background dust fills the sky behind content and fades in below the 
   const full = await region('.cv-about-copy');
   expect(fade.mean).toBeGreaterThan(0);
   expect(fade.mean).toBeLessThan(full.mean * .4);
+});
+
+test('dust layers drift slower than the page for parallax depth, except under reduced motion', async ({ page }) => {
+  const drift = async () => {
+    const scroll = y => page.evaluate(y => {
+      window.scrollTo({ top: y, behavior: 'instant' });
+      window.dispatchEvent(new Event('scroll'));
+      return [window.scrollY, ...window.patternShifts.slice(-2)];
+    }, y);
+    const top = await page.evaluate(() => document.getElementById('profile-about').offsetTop);
+    const [y0, far0, near0] = await scroll(top);
+    const [y1, far1, near1] = await scroll(top + 600);
+    const scrolled = y1 - y0;
+    expect(scrolled).toBe(600);
+    return [(far0 - far1) / scrolled, (near0 - near1) / scrolled];
+  };
+  await showAbout(page);
+  await page.clock.runFor(100);
+  const [far, near] = await drift();
+  expect(far).toBeCloseTo(.35, 2);
+  expect(near).toBeCloseTo(.65, 2);
+  const positions = (await state(page)).stars.map(({ x, y }) => [x, y]);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  expect(await drift()).toEqual([1, 1]);
+  expect((await state(page)).stars.map(({ x, y }) => [x, y])).toEqual(positions);
 });
 
 test('brighter stars have soft cores and faint compact halo edges, not solid disks', async ({ page }) => {
