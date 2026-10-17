@@ -85,6 +85,8 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem('theme', new URL(location.href).searchParams.get('theme') || 'dark');
     const sample = new URL(location.href).searchParams.get('sample');
     Math.random = () => sample === null ? .5 : Number(sample);
+    window.skyDebugEvents = [];
+    document.addEventListener('meteorwatch:performance', event => window.skyDebugEvents.push(event.detail));
     const proto = CanvasRenderingContext2D.prototype;
     const fillRect = proto.fillRect;
     const fill = proto.fill;
@@ -137,6 +139,7 @@ test.beforeEach(async ({ page }) => {
           return {
           width, height, headerHeight, skyTop, skyBottom, stars, protectedRects, footerRects, constellations,
           qualityIndex, dust, layoutKey, draws: window.skyDraws || 0, layouts: window.skyLayouts || 0,
+          debugMeasurement, debugSamples: debugDurations.length,
           appearances: stars.map(starAppearance), meteorPending,
           glows: stars.map(star => glowing.get(star) || 0), pointer,
           attempts: window.meteorAttempts || 0,
@@ -765,6 +768,112 @@ test('healthy frames and hidden periods break a slow-performance streak', async 
   });
   await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), samples(8000, 200, 12));
   expect((await state(page)).qualityIndex).toBe(0);
+});
+
+test('sky debug reports sampled animation work, canvas budgets, and the meteor target', async ({ page }) => {
+  await page.goto(`${origin}/?debug=1`);
+  await page.evaluate(() => document.fonts.ready);
+  await page.clock.runFor(100);
+  const value = name => page.locator(`[data-sky-debug="${name}"]`);
+  await expect(value('state')).toHaveText('Deferred: sky offscreen');
+  await expect(value('current')).toHaveText('Not sampled');
+  await expect(value('pixels')).toHaveText('Not initialized');
+  await showAbout(page);
+  await page.clock.runFor(2700);
+  const scene = await state(page);
+  expect(scene.debugMeasurement).not.toBeNull();
+  expect(parseFloat(scene.debugMeasurement.current)).toBeGreaterThan(28);
+  expect(parseFloat(scene.debugMeasurement.current)).toBeLessThan(32);
+  await expect(value('current')).toHaveText(scene.debugMeasurement.current);
+  await expect(value('drawMean')).toHaveText(scene.debugMeasurement.drawMean);
+  await expect(value('drawP95')).toHaveText(scene.debugMeasurement.drawP95);
+  await expect(value('target')).toHaveText('30 draws/s');
+  await expect(value('quality')).toHaveText('Full');
+  const canvas = await sky(page).evaluate(canvas => ({
+    pixels: `${(canvas.width * canvas.height / 1000000).toFixed(2)} / 6 MP`,
+    dpr: `${(canvas.width / document.documentElement.clientWidth).toFixed(2)}x`,
+  }));
+  await expect(value('pixels')).toHaveText(canvas.pixels);
+  await expect(value('dpr')).toHaveText(canvas.dpr);
+  await expect(value('dust')).toHaveText('2 cached layers');
+  await expect(value('layout')).toHaveText(/^\d+\.\d{2} ms$/);
+  await page.clock.fastForward(scene.nextMeteor - scene.clock + 1);
+  expect((await state(page)).meteor).not.toBeNull();
+  await expect(value('target')).toHaveText('60 draws/s');
+  await expect(value('current')).toHaveText('Sampling...');
+});
+
+test('sky debug follows adaptive quality and does not keep static rendering awake', async ({ page }) => {
+  await page.goto(`${origin}/?debug=1`);
+  await page.evaluate(() => document.fonts.ready);
+  await showAbout(page);
+  await page.clock.runFor(2700);
+  const value = name => page.locator(`[data-sky-debug="${name}"]`);
+  const slow = start => Array.from({ length: 17 }, (_, i) => ({ now: start + i * 200, delay: 200 }));
+  await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), slow(10000));
+  await expect(value('quality')).toHaveText('Low');
+  await expect(value('dust')).toHaveText('Disabled');
+  await expect(value('pixels')).toHaveText(/ \/ 2 MP$/);
+  await page.clock.runFor(2700);
+  await expect(value('target')).toHaveText('15 draws/s');
+  await expect(value('current')).toHaveText(/^\d+\.\d draws\/s$/);
+  await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), slow(15000));
+  await expect(value('quality')).toHaveText('Static');
+  await expect(value('state')).toHaveText('Static: performance fallback');
+  await expect(value('target')).toHaveText('0 draws/s');
+  await expect(value('current')).toHaveText('Not sampled');
+  await expect(value('drawMean')).toHaveText('Not sampled');
+  const stopped = await state(page);
+  const events = await page.evaluate(() => window.skyDebugEvents.length);
+  await page.clock.fastForward(120000);
+  const later = await state(page);
+  expect(later.draws).toBe(stopped.draws);
+  expect(later.debugSamples).toBe(0);
+  expect(later.timer).toBe(false);
+  expect(later.animationFrame).toBe(false);
+  expect(await page.evaluate(() => window.skyDebugEvents.length)).toBe(events);
+});
+
+test('sky debug is opt-in and clears measurements for hidden, light, and reduced-motion states', async ({ page }) => {
+  for (const suffix of ['', '?debug=0', '?debug=true']) {
+    await page.goto(origin + suffix);
+    await showAbout(page);
+    await page.clock.runFor(2700);
+    expect(await page.evaluate(() => window.skyDebugEvents)).toEqual([]);
+    expect((await state(page)).debugSamples).toBe(0);
+    await expect(page.locator('[data-sky-debug]')).toHaveCount(0);
+  }
+  await page.goto(`${origin}/?debug=1`);
+  await showAbout(page);
+  await page.clock.runFor(2700);
+  const value = name => page.locator(`[data-sky-debug="${name}"]`);
+  await expect(value('current')).toHaveText(/^\d+\.\d draws\/s$/);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(value('state')).toHaveText('Paused: hidden tab');
+  await expect(value('current')).toHaveText('Not sampled');
+  await expect(value('drawP95')).toHaveText('Not sampled');
+  const hidden = await state(page);
+  await page.clock.fastForward(120000);
+  expect((await state(page)).draws).toBe(hidden.draws);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    document.dispatchEvent(new Event('visibilitychange'));
+    document.documentElement.dataset.theme = 'light';
+    document.dispatchEvent(new CustomEvent('site:themechange'));
+  });
+  await expect(value('state')).toHaveText('Paused: light mode');
+  await expect(value('target')).toHaveText('0 draws/s');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'dark';
+    document.dispatchEvent(new CustomEvent('site:themechange'));
+  });
+  await expect(value('state')).toHaveText('Static: reduced motion');
+  await expect(value('dust')).toHaveText('2 static layers');
+  await expect(value('current')).toHaveText('Not sampled');
 });
 
 test('familiar constellations sit in clear space, trace in once when scrolled into view, then settle', async ({ page }) => {

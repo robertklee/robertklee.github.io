@@ -25,15 +25,16 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const debugEnabled = new URLSearchParams(location.search).get('debug') === '1';
   const between = (min, max) => min + Math.random() * (max - min);
   const twinkleRest = () => between(800, 2000);
   const twinkleGap = () => between(400, 1200);
   const twinkleLimit = () => qualityIndex ? 2 : width <= 860 ? 3 : 5;
   const twinkleFrame = 33;
   const qualities = [
-    { maxDpr: 2, maxPixels: 6000000, frame: twinkleFrame, dust: true },
-    { maxDpr: 1, maxPixels: 2000000, frame: 66, dust: false },
-    { maxDpr: 1, maxPixels: 2000000, frame: 0, dust: false },
+    { name: 'Full', maxDpr: 2, maxPixels: 6000000, frame: twinkleFrame, dust: true },
+    { name: 'Low', maxDpr: 1, maxPixels: 2000000, frame: 66, dust: false },
+    { name: 'Static', maxDpr: 1, maxPixels: 2000000, frame: 0, dust: false },
   ];
   let qualityIndex = 0;
   let qualityStart = 0;
@@ -43,6 +44,12 @@
   let scheduledAt = 0;
   let expectedDelay = 0;
   let drawCost = 0;
+  let debugStart = 0;
+  let debugTarget = 0;
+  let debugDurations = [];
+  let debugMeasurement = null;
+  let debugLayoutCost = null;
+  let debugSnapshot = '';
   const meteorWait = () => between(12000, 36000);
   const meteorRest = () => between(36000, 72000);
   // Lands just after the theme toggle's 500ms circular reveal finishes.
@@ -198,6 +205,73 @@
   function resetQuality() {
     qualityStart = qualityFrames = lateFrames = slowWindows = 0;
     expectedDelay = 0;
+    if (debugEnabled) resetDebugSamples(performance.now(), 0);
+  }
+
+  function animationTarget() {
+    if (!canRun()) return 0;
+    if (meteor) return qualityIndex ? 30 : 60;
+    return twinkles.length || glowing.size || constellations.some(constellationAnimating) ?
+      Math.round(1000 / qualities[qualityIndex].frame) : 0;
+  }
+
+  function resetDebugSamples(now, target) {
+    debugStart = now;
+    debugTarget = target;
+    debugDurations = [];
+    debugMeasurement = null;
+  }
+
+  function recordDebugDraw(duration, now) {
+    const target = animationTarget();
+    if (target !== debugTarget || !debugStart) {
+      resetDebugSamples(now, target);
+      return;
+    }
+    if (!target) return;
+    debugDurations.push(duration);
+    if (now - debugStart < 1000) return;
+    const count = debugDurations.length;
+    const mean = debugDurations.reduce((sum, value) => sum + value, 0) / count;
+    debugDurations.sort((a, b) => a - b);
+    debugMeasurement = {
+      current: `${(count * 1000 / (now - debugStart)).toFixed(1)} draws/s`,
+      drawMean: `${mean.toFixed(2)} ms`,
+      drawP95: `${debugDurations[Math.ceil(count * .95) - 1].toFixed(2)} ms`,
+    };
+    debugDurations = [];
+    debugStart = now;
+  }
+
+  function updatePerformanceDebug(force = false) {
+    if (!debugEnabled) return;
+    const target = animationTarget();
+    if (target !== debugTarget || !target) resetDebugSamples(performance.now(), target);
+    let state = target ? 'Automatic' : 'Idle: waiting for effects';
+    if (!pageActive) state = 'Paused: page suspended';
+    else if (document.hidden) state = 'Paused: hidden tab';
+    else if (root.dataset.theme !== 'dark') state = 'Paused: light mode';
+    else if (!skyVisible()) state = layoutKey ? 'Paused: sky offscreen' : 'Deferred: sky offscreen';
+    else if (reducedMotion.matches) state = 'Static: reduced motion';
+    else if (still()) state = 'Static: performance fallback';
+    const quality = qualities[qualityIndex];
+    const values = {
+      current: debugMeasurement?.current ?? (target ? 'Sampling...' : 'Not sampled'),
+      target: `${target} draws/s`,
+      drawMean: debugMeasurement?.drawMean ?? 'Not sampled',
+      drawP95: debugMeasurement?.drawP95 ?? 'Not sampled',
+      quality: quality.name,
+      pixels: layoutKey ? `${(canvas.width * canvas.height / 1000000).toFixed(2)} / ${quality.maxPixels / 1000000} MP` : 'Not initialized',
+      dpr: layoutKey ? `${(canvas.width / width).toFixed(2)}x` : 'Not initialized',
+      dust: !quality.dust ? 'Disabled' : !dust ? 'Not initialized' :
+        reducedMotion.matches ? '2 static layers' : '2 cached layers',
+      layout: debugLayoutCost === null ? 'Not initialized' : `${debugLayoutCost.toFixed(2)} ms`,
+      state,
+    };
+    const snapshot = JSON.stringify(values);
+    if (!force && snapshot === debugSnapshot) return;
+    debugSnapshot = snapshot;
+    document.dispatchEvent(new CustomEvent('meteorwatch:performance', { detail: values }));
   }
 
   function sampleQuality(now) {
@@ -378,6 +452,7 @@
   }
 
   function measure() {
+    const started = debugEnabled ? performance.now() : 0;
     advance();
     const previousWidth = width;
     const previousHeight = height;
@@ -467,6 +542,7 @@
     layoutKey = key;
     layoutTop = skyTop;
     layoutDirty = false;
+    if (debugEnabled) debugLayoutCost = performance.now() - started;
     twinkles = [];
     sync(true);
   }
@@ -714,6 +790,7 @@
   }
 
   function draw() {
+    const started = debugEnabled ? performance.now() : 0;
     ctx.clearRect(0, 0, width, height);
     if (root.dataset.theme !== 'dark') return;
     ctx.save();
@@ -738,6 +815,7 @@
       if (drawMeteor(meteor, 1) > 0 && canRun()) meteor.displayed = true;
     }
     ctx.restore();
+    if (debugEnabled) recordDebugDraw(performance.now() - started, performance.now());
   }
 
   function schedule() {
@@ -747,7 +825,7 @@
     fastTimer = false;
     animationFrame = 0;
     expectedDelay = 0;
-    if (!canRun()) { resetQuality(); return; }
+    if (!canRun()) { resetQuality(); updatePerformanceDebug(); return; }
     scheduledAt = performance.now();
     if (meteor && !qualityIndex) {
       expectedDelay = 1000 / 60;
@@ -761,6 +839,7 @@
       const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor, welcomeAt ?? Infinity);
       timer = setTimeout(tick, Math.max(16, deadline - clock));
     }
+    updatePerformanceDebug();
   }
 
   function tick() {
@@ -809,6 +888,7 @@
   }
 
   const resizeObserver = new ResizeObserver(queueMeasure);
+  if (debugEnabled) document.addEventListener('meteorwatch:debugrequest', () => updatePerformanceDebug(true));
   [document.body, hero, header].forEach(element => resizeObserver.observe(element));
   document.addEventListener('site:themechange', () => {
     const dark = root.dataset.theme === 'dark';

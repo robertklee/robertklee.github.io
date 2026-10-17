@@ -62,7 +62,7 @@
   const debugValues = {};
   if (debugPanel) {
     debugPanel.className = 'field-debug';
-    debugPanel.setAttribute('aria-label', 'Hero performance debug');
+    debugPanel.setAttribute('aria-label', 'Rendering performance debug');
     debugPanel.innerHTML = '<strong>Hero performance</strong><dl></dl><p>Sampled canvas draws and callbacks, not GPU or displayed FPS.</p>';
     for (const [key, label] of Object.entries({
       current: 'Current perf', target: 'Target perf', callbacks: 'RAF cadence',
@@ -76,6 +76,34 @@
       debugValues[key] = value;
     }
     document.body.appendChild(debugPanel);
+    const skyValues = {};
+    document.addEventListener('meteorwatch:performance', event => {
+      if (!Object.keys(skyValues).length) {
+        const section = document.createElement('section');
+        section.className = 'field-debug-sky';
+        section.innerHTML = '<strong>Night sky</strong><dl></dl>';
+        for (const [key, label] of Object.entries({
+          current: 'Current perf', target: 'Animation target',
+          drawMean: 'JS draw mean', drawP95: 'JS draw p95', quality: 'Quality tier',
+          pixels: 'Canvas / budget', dpr: 'Effective DPR', dust: 'Dust',
+          layout: 'Last layout JS', state: 'State',
+        })) {
+          const term = document.createElement('dt');
+          term.textContent = label;
+          const value = document.createElement('dd');
+          value.dataset.skyDebug = key;
+          section.querySelector('dl').append(term, value);
+          skyValues[key] = value;
+        }
+        debugPanel.insertBefore(section, debugPanel.querySelector('p'));
+        debugPanel.querySelector('p').textContent =
+          'Sampled canvas calls and JS work, not cached dust compositing, GPU cost or displayed FPS.';
+      }
+      for (const [key, value] of Object.entries(event.detail)) {
+        if (skyValues[key] && skyValues[key].textContent !== value) skyValues[key].textContent = value;
+      }
+    });
+    document.dispatchEvent(new Event('meteorwatch:debugrequest'));
   }
 
   const CLUSTERS = [

@@ -261,7 +261,7 @@ test('performance debug is opt-in and the built overlay fits desktop and mobile 
     await expect(page.locator('.field-debug')).toHaveCount(0);
   }
   await page.goto(origin + '?sample=.35&debug=1');
-  const panel = page.getByRole('complementary', { name: 'Hero performance debug' });
+  const panel = page.getByRole('complementary', { name: 'Rendering performance debug' });
   await expect(panel).toBeVisible();
   await expect(panel.locator('[data-field-debug="current"]')).toHaveText(/^\d+\.\d draws\/s$/, { timeout: 10000 });
   await expect(panel.locator('[data-field-debug="callbacks"]')).toHaveText(/^\d+\.\d callbacks\/s$/);
@@ -270,10 +270,11 @@ test('performance debug is opt-in and the built overlay fits desktop and mobile 
   await expect(panel.locator('[data-field-debug="target"]')).toHaveText(/^(15|30) draws\/s$/);
   const quality = await page.locator('.hero').getAttribute('data-field-quality');
   await expect(panel.locator('[data-field-debug="quality"]')).toHaveText(quality[0].toUpperCase() + quality.slice(1));
-  for (const viewport of [{ width: 1440, height: 1000 }, { width: 320, height: 640 }]) {
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 320, height: 640 }, { width: 320, height: 360 }]) {
     await page.setViewportSize(viewport);
     for (const theme of ['dark', 'light']) {
       await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      if (theme === 'dark') await page.locator('#profile-about').scrollIntoViewIfNeeded();
       await expect(panel).toBeVisible();
       await expect(panel).toHaveCSS('pointer-events', 'none');
       const box = await panel.boundingBox();
@@ -282,6 +283,7 @@ test('performance debug is opt-in and the built overlay fits desktop and mobile 
       expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
       expect(await panel.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+      expect(await panel.evaluate(element => element.scrollHeight <= element.clientHeight)).toBe(true);
     }
   }
 });
@@ -372,6 +374,7 @@ test('performance debug labels idle, paused and override states without keeping 
   await page.goto(origin + '/404.html?debug=1');
   await expect(value('state')).toHaveText('Static: reduced motion');
   await expect(value('quality')).toHaveText('High');
+  await expect(page.locator('[data-sky-debug]')).toHaveCount(0);
 });
 
 test('per-visit seeds vary shape and node count at a fixed viewport but remain stable within a visit', async ({ page }) => {

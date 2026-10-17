@@ -164,8 +164,9 @@ without rebuilding the graph or replaying the entrance. Inspect `.hero`'s
 `data-field-quality` attribute to see the current tier.
 
 Add `?debug=1` to the homepage URL (or `&debug=1` alongside other query parameters)
-to show a fixed **Hero performance** overlay. It displays the latest sampled
-canvas draw rate, the scheduler's current target, RAF callback cadence, mean and
+to show a fixed rendering-performance overlay. Its **Hero performance** section
+displays the latest sampled canvas draw rate, the scheduler's current target,
+RAF callback cadence, mean and
 p95 JavaScript draw duration in milliseconds, and the applied quality tier.
 Draw durations cover the same one-second sample window; percentile tracking is
 enabled only in debug mode. These are the adaptive monitor's measurements,
@@ -174,6 +175,15 @@ offscreen/hidden pauses, and reduced-motion/effects overrides are labelled;
 unsampled states do not show stale rates as current performance. The overlay
 also works on the shared 404 hero. It is absent without `debug=1`, does not save
 a preference, and adds no polling timer or extra animation frames.
+
+On the homepage, **Night sky** adds its own sampled draw rate, animation target,
+mean/p95 JavaScript draw cost, Full/Low/Static tier, canvas pixel budget, effective
+DPR, dust mode, and last full layout cost. Deferred setup, idle waits, light mode,
+offscreen/hidden suspension, reduced motion, and the static performance fallback
+are labelled without presenting stale rates as current measurements. Sampling
+and publication use existing sky callbacks only; draw-duration collection is
+debug-only. The animation target excludes event-driven scroll redraws, and sky
+draw timings exclude cached dust compositing, GPU work, and displayed FPS.
 
 The header's **Reduced effects** toggle on the homepage and 404 page forces
 Traversal, disables automatic quality changes, and suppresses decorative hero

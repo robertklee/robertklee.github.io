@@ -109,6 +109,8 @@
   right: max(12px, env(safe-area-inset-right));
   bottom: max(12px, env(safe-area-inset-bottom));
   width: min(300px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
   padding: 12px 14px;
   border: 1px solid var(--line-strong);
   border-radius: 10px;
@@ -123,6 +125,12 @@
 .field-debug dt, .field-debug p { color: var(--muted); }
 .field-debug dd { margin: 0; text-align: right; }
 .field-debug p { margin: 0; font-size: 10px; }
+.field-debug-sky { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+@media (max-height: 600px) {
+  .field-debug { padding: 8px 10px; font-size: 10px; line-height: 1.3; }
+  .field-debug dl { gap: 0 8px; margin: 4px 0; }
+  .field-debug-sky { margin-top: 6px; padding-top: 6px; }
+}
 
 #hero-dim {
   position: absolute;
