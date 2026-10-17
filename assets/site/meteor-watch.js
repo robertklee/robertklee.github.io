@@ -25,9 +25,9 @@
   const meteorWait = () => between(12000, 36000);
   const meteorRest = () => between(36000, 72000);
   const profiles = {
-    breathe: { duration: [3000, 5000], intensity: [.14, .22], growth: [.18, .35] },
-    shimmer: { duration: [4000, 6000], intensity: [.12, .2], growth: [.15, .3] },
-    sparkle: { duration: [2400, 3600], intensity: [.16, .24], growth: [.45, .7] },
+    breathe: { duration: [3000, 5000], intensity: [.28, .4], growth: [.35, .6] },
+    shimmer: { duration: [4000, 6000], intensity: [.24, .36], growth: [.3, .55] },
+    sparkle: { duration: [2400, 3600], intensity: [.32, .45], growth: [.9, 1.4] },
   };
   let width = 0;
   let height = 0;
@@ -123,7 +123,7 @@
     stars = [];
     function addPoint(x, y) {
       const rank = random();
-      const alpha = .18 + rank * .12 + random() * .07;
+      const alpha = .42 + rank * .3 + random() * .13;
       const warm = random() < .12;
       // Vary shapes independently without moving the seeded star positions.
       const shapeRandom = seededRandom(Math.floor(random() * 4294967296));
@@ -238,13 +238,13 @@
     const pulse = !active ? 0 : twinkle.kind === 'sparkle' ? breath ** 2 :
       twinkle.kind === 'shimmer' ? breath * (1 - .8 * breath) * 3.2 : breath;
     const stretch = Math.max(star.scaleX, star.scaleY);
-    const arm = Math.min(width <= 860 ? 3.25 : 4.5,
+    const arm = Math.min(width <= 860 ? 4.25 : 6,
       (star.radius * 1.55 + pulse * (active ? twinkle.growth : 0)) * stretch);
     return {
       radius: star.radius, arm,
       armX: arm * (star.scaleX / stretch), armY: arm * (star.scaleY / stretch), curve: star.curve,
-      alpha: Math.min(.52, star.alpha + pulse * (active ? twinkle.intensity : 0)),
-      haloRadius: star.halo ? Math.max(arm, Math.min(width <= 860 ? 3.5 : 4.5, star.radius * 1.9)) : 0,
+      alpha: Math.min(1, star.alpha + pulse * (active ? twinkle.intensity : 0)),
+      haloRadius: star.halo ? Math.max(arm, Math.min(width <= 860 ? 4.5 : 6, star.radius * 2.4)) : 0,
     };
   }
 
@@ -268,7 +268,7 @@
       // An annular halo softens bright points without double-painting their cores.
       halo.addColorStop(0, `rgba(${color},0)`);
       halo.addColorStop(.45, `rgba(${color},0)`);
-      halo.addColorStop(.65, `rgba(${color},${.025 * fade})`);
+      halo.addColorStop(.65, `rgba(${color},${.07 * fade})`);
       halo.addColorStop(1, `rgba(${color},0)`);
       ctx.fillStyle = halo;
       ctx.fillRect(star.x - haloRadius, y - haloRadius, haloRadius * 2, haloRadius * 2);

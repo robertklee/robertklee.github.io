@@ -228,9 +228,9 @@ test('all soft bounded stars are curved astroids and avoid protected content', a
   expect(mediumAndBright).toBeLessThan(.5);
   expect(bright).toBeGreaterThan(.06);
   expect(bright).toBeLessThan(.15);
-  expect(scene.appearances.every(star => Math.max(star.arm, star.haloRadius) <= 4.5)).toBe(true);
-  expect(Math.min(...scene.stars.map(star => star.alpha))).toBeGreaterThanOrEqual(.18);
-  expect(Math.max(...scene.stars.map(star => star.alpha))).toBeLessThan(.38);
+  expect(scene.appearances.every(star => Math.max(star.arm, star.haloRadius) <= 6)).toBe(true);
+  expect(Math.min(...scene.stars.map(star => star.alpha))).toBeGreaterThanOrEqual(.42);
+  expect(Math.max(...scene.stars.map(star => star.alpha))).toBeLessThan(.86);
   expect(scene.stars.every(star => scene.protectedRects.every(rect =>
     star.x + 16 <= rect.x || star.x - 16 >= rect.x + rect.w ||
     star.y + 16 <= rect.y || star.y - 16 >= rect.y + rect.h))).toBe(true);
@@ -238,7 +238,7 @@ test('all soft bounded stars are curved astroids and avoid protected content', a
   expect(painted.lit).toBeGreaterThan(15);
   expect(painted.lit).toBeLessThan(2000);
   expect(painted.maxAlpha).toBeGreaterThan(40);
-  expect(painted.maxAlpha).toBeLessThanOrEqual(97);
+  expect(painted.maxAlpha).toBeLessThanOrEqual(220);
   for (const selector of ['#profile-about', '#profile-work', '#profile-experience', '#contact']) {
     await showSection(page, selector);
     await page.clock.runFor(100);
@@ -405,8 +405,8 @@ test('all profiles keep curved astroid silhouettes while gently extending their 
         expect(appearance.armY / appearance.armX).toBeCloseTo(rest.armY / rest.armX, 10);
         expect(appearance.curve).toBe(rest.curve);
         expect(appearance.arm).toBeGreaterThanOrEqual(rest.arm);
-        expect(appearance.alpha).toBeLessThanOrEqual(.52);
-        expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(4.5);
+        expect(appearance.alpha).toBeLessThanOrEqual(1);
+        expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(6);
         await curved(appearance);
         extension = Math.max(extension, appearance.arm - rest.arm);
         if (progress === .5) {
@@ -430,7 +430,7 @@ test('all profiles keep curved astroid silhouettes while gently extending their 
   for (const kind of ['breathe', 'shimmer', 'sparkle']) {
     const appearance = await paint(largest, kind, kind === 'shimmer' ? .3 : .5);
     expect(appearance.radius).toBeLessThanOrEqual(2.4);
-    expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(4.5);
+    expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(6);
     await curved(appearance);
   }
 });
@@ -461,7 +461,7 @@ test('brighter stars have soft cores and faint compact halo edges, not solid dis
     return { alphas, outside };
   }, bright);
   expect(Math.max(...patch.alphas)).toBeGreaterThan(40);
-  expect(Math.max(...patch.alphas)).toBeLessThanOrEqual(97);
+  expect(Math.max(...patch.alphas)).toBeLessThanOrEqual(220);
   expect(patch.alphas.some(alpha => alpha > 0 && alpha < 10)).toBe(true);
   expect(new Set(patch.alphas.filter(alpha => alpha > 0)).size).toBeGreaterThan(5);
   expect(patch.outside.every(alpha => alpha === 0)).toBe(true);
@@ -574,7 +574,7 @@ for (const width of [320, 390, 860, 861]) {
     expect(scene.nextMeteor).toBe(24000);
     expect(Math.max(...scene.stars.map(star => star.radius))).toBeLessThanOrEqual(mobile ? 1.8 : 2.4);
     expect(Math.min(...scene.stars.map(star => star.radius))).toBeGreaterThanOrEqual(.65);
-    expect(scene.appearances.every(star => Math.max(star.arm, star.haloRadius) <= (mobile ? 3.5 : 4.5))).toBe(true);
+    expect(scene.appearances.every(star => Math.max(star.arm, star.haloRadius) <= (mobile ? 4.5 : 6))).toBe(true);
     const scrollY = await page.evaluate(() => window.scrollY);
     expect(scene.stars.filter(star => star.y > scrollY && star.y < scrollY + 844).length).toBeGreaterThan(0);
     await page.clock.fastForward(scene.nextMeteor - scene.clock + 1);
@@ -937,7 +937,7 @@ for (const ratio of [1, 2]) {
             ([index, kind, progress]) => window.paintMeteorWatchStar(index, kind, progress), [index, kind, progress]
           );
           expect(appearance.radius).toBeLessThanOrEqual(width <= 860 ? 1.8 : 2.4);
-          expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(width <= 860 ? 3.5 : 4.5);
+          expect(Math.max(appearance.arm, appearance.haloRadius)).toBeLessThanOrEqual(width <= 860 ? 4.5 : 6);
           expect(appearance.armY / appearance.armX).toBeCloseTo(scene.stars[index].scaleY / scene.stars[index].scaleX, 10);
           const image = await sky(page).evaluate((canvas, star) => {
             const ratio = canvas.width / document.documentElement.clientWidth;
