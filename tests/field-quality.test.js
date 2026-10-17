@@ -108,6 +108,47 @@ test('one long main-thread stall cannot satisfy a sustained-slow-frame streak', 
   assert.equal(sim.monitor.current.name, 'high');
 });
 
+test('debug draw statistics use each sample window and exclude warmup, pauses and resets', () => {
+  const monitor = create({ trackDrawStats: true });
+  monitor.reset(0);
+  monitor.paint(1000);
+  monitor.frame(policy.warmupMs);
+  for (let i = 1; i <= 20; i++) {
+    monitor.paint(i);
+    monitor.frame(policy.warmupMs + i * 50);
+  }
+  assert.equal(monitor.measurement.meanDrawMs, 10.5);
+  assert.equal(monitor.measurement.p95DrawMs, 19);
+  monitor.pause();
+  monitor.paint(1000);
+  let now = policy.warmupMs + 60000;
+  monitor.frame(now);
+  for (let i = 0; i < 60; i++) {
+    monitor.paint(0);
+    now += 1000 / 60;
+    monitor.frame(now);
+  }
+  assert.equal(monitor.measurement.meanDrawMs, 0);
+  assert.equal(monitor.measurement.p95DrawMs, 0);
+  for (let i = 0; i < 60; i++) monitor.frame(now += 1000 / 60);
+  assert.equal(monitor.measurement.meanDrawMs, null);
+  assert.equal(monitor.measurement.p95DrawMs, null);
+  monitor.paint(1000);
+  monitor.reset(now);
+  now += policy.warmupMs;
+  monitor.frame(now);
+  for (let i = 0; i < 20; i++) {
+    monitor.paint(2);
+    monitor.frame(now += 50);
+  }
+  assert.equal(monitor.measurement.meanDrawMs, 2);
+  assert.equal(monitor.measurement.p95DrawMs, 2);
+  const normal = simulation();
+  normal.advance(policy.warmupMs + policy.sampleMs + 100, 60, { paintCost: 2 });
+  assert.equal(normal.monitor.measurement.meanDrawMs, 2);
+  assert.equal(normal.monitor.measurement.p95DrawMs, null);
+});
+
 test('moderate overload degrades one tier at a time without a recovery-only hold blocking relief', () => {
   const sim = simulation();
   reachBalanced(sim);

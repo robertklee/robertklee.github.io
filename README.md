@@ -164,8 +164,10 @@ without rebuilding the graph or replaying the entrance. Inspect `.hero`'s
 
 Add `?debug=1` to the homepage URL (or `&debug=1` alongside other query parameters)
 to show a fixed **Hero performance** overlay. It displays the latest sampled
-canvas draw rate, the scheduler's current target, RAF callback cadence, and the
-applied quality tier. These are the adaptive monitor's one-second measurements,
+canvas draw rate, the scheduler's current target, RAF callback cadence, mean and
+p95 JavaScript draw duration in milliseconds, and the applied quality tier.
+Draw durations cover the same one-second sample window; percentile tracking is
+enabled only in debug mode. These are the adaptive monitor's measurements,
 not GPU/compositor or displayed FPS. Warm-up, intentional idle pacing/stops,
 offscreen/hidden pauses, and reduced-motion/effects overrides are labelled;
 unsampled states do not show stale rates as current performance. The overlay

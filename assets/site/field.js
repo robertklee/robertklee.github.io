@@ -35,7 +35,8 @@
   PLANES.forEach(p => backdrop.appendChild(p.canvas));
   const [FAR, MID, NEAR] = PLANES;
   const qualitySettings = window.HeroFieldQuality;
-  let qualityMonitor = qualitySettings.create();
+  const debugEnabled = new URLSearchParams(location.search).get('debug') === '1';
+  let qualityMonitor = qualitySettings.create({ trackDrawStats: debugEnabled });
   let reducedEffects = root.dataset.reducedEffects === 'true';
   let quality = reducedEffects ? qualitySettings.tiers[qualitySettings.tiers.length - 1] : qualityMonitor.current;
   let traversalPlane = null;
@@ -57,14 +58,15 @@
   // The homepage coordinates retrieval with its entrance; the 404 keeps its own pacing.
   const entranceEffect = window.HeroFieldEntrance;
 
-  const debugPanel = new URLSearchParams(location.search).get('debug') === '1' ? document.createElement('aside') : null;
+  const debugPanel = debugEnabled ? document.createElement('aside') : null;
   const debugValues = {};
   if (debugPanel) {
     debugPanel.className = 'field-debug';
     debugPanel.setAttribute('aria-label', 'Hero performance debug');
     debugPanel.innerHTML = '<strong>Hero performance</strong><dl></dl><p>Sampled canvas draws and callbacks, not GPU or displayed FPS.</p>';
     for (const [key, label] of Object.entries({
-      current: 'Current perf', target: 'Target perf', callbacks: 'RAF cadence', quality: 'Quality tier', state: 'State',
+      current: 'Current perf', target: 'Target perf', callbacks: 'RAF cadence',
+      drawMean: 'JS draw mean', drawP95: 'JS draw p95', quality: 'Quality tier', state: 'State',
     })) {
       const term = document.createElement('dt');
       term.textContent = label;
@@ -1781,6 +1783,8 @@
       current: measurement?.paintFps != null ? `${measurement.paintFps.toFixed(1)} draws/s` : monitoring ? 'Sampling...' : 'Not sampled',
       target: `${targetFps} draws/s`,
       callbacks: measurement ? `${measurement.fps.toFixed(1)} callbacks/s` : 'Not sampled',
+      drawMean: measurement?.meanDrawMs != null ? `${measurement.meanDrawMs.toFixed(2)} ms` : 'Not sampled',
+      drawP95: measurement?.p95DrawMs != null ? `${measurement.p95DrawMs.toFixed(2)} ms` : 'Not sampled',
       quality: quality.name[0].toUpperCase() + quality.name.slice(1),
       state,
     };
@@ -1914,7 +1918,7 @@
   function setReducedEffects(enabled, persist) {
     reducedEffects = enabled;
     root.dataset.reducedEffects = String(enabled);
-    qualityMonitor = qualitySettings.create();
+    qualityMonitor = qualitySettings.create({ trackDrawStats: debugEnabled });
     qualityMonitor.reset(performance.now());
     applyQuality(enabled ? qualitySettings.tiers[qualitySettings.tiers.length - 1] : qualityMonitor.current);
     syncEffectsButtons();

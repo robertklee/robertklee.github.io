@@ -265,6 +265,8 @@ test('performance debug is opt-in and the built overlay fits desktop and mobile 
   await expect(panel).toBeVisible();
   await expect(panel.locator('[data-field-debug="current"]')).toHaveText(/^\d+\.\d draws\/s$/, { timeout: 10000 });
   await expect(panel.locator('[data-field-debug="callbacks"]')).toHaveText(/^\d+\.\d callbacks\/s$/);
+  await expect(panel.locator('[data-field-debug="drawMean"]')).toHaveText(/^\d+\.\d{2} ms$/);
+  await expect(panel.locator('[data-field-debug="drawP95"]')).toHaveText(/^\d+\.\d{2} ms$/);
   await expect(panel.locator('[data-field-debug="target"]')).toHaveText(/^(15|30) draws\/s$/);
   const quality = await page.locator('.hero').getAttribute('data-field-quality');
   await expect(panel.locator('[data-field-debug="quality"]')).toHaveText(quality[0].toUpperCase() + quality.slice(1));
@@ -304,6 +306,8 @@ test('performance debug uses the adaptive measurements and follows tier and sche
   expect(measurement.fps).toBeGreaterThan(59);
   await expect(value('current')).toHaveText(`${measurement.paintFps.toFixed(1)} draws/s`);
   await expect(value('callbacks')).toHaveText(`${measurement.fps.toFixed(1)} callbacks/s`);
+  await expect(value('drawMean')).toHaveText('2.00 ms');
+  await expect(value('drawP95')).toHaveText('2.00 ms');
   await expect(value('target')).toHaveText('30 draws/s');
   await page.evaluate(() => {
     const field = window.heroFieldTest;
@@ -314,6 +318,8 @@ test('performance debug uses the adaptive measurements and follows tier and sche
   });
   await expect(value('quality')).toHaveText('Low');
   await expect(value('current')).toHaveText('Sampling...');
+  await expect(value('drawMean')).toHaveText('Not sampled');
+  await expect(value('drawP95')).toHaveText('Not sampled');
   await expect(value('target')).toHaveText('15 draws/s');
   await page.evaluate(() => window.heroFieldTest.onQuery({ topic: 'engine' }));
   await expect(value('target')).toHaveText('30 draws/s');
@@ -325,6 +331,8 @@ test('performance debug labels idle, paused and override states without keeping 
   const value = name => page.locator(`[data-field-debug="${name}"]`);
   await expectFieldIdle(page);
   await expect(value('state')).toHaveText('Idle: rendering stopped');
+  await expect(value('drawMean')).toHaveText('Not sampled');
+  await expect(value('drawP95')).toHaveText('Not sampled');
   await expect(value('current')).toHaveText('Not sampled');
   await expect(value('target')).toHaveText('0 draws/s');
   await page.evaluate(() => {
@@ -356,6 +364,10 @@ test('performance debug labels idle, paused and override states without keeping 
   await expect(value('target')).toHaveText('0 draws/s');
   await page.getByRole('button', { name: 'Reduced effects', exact: true }).click();
   await expect(value('quality')).toHaveText('High');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await expect(value('drawMean')).toHaveText(/^\d+\.\d{2} ms$/, { timeout: 10000 });
+  await expect(value('drawP95')).toHaveText(/^\d+\.\d{2} ms$/);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await expectFieldIdle(page);
   await page.goto(origin + '/404.html?debug=1');
   await expect(value('state')).toHaveText('Static: reduced motion');

@@ -26,7 +26,7 @@
     smoothLongFrameRatio: .05,
   };
 
-  function create() {
+  function create({ trackDrawStats = false } = {}) {
     let index = policy.initialTier;
     let previous = null;
     let elapsed = 0;
@@ -41,6 +41,7 @@
     let measurement = null;
     let paints = 0;
     let work = 0;
+    let drawDurations = [];
     let observedPaints = false;
     let longFrames = 0;
     let target = null;
@@ -48,6 +49,7 @@
     function clearWindow() {
       previous = null;
       elapsed = frames = paints = work = longFrames = 0;
+      drawDurations = [];
       measurement = null;
     }
 
@@ -78,6 +80,7 @@
       observedPaints = true;
       paints++;
       work += duration;
+      if (trackDrawStats) drawDurations.push(duration);
     }
     function frame(now, targetFps = 30, paced = false, allowRecovery = true) {
       const nextTarget = `${targetFps}:${paced}`;
@@ -105,7 +108,12 @@
       paintFps = paints * 1000 / elapsed;
       const meanWork = paints ? work / paints : 0;
       const hasPaints = observedPaints;
-      measurement = { fps, paintFps: hasPaints ? paintFps : null, targetFps };
+      if (trackDrawStats) drawDurations.sort((a, b) => a - b);
+      measurement = {
+        fps, paintFps: hasPaints ? paintFps : null, targetFps,
+        meanDrawMs: paints ? meanWork : null,
+        p95DrawMs: drawDurations.length ? drawDurations[Math.ceil(drawDurations.length * .95) - 1] : null,
+      };
       const longFrameRatio = longFrames / frames;
       const severe = fps < (paced ? targetFps * .6 : policy.severeFps) ||
         (hasPaints && (paintFps < targetFps * .6 || meanWork > budget));
@@ -120,6 +128,7 @@
       severeMs = severe ? severeMs + policy.sampleMs : 0;
       smoothMs = smooth ? smoothMs + policy.sampleMs : 0;
       elapsed = frames = paints = work = longFrames = 0;
+      drawDurations = [];
       // Skip density-preserving steps when the current renderer cannot keep up.
       if (severeMs >= policy.severeMs && index < tiers.length - 1) {
         return change(index < tiers.length - 2 ? tiers.length - 2 : index + 1, now);
