@@ -281,6 +281,30 @@ test('all soft bounded stars are curved astroids and avoid protected content', a
   }
 });
 
+test('stars mix stellar colours, mostly blue-white with rare orange-red points', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; window.omitSkyBand = true; });
+  const { stars } = await state(page);
+  const share = color => stars.filter(star => star.color === color).length / stars.length;
+  expect(new Set(stars.map(star => star.color)).size).toBe(5);
+  expect(share('185,202,235')).toBeGreaterThan(.45);
+  expect(share('255,180,140')).toBeGreaterThan(0);
+  expect(share('255,180,140')).toBeLessThan(.08);
+  const red = stars.find(star => star.color === '255,180,140' && star.radius > 1.2 && star.y > stars[0].y + 200);
+  expect(red).toBeTruthy();
+  await page.evaluate(y => {
+    window.scrollTo({ top: y - window.innerHeight / 2, behavior: 'instant' });
+    window.dispatchEvent(new Event('scroll'));
+  }, red.y);
+  const [r, g, b] = await sky(page).evaluate((canvas, star) => {
+    const ratio = canvas.width / document.documentElement.clientWidth;
+    const data = canvas.getContext('2d').getImageData(Math.round(star.x * ratio), Math.round((star.y - window.scrollY) * ratio), 1, 1).data;
+    return [...data];
+  }, red);
+  expect(r).toBeGreaterThan(b + 60);
+  expect(g).toBeGreaterThan(b);
+});
+
 for (const [width, sample] of [1440, 390].flatMap(width => [0, .5, .999].map(sample => [width, sample]))) {
   test(`${width}px first meteor waits 12-36s and displayed flights finish before 36-72s rests (sample ${sample})`, async ({ page }) => {
     await resizeSky(page, width, 1000);

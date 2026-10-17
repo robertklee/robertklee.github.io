@@ -117,7 +117,8 @@
       const y = 1 + random() * (tileHeight - 2);
       const radius = (.3 + random() ** 3 * .45) * (mobile ? .85 : 1);
       const alpha = .1 + random() ** 2 * .2;
-      const color = random() < .1 ? '244,217,176' : '185,202,235';
+      const tint = random();
+      const color = tint < .1 ? '244,217,176' : tint < .25 ? '228,232,244' : tint < .35 ? '166,192,255' : '185,202,235';
       tileCtx.fillStyle = `rgba(${color},${alpha})`;
       tileCtx.beginPath();
       tileCtx.arc(x, y, radius, 0, Math.PI * 2);
@@ -277,7 +278,10 @@
     function addPoint(x, y) {
       const rank = random();
       const alpha = .42 + rank * .3 + random() * .13;
-      const warm = random() < .12;
+      const tint = random();
+      // Rough stellar classes: mostly blue-white, with white, hot blue, yellow, and rare orange-red points.
+      const color = tint < .04 ? '255,180,140' : tint < .13 ? '244,217,176' : tint < .3 ? '228,232,244' :
+        tint < .45 ? '166,192,255' : '185,202,235';
       // Vary shapes independently without moving the seeded star positions.
       const shapeRandom = seededRandom(Math.floor(random() * 4294967296));
       const tall = shapeRandom() < .35;
@@ -285,7 +289,7 @@
         rank < .9 ? 1.2 + (rank - .58) * 2.1875 : 2.05 + (rank - .9) * 3.5;
       if (clearRect({ x: x - clearance, y: y - clearance, w: clearance * 2, h: clearance * 2 })) {
         stars.push({
-          x, y, alpha, warm, twinkles: 0, radius: mobile ? .65 + (radius - .65) * .65 : radius,
+          x, y, alpha, color, twinkles: 0, radius: mobile ? .65 + (radius - .65) * .65 : radius,
           shape: 'astroid', halo: rank > .85,
           scaleX: tall ? .68 + shapeRandom() * .18 : 1,
           scaleY: tall ? 1.08 + shapeRandom() * .14 : 1,
@@ -416,7 +420,7 @@
 
   function drawStar(star, y, fade) {
     const { radius, arm, armX, armY, curve, alpha, haloRadius } = starAppearance(star);
-    const color = star.warm ? '244,217,176' : '185,202,235';
+    const { color } = star;
     if (haloRadius) {
       const halo = ctx.createRadialGradient(star.x, y, 0, star.x, y, haloRadius);
       // An annular halo softens bright points without double-painting their cores.
