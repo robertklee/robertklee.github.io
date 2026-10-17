@@ -22,6 +22,10 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const between = (min, max) => min + Math.random() * (max - min);
   const twinkleRest = () => between(800, 2000);
+  const twinkleGap = () => between(400, 1200);
+  const twinkleLimit = () => width <= 860 ? 3 : 5;
+  // Slow fades read smoothly at ~30fps, so twinkle-only animation skips every other frame.
+  const twinkleFrame = 33;
   const meteorWait = () => between(12000, 36000);
   const meteorRest = () => between(36000, 72000);
   const profiles = {
@@ -37,7 +41,7 @@
   let protectedRects = [];
   let footerRects = [];
   let stars = [];
-  let twinkle = null;
+  let twinkles = [];
   let meteor = null;
   let meteorPending = false;
   let clock = 0;
@@ -147,7 +151,7 @@
       }
       if (mobile) addPoint(row++ % 2 ? width - 8 : 8, y + random() * (cell - 24));
     }
-    twinkle = null;
+    twinkles = [];
     sync(true);
   }
 
@@ -160,7 +164,7 @@
   }
 
   function startTwinkle() {
-    const visible = stars.filter(star => inView(star.y));
+    const visible = stars.filter(star => inView(star.y) && !twinkles.some(active => active.star === star));
     if (!visible.length) return;
     // Give the visible stars balanced turns instead of repeatedly picking one.
     const fewestTwinkles = Math.min(...visible.map(star => star.twinkles));
@@ -169,11 +173,11 @@
     const profile = profiles[kind];
     const star = candidates[Math.floor(Math.random() * candidates.length)];
     star.twinkles++;
-    twinkle = {
+    twinkles.push({
       star, start: clock, kind,
       duration: between(...profile.duration), intensity: between(...profile.intensity),
       growth: between(...profile.growth) * (width <= 860 ? .65 : 1),
-    };
+    });
   }
 
   function startMeteor() {
@@ -232,7 +236,8 @@
   }
 
   function starAppearance(star) {
-    const active = twinkle?.star === star;
+    const twinkle = twinkles.find(candidate => candidate.star === star);
+    const active = Boolean(twinkle);
     const t = active ? Math.min(1, (clock - twinkle.start) / twinkle.duration) : 0;
     const breath = Math.sin(Math.PI * t) ** 2;
     const pulse = !active ? 0 : twinkle.kind === 'sparkle' ? breath ** 2 :
@@ -343,8 +348,10 @@
     timer = 0;
     animationFrame = 0;
     if (!canRun()) return;
-    if (twinkle || meteor) {
+    if (meteor) {
       animationFrame = requestAnimationFrame(tick);
+    } else if (twinkles.length) {
+      timer = setTimeout(tick, twinkleFrame);
     } else {
       const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor);
       timer = setTimeout(tick, Math.max(16, deadline - clock));
@@ -354,11 +361,11 @@
   function tick() {
     advance();
     if (canRun()) {
-      if (twinkle && clock >= twinkle.start + twinkle.duration) twinkle = null;
+      twinkles = twinkles.filter(active => clock < active.start + active.duration);
       if (meteor && clock >= meteor.start + meteor.duration) finishMeteor();
       if (clock >= nextTwinkle) {
-        startTwinkle();
-        nextTwinkle = clock + (twinkle?.duration || 0) + twinkleRest();
+        if (twinkles.length < twinkleLimit()) startTwinkle();
+        nextTwinkle = clock + twinkleGap();
       }
       if (!meteor && !meteorPending && clock >= nextMeteor) tryMeteor();
     }
@@ -368,7 +375,7 @@
 
   function sync(retryPending = false) {
     advance();
-    if (reducedMotion.matches || (twinkle && !inView(twinkle.star.y))) twinkle = null;
+    twinkles = reducedMotion.matches ? [] : twinkles.filter(active => inView(active.star.y));
     if (meteor && (reducedMotion.matches || !meteorFits(meteor))) finishMeteor();
     if (retryPending && meteorPending && canRun()) tryMeteor();
     canvas.hidden = root.dataset.theme !== 'dark';

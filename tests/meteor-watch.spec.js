@@ -126,7 +126,7 @@ test.beforeEach(async ({ page }) => {
           appearances: stars.map(starAppearance), meteorPending,
           attempts: window.meteorAttempts || 0,
           clock: clock + (lastNow === null ? 0 : performance.now() - lastNow),
-          nextTwinkle, nextMeteor, twinkle, meteor, running: canRun(),
+          nextTwinkle, nextMeteor, twinkles, meteor, running: canRun(),
           timer: Boolean(timer), animationFrame: Boolean(animationFrame)
         });
         window.setMeteorWatchRects = (rects, footers = footerRects) => {
@@ -138,11 +138,11 @@ test.beforeEach(async ({ page }) => {
         window.paintMeteorWatchStar = (index, kind, progress = 0) => {
           const star = stars[index];
           const profile = profiles[kind];
-          twinkle = kind ? {
+          twinkles = kind ? [{
             star, kind, start: clock - progress * profile.duration[0],
             duration: profile.duration[0], intensity: profile.intensity[1],
             growth: profile.growth[1] * (width <= 860 ? .65 : 1),
-          } : null;
+          }] : [];
           draw();
           schedule();
           return starAppearance(star);
@@ -333,7 +333,7 @@ test('shooting stars preserve large differences in travel length', async ({ page
   expect(Math.max(...distances) / Math.min(...distances)).toBeGreaterThan(8);
 });
 
-test('twinkles vary by profile, use real animation, and wait without an idle frame loop', async ({ page }) => {
+test('twinkles vary by profile, animate on a throttled timer, and wait without an idle frame loop', async ({ page }) => {
   for (const [sample, kind] of [[.1, 'breathe'], [.5, 'shimmer'], [.9, 'sparkle']]) {
     await page.goto(`${origin}/?sample=${sample}`);
     await page.evaluate(() => document.fonts.ready);
@@ -346,19 +346,24 @@ test('twinkles vary by profile, use real animation, and wait without an idle fra
     expect(before.timer).toBe(true);
     await page.clock.fastForward(before.nextTwinkle - before.clock + 1);
     const event = await state(page);
-    expect(event.twinkle.kind).toBe(kind);
+    expect(event.twinkles).toHaveLength(1);
+    const [twinkle] = event.twinkles;
+    expect(twinkle.kind).toBe(kind);
     const durations = { breathe: [3000, 5000], shimmer: [4000, 6000], sparkle: [2400, 3600] };
     const [min, max] = durations[kind];
-    expect(event.twinkle.duration).toBeCloseTo(min + sample * (max - min), 5);
-    expect(event.twinkle.duration).toBeGreaterThanOrEqual(2400);
-    expect(event.twinkle.duration).toBeLessThanOrEqual(6000);
-    expect(event.nextTwinkle - event.twinkle.start - event.twinkle.duration).toBeCloseTo(800 + sample * 1200, 5);
+    expect(twinkle.duration).toBeCloseTo(min + sample * (max - min), 5);
+    expect(twinkle.duration).toBeGreaterThanOrEqual(2400);
+    expect(twinkle.duration).toBeLessThanOrEqual(6000);
+    expect(event.nextTwinkle - twinkle.start).toBeCloseTo(400 + sample * 800, 5);
+    expect(event.animationFrame).toBe(false);
+    expect(event.timer).toBe(true);
     const image = await sky(page).evaluate(canvas => canvas.toDataURL());
     await page.clock.runFor(500);
     expect(await sky(page).evaluate(canvas => canvas.toDataURL())).not.toBe(image);
-    await page.clock.fastForward(event.twinkle.duration + 100);
-    expect((await state(page)).twinkle).toBeNull();
-    expect((await state(page)).animationFrame).toBe(false);
+    await page.clock.fastForward(twinkle.duration + 100);
+    const later = await state(page);
+    expect(later.twinkles.some(active => active.start === twinkle.start)).toBe(false);
+    expect(later.animationFrame).toBe(false);
   }
 });
 
@@ -467,26 +472,32 @@ test('brighter stars have soft cores and faint compact halo edges, not solid dis
   expect(patch.outside.every(alpha => alpha === 0)).toBe(true);
 });
 
-test('five different visible stars take turns within thirty seconds, faster than the old cadence', async ({ page }) => {
-  await showAbout(page);
-  await page.clock.runFor(100);
-  const initial = await state(page);
-  const seen = new Set();
-  for (let i = 0; i < 5; i++) {
-    const before = await state(page);
-    await page.clock.fastForward(before.nextTwinkle - before.clock + 1);
+for (const [width, limit] of [[1440, 5], [390, 3]]) {
+  test(`${width}px sky overlaps up to ${limit} twinkles on distinct visible stars`, async ({ page }) => {
+    await resizeSky(page, width, 1000);
+    await showAbout(page);
+    await page.clock.runFor(100);
+    const initial = await state(page);
+    let peak = 0;
+    for (let i = 0; i < 12; i++) {
+      const before = await state(page);
+      await page.clock.fastForward(before.nextTwinkle - before.clock + 1);
+      const scene = await state(page);
+      const scrollY = await page.evaluate(() => window.scrollY);
+      expect(scene.twinkles.length).toBeLessThanOrEqual(limit);
+      expect(new Set(scene.twinkles.map(({ star }) => `${star.x},${star.y}`)).size).toBe(scene.twinkles.length);
+      for (const { star } of scene.twinkles) {
+        expect(star.y).toBeGreaterThanOrEqual(scrollY + scene.headerHeight + 16);
+        expect(star.y).toBeLessThanOrEqual(scrollY + scene.height - 24);
+      }
+      peak = Math.max(peak, scene.twinkles.length);
+    }
     const scene = await state(page);
-    expect(scene.twinkle).not.toBeNull();
-    const { star } = scene.twinkle;
-    const scrollY = await page.evaluate(() => window.scrollY);
-    expect(star.y).toBeGreaterThanOrEqual(scrollY + scene.headerHeight + 16);
-    expect(star.y).toBeLessThanOrEqual(scrollY + scene.height - 24);
-    seen.add(`${star.x},${star.y}`);
-    expect(scene.stars.reduce((sum, point) => sum + point.twinkles, 0)).toBe(i + 1);
-    expect(seen.size).toBe(i + 1);
-    expect(scene.clock - initial.clock).toBeLessThanOrEqual(30000);
-  }
-});
+    expect(peak).toBe(limit);
+    expect(scene.stars.filter(star => star.twinkles).length).toBeGreaterThanOrEqual(limit + 2);
+    expect(scene.clock - initial.clock).toBeLessThanOrEqual(16000);
+  });
+}
 
 test('light mode, offscreen sky, hidden tabs, and page suspension pause active-viewing clocks', async ({ page }) => {
   await showAbout(page);
@@ -553,7 +564,7 @@ test('theme toggle hides and clears the sky without reshuffling the stars; reduc
   await page.clock.fastForward(120000);
   expect((await state(page)).clock).toBe(paused.clock);
   expect((await state(page)).meteor).toBeNull();
-  expect((await state(page)).twinkle).toBeNull();
+  expect((await state(page)).twinkles).toEqual([]);
   expect(await sky(page).evaluate(canvas => canvas.toDataURL())).toBe(frozen);
   await page.emulateMedia({ media: 'print' });
   await expect(sky(page)).toBeHidden();
@@ -685,9 +696,9 @@ for (const retry of ['scroll', 'layout']) {
       const before = await state(page);
       await page.clock.fastForward(before.nextTwinkle - before.clock + 1);
       const turn = await state(page);
-      expect(turn.twinkle).not.toBeNull();
+      expect(turn.twinkles.length).toBeGreaterThan(0);
       await page.clock.runFor(32);
-      await page.clock.fastForward(turn.twinkle.duration + 1);
+      await page.clock.fastForward(turn.twinkles.at(-1).duration + 1);
     }
     const idle = await state(page);
     expect(idle.attempts).toBe(1);
@@ -840,7 +851,7 @@ test('mobile flights pause without catching up and reduced motion cancels all mo
   }).toBeNull();
   const reduced = await state(page);
   expect(reduced.meteor).toBeNull();
-  expect(reduced.twinkle).toBeNull();
+  expect(reduced.twinkles).toEqual([]);
   expect(reduced.animationFrame).toBe(false);
   expect(reduced.timer).toBe(false);
   expect(reduced.nextMeteor - reduced.clock).toBe(54000);
