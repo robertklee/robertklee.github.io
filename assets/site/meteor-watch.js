@@ -20,6 +20,7 @@
   document.body.prepend(canvas);
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   const between = (min, max) => min + Math.random() * (max - min);
   const twinkleRest = () => between(800, 2000);
   const twinkleGap = () => between(400, 1200);
@@ -48,11 +49,15 @@
   let clock = 0;
   let lastNow = null;
   let timer = 0;
+  let fastTimer = false;
   let animationFrame = 0;
   let layoutFrame = 0;
   let pageActive = true;
   let nextTwinkle = twinkleRest();
   let nextMeteor = meteorWait();
+  let pointer = null;
+  const glowing = new Map();
+  let glowClock = 0;
 
   const inView = y => y >= window.scrollY + headerHeight + 16 && y <= window.scrollY + height - 24;
   const canRun = () => pageActive && !document.hidden && !reducedMotion.matches &&
@@ -426,6 +431,7 @@
     const cell = mobile ? 112 : 128;
     const clearance = mobile ? 8 : 16;
     stars = [];
+    glowing.clear();
     function addPoint(x, y) {
       const rank = random();
       const alpha = .42 + rank * .3 + random() * .13;
@@ -540,6 +546,39 @@
     meteor = null;
   }
 
+  const glowRadius = 150;
+  function glowTarget(star) {
+    if (!pointer) return 0;
+    const reach = 1 - Math.hypot(star.x - pointer.x, star.y - window.scrollY - pointer.y) / glowRadius;
+    return reach > 0 ? reach * reach : 0;
+  }
+
+  function nearPointer() {
+    if (!pointer) return [];
+    const y = pointer.y + window.scrollY;
+    return [...stars, ...constellations.flatMap(({ points }) => points)]
+      .filter(star => Math.abs(star.y - y) < glowRadius && Math.abs(star.x - pointer.x) < glowRadius);
+  }
+
+  function updateGlow() {
+    if (!canRun()) {
+      glowing.clear();
+      return;
+    }
+    // Ease with the animation clock so the glow follows the cursor softly at any frame rate.
+    const ease = 1 - Math.exp(-Math.min(100, glowing.size ? clock - glowClock : twinkleFrame) / 220);
+    glowClock = clock;
+    nearPointer().forEach(star => {
+      if (!glowing.has(star) && glowTarget(star) > 0) glowing.set(star, 0);
+    });
+    glowing.forEach((value, star) => {
+      const target = glowTarget(star);
+      const next = value + (target - value) * ease;
+      if (target === 0 && next < .005) glowing.delete(star);
+      else glowing.set(star, next);
+    });
+  }
+
   function starAppearance(star) {
     const twinkle = twinkles.find(candidate => candidate.star === star);
     const active = Boolean(twinkle);
@@ -548,13 +587,14 @@
     const pulse = !active ? 0 : twinkle.kind === 'sparkle' ? breath ** 2 :
       twinkle.kind === 'shimmer' ? breath * (1 - .8 * breath) * 3.2 : breath;
     const flash = star.constellation === undefined ? 0 : constellationFlashOf(star);
+    const glow = glowing.get(star) || 0;
     const stretch = Math.max(star.scaleX, star.scaleY);
     const arm = Math.min(width <= 860 ? 4.25 : 6,
-      (star.radius * 1.55 + pulse * (active ? twinkle.growth : 0) + flash * 1.2) * stretch);
+      (star.radius * 1.55 + pulse * (active ? twinkle.growth : 0) + flash * 1.2 + glow * 1.5) * stretch);
     return {
       radius: star.radius, arm,
       armX: arm * (star.scaleX / stretch), armY: arm * (star.scaleY / stretch), curve: star.curve,
-      alpha: Math.min(1, star.alpha + pulse * (active ? twinkle.intensity : 0) + flash * .3),
+      alpha: Math.min(1, star.alpha + pulse * (active ? twinkle.intensity : 0) + flash * .3 + glow * .4),
       haloRadius: star.halo ? Math.max(arm, Math.min(width <= 860 ? 4.5 : 6, star.radius * 2.4)) : 0,
     };
   }
@@ -655,11 +695,13 @@
     clearTimeout(timer);
     cancelAnimationFrame(animationFrame);
     timer = 0;
+    fastTimer = false;
     animationFrame = 0;
     if (!canRun()) return;
     if (meteor) {
       animationFrame = requestAnimationFrame(tick);
-    } else if (twinkles.length || constellations.some(constellationAnimating)) {
+    } else if (twinkles.length || glowing.size || constellations.some(constellationAnimating)) {
+      fastTimer = true;
       timer = setTimeout(tick, twinkleFrame);
     } else {
       const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor);
@@ -679,6 +721,7 @@
       if (!meteor && !meteorPending && clock >= nextMeteor) tryMeteor();
       revealConstellations();
     }
+    updateGlow();
     draw();
     schedule();
   }
@@ -689,6 +732,7 @@
     if (meteor && (reducedMotion.matches || !meteorFits(meteor))) finishMeteor();
     if (retryPending && meteorPending && canRun()) tryMeteor();
     revealConstellations();
+    updateGlow();
     canvas.hidden = root.dataset.theme !== 'dark';
     draw();
     schedule();
@@ -705,6 +749,18 @@
   });
   window.addEventListener('resize', queueMeasure);
   window.addEventListener('scroll', () => sync(true), { passive: true });
+  window.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' || !finePointer.matches) return;
+    pointer = event.clientY > headerHeight ? { x: event.clientX, y: event.clientY } : null;
+    // Running frames pick up the new position; otherwise wake only when a star needs to respond.
+    if (!canRun() || animationFrame || fastTimer || (!glowing.size && !nearPointer().some(glowTarget))) return;
+    tick();
+  }, { passive: true });
+  window.addEventListener('pointerout', event => {
+    if (event.relatedTarget || !pointer) return;
+    pointer = null;
+    if (canRun() && !animationFrame && !fastTimer) tick();
+  });
   window.addEventListener('pagehide', () => {
     pageActive = false;
     sync();

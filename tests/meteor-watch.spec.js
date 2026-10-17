@@ -145,6 +145,7 @@ test.beforeEach(async ({ page }) => {
         window.readMeteorWatch = () => ({
           width, height, headerHeight, skyTop, skyBottom, stars, protectedRects, footerRects, constellations,
           appearances: stars.map(starAppearance), meteorPending,
+          glows: stars.map(star => glowing.get(star) || 0), pointer,
           attempts: window.meteorAttempts || 0,
           clock: clock + (lastNow === null ? 0 : performance.now() - lastNow),
           nextTwinkle, nextMeteor, twinkles, meteor, running: canRun(),
@@ -410,6 +411,46 @@ test('twinkles vary by profile, animate on a throttled timer, and wait without a
     expect(later.twinkles.some(active => active.start === twinkle.start)).toBe(false);
     expect(later.animationFrame).toBe(false);
   }
+});
+
+test('a mouse cursor softly brightens nearby stars, then lets them settle, without a frame loop', async ({ page }) => {
+  await showAbout(page);
+  await page.clock.runFor(100);
+  const scene = await state(page);
+  const scrollY = await page.evaluate(() => window.scrollY);
+  const index = scene.stars.findIndex(star => star.y > scrollY + scene.headerHeight + 40 &&
+    star.y < scrollY + scene.height - 40 && star.x > 40 && star.x < scene.width - 40);
+  expect(index).toBeGreaterThanOrEqual(0);
+  const star = scene.stars[index];
+  const near = { x: star.x + 30, y: star.y - scrollY };
+  await page.mouse.move(near.x, near.y);
+  const first = await state(page);
+  expect(first.glows[index]).toBeGreaterThan(0);
+  expect(first.glows[index]).toBeLessThan(.3);
+  expect(first.timer).toBe(true);
+  expect(first.animationFrame).toBe(false);
+  // Continuous movement must not starve the eased frames.
+  for (let i = 0; i < 30; i++) {
+    await page.mouse.move(near.x + (i % 2), near.y);
+    await page.clock.runFor(16);
+  }
+  const target = (1 - 30 / 150) ** 2;
+  const lit = await state(page);
+  expect(lit.glows[index]).toBeGreaterThan(target * .8);
+  expect(lit.glows[index]).toBeLessThanOrEqual(target + .001);
+  expect(lit.appearances[index].alpha).toBeGreaterThanOrEqual(Math.min(1, star.alpha + target * .8 * .4));
+  expect(lit.appearances[index].arm).toBeLessThanOrEqual(6);
+  expect(lit.glows.filter(glow => glow > 0).length).toBeLessThan(lit.stars.length / 4);
+  await page.mouse.move(near.x, scene.headerHeight / 2);
+  expect((await state(page)).pointer).toBeNull();
+  await page.clock.runFor(1500);
+  expect((await state(page)).glows.every(glow => glow === 0)).toBe(true);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.mouse.move(near.x, near.y);
+  await page.clock.runFor(500);
+  const still = await state(page);
+  expect(still.glows.every(glow => glow === 0)).toBe(true);
+  expect(still.timer).toBe(false);
 });
 
 test('all profiles keep curved astroid silhouettes while gently extending their points', async ({ page }) => {
