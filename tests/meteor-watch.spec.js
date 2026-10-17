@@ -102,8 +102,9 @@ test.beforeEach(async ({ page }) => {
       return result;
     };
     proto.fillRect = function (...args) {
-      if (this.canvas.matches('.meteor-watch-canvas') &&
-          (window.omitSkyStars || (window.omitSkyWash && washes.has(this.fillStyle)))) return;
+      if (this.canvas.matches('.meteor-watch-canvas') && (window.omitSkyStars ||
+          (window.omitSkyWash && washes.has(this.fillStyle)) ||
+          (window.omitSkyDust && this.fillStyle instanceof CanvasPattern))) return;
       return fillRect.apply(this, args);
     };
     proto.fill = function (...args) {
@@ -209,7 +210,7 @@ test('built homepage owns its sky assets, has no spike dependencies, and leaves 
 
 test('all soft bounded stars are curved astroids and avoid protected content', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.evaluate(() => { window.omitSkyWash = true; });
+  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
   await showAbout(page);
   await page.clock.runFor(100);
   const scene = await state(page);
@@ -440,9 +441,53 @@ test('all profiles keep curved astroid silhouettes while gently extending their 
   }
 });
 
-test('brighter stars have soft cores and faint compact halo edges, not solid disks', async ({ page }) => {
+test('faint background dust fills the sky behind content and fades in below the hero', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(() => { window.omitSkyWash = true; });
+  const region = selector => sky(page).evaluate((canvas, selector) => {
+    const ratio = canvas.width / document.documentElement.clientWidth;
+    const r = selector === 'fade' ? (() => {
+      const top = document.querySelector('.hero').getBoundingClientRect().bottom;
+      return { left: 0, top, width: innerWidth, height: 30 };
+    })() : document.querySelector(selector).getBoundingClientRect();
+    const data = canvas.getContext('2d').getImageData(
+      Math.round(r.left * ratio), Math.round(r.top * ratio),
+      Math.round(r.width * ratio), Math.round(r.height * ratio)).data;
+    let lit = 0;
+    let max = 0;
+    let total = 0;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i]) lit++;
+      max = Math.max(max, data[i]);
+      total += data[i];
+    }
+    return { lit, max, mean: total / (data.length / 4) };
+  }, selector);
+  await showAbout(page);
+  await page.clock.runFor(100);
+  const copy = await region('.cv-about-copy');
+  expect(copy.lit).toBeGreaterThan(50);
+  expect(copy.max).toBeLessThanOrEqual(80);
+  await page.evaluate(() => { window.omitSkyDust = true; window.dispatchEvent(new Event('scroll')); });
+  expect((await region('.cv-about-copy')).lit).toBe(0);
+  await page.evaluate(() => {
+    window.omitSkyDust = false;
+    window.scrollTo({ top: document.querySelector('.hero').offsetHeight - 400, behavior: 'instant' });
+    window.dispatchEvent(new Event('scroll'));
+  });
+  const fade = await region('fade');
+  await page.evaluate(() => {
+    window.scrollTo({ top: window.scrollY + 900, behavior: 'instant' });
+    window.dispatchEvent(new Event('scroll'));
+  });
+  const full = await region('.cv-about-copy');
+  expect(fade.mean).toBeGreaterThan(0);
+  expect(fade.mean).toBeLessThan(full.mean * .4);
+});
+
+test('brighter stars have soft cores and faint compact halo edges, not solid disks', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
   const scene = await state(page);
   const bright = scene.stars.find(star => star.halo && star.radius > 2.05 &&
     star.shape === 'astroid' && star.y >= scene.skyTop + 180);
@@ -865,7 +910,7 @@ for (const ratio of [1, 2]) {
     test.use({ deviceScaleFactor: ratio });
     test('small, medium, and bright stars have noticeably different painted core areas', async ({ page }) => {
       await page.emulateMedia({ reducedMotion: 'reduce' });
-      await page.evaluate(() => { window.omitSkyWash = true; });
+      await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
       for (const width of [1440, 390]) {
         await resizeSky(page, width, 1000);
         const scene = await state(page);

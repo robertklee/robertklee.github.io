@@ -41,6 +41,7 @@
   let protectedRects = [];
   let footerRects = [];
   let stars = [];
+  let dust = null;
   let twinkles = [];
   let meteor = null;
   let meteorPending = false;
@@ -89,6 +90,55 @@
     };
   }
 
+  // Faint background dust is pre-rendered into one tile and filled as a pattern,
+  // so hundreds of points cost a single fill per frame.
+  function buildDust(mobile, dpr) {
+    const key = `${mobile}:${dpr}`;
+    if (dust?.key === key) return;
+    const tile = document.createElement('canvas');
+    const tileWidth = 512;
+    const tileHeight = 448;
+    tile.width = Math.round(tileWidth * dpr);
+    tile.height = Math.round(tileHeight * dpr);
+    const tileCtx = tile.getContext('2d');
+    if (!tileCtx) {
+      dust = { key, pattern: null };
+      return;
+    }
+    tileCtx.scale(dpr, dpr);
+    const random = seededRandom(9157);
+    for (let i = 0; i < (mobile ? 120 : 140); i++) {
+      const x = 1 + random() * (tileWidth - 2);
+      const y = 1 + random() * (tileHeight - 2);
+      const radius = (.3 + random() ** 3 * .45) * (mobile ? .85 : 1);
+      const alpha = .1 + random() ** 2 * .2;
+      const color = random() < .1 ? '244,217,176' : '185,202,235';
+      tileCtx.fillStyle = `rgba(${color},${alpha})`;
+      tileCtx.beginPath();
+      tileCtx.arc(x, y, radius, 0, Math.PI * 2);
+      tileCtx.fill();
+    }
+    dust = { key, dpr, pattern: ctx.createPattern(tile, 'repeat') };
+  }
+
+  function drawDust(visibleTop) {
+    if (!dust?.pattern) return;
+    const top = skyTop - window.scrollY;
+    const offset = Math.round(top * dust.dpr) / dust.dpr;
+    dust.pattern.setTransform(new DOMMatrix().translate(0, offset).scale(1 / dust.dpr));
+    ctx.fillStyle = dust.pattern;
+    // Match the stars' 180px fade-in below the hero with a few stepped bands.
+    for (let band = 0; band < 6; band++) {
+      const y = top + band * 30;
+      if (y + 30 < visibleTop || y > height) continue;
+      ctx.globalAlpha = (band + .5) / 6;
+      ctx.fillRect(0, y, width, 30);
+    }
+    ctx.globalAlpha = 1;
+    const rest = Math.max(visibleTop, top + 180);
+    if (rest < height) ctx.fillRect(0, rest, width, height - rest);
+  }
+
   function measure() {
     advance();
     if (meteor) finishMeteor();
@@ -102,6 +152,7 @@
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const mobile = width <= 860;
+    buildDust(mobile, dpr);
     const selectors = [
       'h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'figure', 'details', 'a', 'button', 'input', 'select',
       '.section-heading', '.cv-about-copy', '.chapter-copy', '.chapter-figure', '.cv-record', '.award-card', '.contact-card',
@@ -308,6 +359,7 @@
     wash.addColorStop(1, 'rgba(24,40,75,.03)');
     ctx.fillStyle = wash;
     ctx.fillRect(0, 0, width, height);
+    drawDust(visibleTop);
     stars.forEach(star => {
       if (star.y < window.scrollY + visibleTop - 16 || star.y > window.scrollY + height + 16) return;
       const fade = Math.min(1, Math.max(0, (star.y - skyTop) / 180));
