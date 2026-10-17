@@ -37,10 +37,12 @@
     { name: 'Static', maxDpr: 1, maxPixels: 2000000, frame: 0, dust: false },
   ];
   let qualityIndex = 0;
-  let qualityStart = 0;
+  let qualityElapsed = 0;
+  let qualityLastAt = null;
   let qualityFrames = 0;
   let lateFrames = 0;
   let slowWindows = 0;
+  let catastrophicFrames = 0;
   let scheduledAt = 0;
   let expectedDelay = 0;
   let drawCost = 0;
@@ -203,7 +205,12 @@
   }
 
   function resetQuality() {
-    qualityStart = qualityFrames = lateFrames = slowWindows = 0;
+    qualityElapsed = qualityFrames = lateFrames = slowWindows = catastrophicFrames = 0;
+    qualityLastAt = null;
+    pauseQuality();
+  }
+
+  function pauseQuality() {
     expectedDelay = 0;
     if (debugEnabled) resetDebugSamples(performance.now(), 0);
   }
@@ -277,16 +284,21 @@
   function sampleQuality(now) {
     if (!expectedDelay || !canRun()) return;
     const interval = now - scheduledAt;
-    // Sleep, debugger pauses, and intentionally long idle waits are not evidence.
-    if (interval > 1000) { resetQuality(); return; }
-    if (!qualityStart) { qualityStart = now; return; }
+    if (qualityLastAt !== null && now - qualityLastAt > 30000) {
+      qualityElapsed = qualityFrames = lateFrames = slowWindows = catastrophicFrames = 0;
+    }
+    qualityLastAt = now;
+    const catastrophic = interval >= Math.max(250, expectedDelay * 3) || drawCost >= Math.max(100, expectedDelay * 3);
+    catastrophicFrames = catastrophic ? catastrophicFrames + 1 : 0;
+    // Bound one stalled callback's influence, but retain repeated active overload.
+    qualityElapsed += Math.min(250, interval + drawCost);
     qualityFrames++;
     if (interval > expectedDelay * 1.8 || drawCost > expectedDelay * .6) lateFrames++;
-    if (now - qualityStart < 1000) return;
-    slowWindows = qualityFrames >= 2 && lateFrames / qualityFrames >= .3 ? slowWindows + 1 : 0;
-    qualityStart = now;
-    qualityFrames = lateFrames = 0;
-    if (slowWindows < 3 || qualityIndex === qualities.length - 1) return;
+    if (qualityElapsed >= 1000) {
+      slowWindows = lateFrames / qualityFrames >= .3 ? slowWindows + 1 : 0;
+      qualityElapsed = qualityFrames = lateFrames = 0;
+    }
+    if ((slowWindows < 3 && catastrophicFrames < 2) || qualityIndex === qualities.length - 1) return;
     // Keep the safer tier for this visit instead of oscillating on marginal devices.
     qualityIndex++;
     resetQuality();
@@ -835,7 +847,7 @@
       expectedDelay = meteor ? twinkleFrame : qualities[qualityIndex].frame;
       timer = setTimeout(tick, expectedDelay);
     } else {
-      resetQuality();
+      pauseQuality();
       const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor, welcomeAt ?? Infinity);
       timer = setTimeout(tick, Math.max(16, deadline - clock));
     }

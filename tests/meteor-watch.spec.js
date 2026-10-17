@@ -157,6 +157,7 @@ test.beforeEach(async ({ page }) => {
           }
           sync();
         };
+        window.pauseMeteorWatchQuality = pauseQuality;
         window.setMeteorWatchRects = (rects, footers = footerRects) => {
           protectedRects = rects;
           footerRects = footers;
@@ -767,6 +768,56 @@ test('healthy frames and hidden periods break a slow-performance streak', async 
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), samples(8000, 200, 12));
+  expect((await state(page)).qualityIndex).toBe(0);
+});
+
+test('short sky bursts retain active evidence across idle waits without counting the waits', async ({ page }) => {
+  await showAbout(page);
+  for (let burst = 0; burst < 8; burst++) {
+    await page.evaluate(burst => {
+      window.sampleMeteorWatchQuality([
+        { now: 10000 + burst * 1400, delay: 200 },
+        { now: 10200 + burst * 1400, delay: 200 },
+      ]);
+      window.pauseMeteorWatchQuality();
+    }, burst);
+    expect((await state(page)).qualityIndex).toBe(burst < 7 ? 0 : 1);
+  }
+});
+
+for (const overload of ['late callbacks', 'expensive draws']) {
+  test(`repeated extreme sky ${overload} lower quality instead of looking like suspension`, async ({ page }) => {
+    await showAbout(page);
+    const sample = now => ({
+      now, delay: overload === 'late callbacks' ? 1100 : 33,
+      cost: overload === 'expensive draws' ? 1100 : 0,
+    });
+    await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), [sample(10000)]);
+    expect((await state(page)).qualityIndex).toBe(0);
+    await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), [sample(11200)]);
+    expect((await state(page)).qualityIndex).toBe(1);
+    await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), [sample(12400), sample(13600)]);
+    const stopped = await state(page);
+    expect(stopped.qualityIndex).toBe(2);
+    expect(stopped.timer).toBe(false);
+    expect(stopped.animationFrame).toBe(false);
+  });
+}
+
+test('sky evidence expires during long idle waits and an isolated stall cannot lower quality', async ({ page }) => {
+  await showAbout(page);
+  await page.evaluate(() => window.sampleMeteorWatchQuality([{ now: 10000, delay: 1100 }]));
+  await page.evaluate(() => window.sampleMeteorWatchQuality(
+    Array.from({ length: 40 }, (_, i) => ({ now: 10100 + i * 33, delay: 33 }))
+  ));
+  expect((await state(page)).qualityIndex).toBe(0);
+  await page.evaluate(() => {
+    window.sampleMeteorWatchQuality(Array.from({ length: 12 }, (_, i) => ({ now: 13000 + i * 200, delay: 200 })));
+    window.pauseMeteorWatchQuality();
+  });
+  await page.evaluate(() => window.sampleMeteorWatchQuality(
+    Array.from({ length: 6 }, (_, i) => ({ now: 50000 + i * 200, delay: 200 }))
+  ));
   expect((await state(page)).qualityIndex).toBe(0);
 });
 
