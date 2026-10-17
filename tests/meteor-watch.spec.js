@@ -113,15 +113,6 @@ test.beforeEach(async ({ page }) => {
           (window.omitSkyDust && this.fillStyle instanceof CanvasPattern))) return;
       return fillRect.apply(this, args);
     };
-    const drawImage = proto.drawImage;
-    window.bandDraws = [];
-    proto.drawImage = function (...args) {
-      if (this.canvas.matches?.('.meteor-watch-canvas')) {
-        if (window.omitSkyStars || window.omitSkyBand) return;
-        window.bandDraws = [...window.bandDraws.slice(-15), { sy: args[2], dy: args[6], alpha: this.globalAlpha }];
-      }
-      return drawImage.apply(this, args);
-    };
     const stroke = proto.stroke;
     proto.stroke = function (...args) {
       if (this.canvas.matches('.meteor-watch-canvas') && (window.omitSkyStars || window.omitSkyConstellations)) return;
@@ -231,7 +222,7 @@ test('built homepage owns its sky assets, has no spike dependencies, and leaves 
 
 test('all soft bounded stars are curved astroids and avoid protected content', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; window.omitSkyBand = true; });
+  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
   await showAbout(page);
   await page.clock.runFor(100);
   const scene = await state(page);
@@ -289,7 +280,7 @@ test('all soft bounded stars are curved astroids and avoid protected content', a
 
 test('stars mix stellar colours, mostly blue-white with rare orange-red points', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; window.omitSkyBand = true; });
+  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
   const { stars } = await state(page);
   const share = color => stars.filter(star => star.color === color).length / stars.length;
   expect(new Set(stars.map(star => star.color)).size).toBe(5);
@@ -528,7 +519,7 @@ test('all profiles keep curved astroid silhouettes while gently extending their 
 
 test('faint background dust fills the sky behind content and fades in below the hero', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyBand = true; });
+  await page.evaluate(() => { window.omitSkyWash = true; });
   const region = selector => sky(page).evaluate((canvas, selector) => {
     const ratio = canvas.width / document.documentElement.clientWidth;
     const r = selector === 'fade' ? (() => {
@@ -596,7 +587,7 @@ test('dust layers drift slower than the page for parallax depth, except under re
 });
 
 test('familiar constellations sit in clear space, trace in once when scrolled into view, then settle', async ({ page }) => {
-  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; window.omitSkyBand = true; });
+  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
   const scene = await state(page);
   expect(scene.constellations.length).toBe(7);
   expect(new Set(scene.constellations.map(({ name }) => name)).size).toBe(7);
@@ -654,45 +645,9 @@ test('familiar constellations sit in clear space, trace in once when scrolled in
   expect((await pixels(page)).lit).toBeLessThan(withLines.lit);
 });
 
-test('a faint Milky Way band drifts behind the dust and fades in below the hero', async ({ page }) => {
-  const scroll = y => page.evaluate(y => {
-    window.scrollTo({ top: y, behavior: 'instant' });
-    window.dispatchEvent(new Event('scroll'));
-    return { scrollY: window.scrollY, draws: window.bandDraws.slice() };
-  }, y);
-  const drift = async () => {
-    const top = await page.evaluate(() => document.getElementById('profile-about').offsetTop);
-    const before = await scroll(top);
-    const after = await scroll(top + 600);
-    expect(after.scrollY - before.scrollY).toBe(600);
-    const [first, last] = [before.draws.at(-1), after.draws.at(-1)];
-    return ((last.sy - first.sy) / .25 - (last.dy - first.dy)) / 600;
-  };
-  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
-  await showAbout(page);
-  await page.clock.runFor(100);
-  const withBand = await pixels(page);
-  await page.evaluate(() => { window.omitSkyBand = true; window.dispatchEvent(new Event('scroll')); });
-  const withoutBand = await pixels(page);
-  expect(withBand.lit - withoutBand.lit).toBeGreaterThan(40000);
-  await page.evaluate(() => { window.omitSkyBand = false; });
-  const depth = await drift();
-  expect(depth).toBeGreaterThan(0);
-  expect(depth).toBeLessThan(.35);
-  const { draws } = await scroll(await page.evaluate(() => document.querySelector('.hero').offsetHeight - 400));
-  const alphas = draws.map(draw => draw.alpha);
-  expect(Math.min(...alphas)).toBeLessThan(.2);
-  expect(alphas.at(-1)).toBe(1);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  expect(await drift()).toBeCloseTo(1, 5);
-  await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; window.bandDraws = []; });
-  await scroll(await page.evaluate(() => window.scrollY + 300));
-  expect(await page.evaluate(() => window.bandDraws)).toEqual([]);
-});
-
 test('brighter stars have soft cores and faint compact halo edges, not solid disks', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; window.omitSkyBand = true; });
+  await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
   const scene = await state(page);
   const bright = scene.stars.find(star => star.halo && star.radius > 2.05 &&
     star.shape === 'astroid' && star.y >= scene.skyTop + 180);
@@ -1115,7 +1070,7 @@ for (const ratio of [1, 2]) {
     test.use({ deviceScaleFactor: ratio });
     test('small, medium, and bright stars have noticeably different painted core areas', async ({ page }) => {
       await page.emulateMedia({ reducedMotion: 'reduce' });
-      await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; window.omitSkyBand = true; });
+      await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
       for (const width of [1440, 390]) {
         await resizeSky(page, width, 1000);
         const scene = await state(page);

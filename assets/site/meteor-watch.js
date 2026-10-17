@@ -156,92 +156,6 @@
     ctx.globalAlpha = 1;
   }
 
-  // The Milky Way is pre-rendered once at quarter resolution, where blur is free,
-  // and drifts slower than the dust so it reads as the most distant layer. Its
-  // texture spans just enough "sky" to cross the screen diagonally once while
-  // the page scrolls from the hero to the footer.
-  const bandScale = .25;
-  let band = null;
-  function bandDepth() {
-    if (reducedMotion.matches) return 1;
-    return Math.min(.3, Math.max(.08, 2 * height / Math.max(1, skyBottom - skyTop - height)));
-  }
-
-  function buildBand() {
-    const depth = bandDepth();
-    const span = Math.ceil(height * (1 - depth) + (skyBottom - skyTop) * depth);
-    const key = `${width}:${span}:${depth}`;
-    if (band?.key === key) return;
-    const texture = document.createElement('canvas');
-    texture.width = Math.ceil(width * bandScale);
-    texture.height = Math.ceil(span * bandScale);
-    const b = texture.getContext('2d');
-    band = { key, depth, span, texture: b ? texture : null };
-    if (!b) return;
-    b.scale(bandScale, bandScale);
-    const random = seededRandom(4271);
-    const normal = () => (random() + random() + random() - 1.5) / 1.5;
-    const spread = width <= 860 ? 95 : 190;
-    const slope = width * 1.2 / span;
-    const point = (s, offset) => {
-      const u = s / span;
-      const x = width * (-.1 + 1.2 * u) + width * .05 * Math.sin(u * Math.PI * 3 + .8);
-      const length = Math.hypot(1, slope);
-      return [x + offset / length, s - offset * slope / length];
-    };
-    const blob = (x, y, radius, color, alpha) => {
-      const glow = b.createRadialGradient(x, y, 0, x, y, radius);
-      glow.addColorStop(0, `rgba(${color},${alpha})`);
-      glow.addColorStop(1, `rgba(${color},0)`);
-      b.fillStyle = glow;
-      b.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-    };
-    for (let s = -spread; s < span + spread; s += 48) {
-      blob(...point(s, normal() * spread * .15), spread * (1.1 + random() * .4), '91,128,255', .045);
-    }
-    for (let i = 0; i < span / 9; i++) {
-      const s = random() * span;
-      const tone = random();
-      const color = tone < .5 ? '120,150,255' : tone < .8 ? '150,124,255' : '205,214,255';
-      blob(...point(s, normal() * spread * .8), spread * (.12 + random() ** 2 * .35), color, .025 + random() * .045);
-    }
-    // A warmer, brighter bulge gives the band one focal point instead of a uniform stripe.
-    for (let i = 0; i < 24; i++) {
-      const s = span * (.56 + normal() * .05);
-      blob(...point(s, normal() * spread * .35), spread * (.2 + random() * .35), '244,206,160', .04 + random() * .03);
-    }
-    b.globalCompositeOperation = 'destination-out';
-    for (let s = 0; s < span; s += 14) {
-      if (random() < .3) continue;
-      blob(...point(s, -spread * .12 + Math.sin(s / 140) * spread * .1 + normal() * spread * .05),
-        spread * (.06 + random() * .12), '0,0,0', .25 + random() * .35);
-    }
-    b.globalCompositeOperation = 'source-over';
-    for (let i = 0; i < span * spread / 90; i++) {
-      const [x, y] = point(random() * span, normal() * spread * .7);
-      b.fillStyle = `rgba(214,222,255,${.05 + random() ** 3 * .25})`;
-      b.fillRect(x, y, 1 / bandScale, 1 / bandScale);
-    }
-  }
-
-  function drawBand(visibleTop) {
-    if (!band?.texture) return;
-    const top = skyTop - window.scrollY;
-    const origin = top * band.depth;
-    const paint = (from, to, alpha) => {
-      from = Math.max(from, visibleTop);
-      to = Math.min(to, height);
-      if (to <= from) return;
-      ctx.globalAlpha = alpha;
-      ctx.drawImage(band.texture, 0, (from - origin) * bandScale, band.texture.width, (to - from) * bandScale,
-        0, from, width, to - from);
-    };
-    // Match the stars' and dust's 180px fade-in below the hero.
-    for (let step = 0; step < 6; step++) paint(top + step * 30, top + step * 30 + 30, (step + .5) / 6);
-    paint(top + 180, height, 1);
-    ctx.globalAlpha = 1;
-  }
-
   // Recognizable schematic patterns, not sky coordinates: [x, y, magnitude, colour?].
   // Edges are listed in tracing order.
   const constellationPatterns = [
@@ -407,7 +321,6 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const mobile = width <= 860;
     buildDust(mobile, dpr);
-    buildBand();
     const selectors = [
       'h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'figure', 'details', 'a', 'button', 'input', 'select',
       '.section-heading', '.cv-about-copy', '.chapter-copy', '.chapter-figure', '.cv-record', '.award-card', '.contact-card',
@@ -654,7 +567,6 @@
     wash.addColorStop(1, 'rgba(24,40,75,.03)');
     ctx.fillStyle = wash;
     ctx.fillRect(0, 0, width, height);
-    drawBand(visibleTop);
     drawDust(visibleTop);
     stars.forEach(star => {
       if (star.y < window.scrollY + visibleTop - 16 || star.y > window.scrollY + height + 16) return;
@@ -743,10 +655,7 @@
   document.addEventListener('site:themechange', () => sync());
   document.addEventListener('visibilitychange', () => sync());
   document.addEventListener('toggle', queueMeasure, true);
-  reducedMotion.addEventListener('change', () => {
-    buildBand();
-    sync();
-  });
+  reducedMotion.addEventListener('change', () => sync());
   window.addEventListener('resize', queueMeasure);
   window.addEventListener('scroll', () => sync(true), { passive: true });
   window.addEventListener('pointermove', event => {
