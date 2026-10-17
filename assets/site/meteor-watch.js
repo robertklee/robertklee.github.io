@@ -29,6 +29,8 @@
   const twinkleFrame = 33;
   const meteorWait = () => between(12000, 36000);
   const meteorRest = () => between(36000, 72000);
+  // Lands just after the theme toggle's 500ms circular reveal finishes.
+  const welcomeDelay = 650;
   const profiles = {
     breathe: { duration: [3000, 5000], intensity: [.28, .4], growth: [.35, .6] },
     shimmer: { duration: [4000, 6000], intensity: [.24, .36], growth: [.3, .55] },
@@ -55,6 +57,8 @@
   let pageActive = true;
   let nextTwinkle = twinkleRest();
   let nextMeteor = meteorWait();
+  let welcomeAt = null;
+  let wasDark = root.dataset.theme === 'dark';
   let pointer = null;
   const glowing = new Map();
   let glowClock = 0;
@@ -653,7 +657,7 @@
       fastTimer = true;
       timer = setTimeout(tick, twinkleFrame);
     } else {
-      const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor);
+      const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor, welcomeAt ?? Infinity);
       timer = setTimeout(tick, Math.max(16, deadline - clock));
     }
   }
@@ -666,6 +670,11 @@
       if (clock >= nextTwinkle) {
         if (twinkles.length < twinkleLimit()) startTwinkle();
         nextTwinkle = clock + twinkleGap();
+      }
+      if (welcomeAt !== null && clock >= welcomeAt) {
+        welcomeAt = null;
+        // Greet a switch to dark mode with a shower; if no route is clear, the normal schedule continues.
+        if (!meteor && startMeteor(true)) meteorPending = false;
       }
       if (!meteor && !meteorPending && clock >= nextMeteor) tryMeteor();
       revealConstellations();
@@ -680,6 +689,7 @@
     twinkles = reducedMotion.matches ? [] : twinkles.filter(active => inView(active.star.y));
     if (meteor && (reducedMotion.matches || !meteorFits(meteor))) finishMeteor();
     if (meteor) meteor.companions = meteor.companions.filter(meteorFits);
+    if (!canRun()) welcomeAt = null;
     if (retryPending && meteorPending && canRun()) tryMeteor();
     revealConstellations();
     updateGlow();
@@ -690,7 +700,12 @@
 
   const resizeObserver = new ResizeObserver(queueMeasure);
   [document.body, hero, header].forEach(element => resizeObserver.observe(element));
-  document.addEventListener('site:themechange', () => sync());
+  document.addEventListener('site:themechange', () => {
+    const dark = root.dataset.theme === 'dark';
+    if (dark && !wasDark) welcomeAt = clock + welcomeDelay;
+    wasDark = dark;
+    sync();
+  });
   document.addEventListener('visibilitychange', () => sync());
   document.addEventListener('toggle', queueMeasure, true);
   reducedMotion.addEventListener('change', () => sync());

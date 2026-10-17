@@ -139,7 +139,7 @@ test.beforeEach(async ({ page }) => {
           glows: stars.map(star => glowing.get(star) || 0), pointer,
           attempts: window.meteorAttempts || 0,
           clock: clock + (lastNow === null ? 0 : performance.now() - lastNow),
-          nextTwinkle, nextMeteor, twinkles, meteor, running: canRun(),
+          nextTwinkle, nextMeteor, welcomeAt, twinkles, meteor, running: canRun(),
           timer: Boolean(timer), animationFrame: Boolean(animationFrame)
         });
         window.setMeteorWatchRects = (rects, footers = footerRects) => {
@@ -817,6 +817,58 @@ test('theme toggle hides and clears the sky without reshuffling the stars; reduc
   expect(await sky(page).evaluate(canvas => canvas.toDataURL())).toBe(frozen);
   await page.emulateMedia({ media: 'print' });
   await expect(sky(page)).toBeHidden();
+});
+
+test('switching to dark mode with the sky in view greets it with a shower once the reveal ends', async ({ page }) => {
+  // Unlike locator.click(), a dispatched click does not scroll the sticky header's static position into view.
+  const toggle = async theme => {
+    await page.locator('#theme-toggle').dispatchEvent('click');
+    // The view transition applies the theme a frame or two later.
+    await expect.poll(async () => {
+      if (await page.evaluate(() => document.documentElement.dataset.theme) !== theme) await page.clock.runFor(16);
+      return page.evaluate(() => document.documentElement.dataset.theme);
+    }).toBe(theme);
+  };
+  await showAbout(page);
+  await page.clock.runFor(100);
+  await toggle('light');
+  await page.clock.runFor(5000);
+  await toggle('dark');
+  const switched = await state(page);
+  expect(switched.welcomeAt - switched.clock).toBeGreaterThan(550);
+  expect(switched.welcomeAt - switched.clock).toBeLessThanOrEqual(650);
+  expect(switched.nextMeteor).toBe(24000);
+  await page.clock.runFor(Math.floor(switched.welcomeAt - switched.clock) - 20);
+  expect((await state(page)).meteor).toBeNull();
+  await page.clock.runFor(60);
+  const greeted = await state(page);
+  expect(greeted.welcomeAt).toBeNull();
+  expect(greeted.meteor).not.toBeNull();
+  expect(greeted.meteor.companions.length).toBeGreaterThan(0);
+  expect(await page.evaluate(flight => window.meteorWatchFits(flight), greeted.meteor)).toBe(true);
+  expect(greeted.animationFrame).toBe(true);
+  await page.clock.runFor(Math.ceil(greeted.meteor.duration) + 100);
+  const rested = await state(page);
+  expect(rested.meteor).toBeNull();
+  expect(rested.nextMeteor - rested.clock).toBeGreaterThan(35000);
+
+  // Theme changes away from the sky, staying dark, or under reduced motion do not launch one.
+  await toggle('light');
+  await page.evaluate(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.dispatchEvent(new Event('scroll'));
+  });
+  await toggle('dark');
+  expect((await state(page)).welcomeAt).toBeNull();
+  await showAbout(page);
+  await page.clock.runFor(2000);
+  expect((await state(page)).meteor).toBeNull();
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('site:themechange')));
+  expect((await state(page)).welcomeAt).toBeNull();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await toggle('light');
+  await toggle('dark');
+  expect((await state(page)).welcomeAt).toBeNull();
 });
 
 for (const width of [320, 390, 860, 861]) {
