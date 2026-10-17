@@ -404,7 +404,37 @@
     });
   }
 
-  function startMeteor() {
+  // Occasional showers add a few shorter, near-parallel streaks beside the main meteor.
+  function addCompanions(primary) {
+    const count = primary.mobile ? 1 + Math.floor(Math.random() * 2) : 2 + Math.floor(Math.random() * 2);
+    const ux = primary.dx / primary.distance;
+    const uy = primary.dy / primary.distance;
+    const lanes = [0];
+    primary.companions = [];
+    for (let i = 0; i < count; i++) {
+      const delay = 120 + i * 200 + between(0, 100);
+      const duration = Math.min(between(600, 900) + primary.distance * .35, primary.duration - delay);
+      if (duration < 350) break;
+      const tilt = between(-.01, .01);
+      const dirX = ux * Math.cos(tilt) - uy * Math.sin(tilt);
+      const dirY = ux * Math.sin(tilt) + uy * Math.cos(tilt);
+      const distance = primary.distance * between(.45, .75);
+      const preferred = i % 2 ? -1 : 1;
+      const offsets = [preferred, -preferred].flatMap(side => [between(26, 60), 18, 52, 86].map(gap => gap * side))
+        .filter(offset => lanes.every(lane => Math.abs(offset - lane) >= 18));
+      const shifts = [primary.distance * between(-.15, .3), 0];
+      const flight = offsets.flatMap(offset => shifts.map(along => ({
+        x: primary.x + ux * along - uy * offset, y: primary.y + uy * along + ux * offset, offset,
+        dx: dirX * distance, dy: dirY * distance, distance, mobile: primary.mobile,
+        tail: primary.tail * distance / primary.distance, start: primary.start + delay, duration,
+      }))).find(meteorFits);
+      if (!flight) continue;
+      lanes.push(flight.offset);
+      primary.companions.push(flight);
+    }
+  }
+
+  function startMeteor(shower = false) {
     const mobile = width <= 860;
     const desired = mobile ? between(36, Math.min(220, width * .55)) :
       between(70, Math.min(760, width * .65));
@@ -437,8 +467,9 @@
           tail: mobile ? Math.min(64, distance * between(.12, .28)) :
             Math.min(260, distance * between(.18, .45)),
           start: clock, duration: between(800, 1300) + distance * .7,
-          displayed: false,
+          displayed: false, companions: [],
         };
+        if (shower || Math.random() < .25) addCompanions(meteor);
         return true;
       }
     }
@@ -553,6 +584,34 @@
     return Math.sin(Math.PI * t) * .32 * (1 - end * end * (3 - 2 * end));
   }
 
+  function drawMeteor(flight, strength) {
+    const t = (clock - flight.start) / flight.duration;
+    const opacity = meteorOpacity(flight, Math.min(1, t)) * strength;
+    if (opacity <= 0) return 0;
+    const x = flight.x + flight.dx * t;
+    const y = flight.y + flight.dy * t - window.scrollY;
+    const tailFraction = Math.min(flight.tail / flight.distance, t);
+    const tailX = x - flight.dx * tailFraction;
+    const tailY = y - flight.dy * tailFraction;
+    const trail = ctx.createLinearGradient(tailX, tailY, x, y);
+    trail.addColorStop(0, 'rgba(185,202,235,0)');
+    trail.addColorStop(1, `rgba(185,202,235,${opacity})`);
+    const nx = -flight.dy / flight.distance * .5;
+    const ny = flight.dx / flight.distance * .5;
+    ctx.fillStyle = trail;
+    // A single fill prevents the trail/head overlap from brightening the head.
+    ctx.beginPath();
+    ctx.moveTo(tailX - nx, tailY - ny);
+    ctx.lineTo(x - nx, y - ny);
+    ctx.lineTo(x + nx, y + ny);
+    ctx.lineTo(tailX + nx, tailY + ny);
+    ctx.closePath();
+    ctx.moveTo(x + 1, y);
+    ctx.arc(x, y, 1, 0, Math.PI * 2);
+    ctx.fill();
+    return opacity;
+  }
+
   function draw() {
     ctx.clearRect(0, 0, width, height);
     if (root.dataset.theme !== 'dark') return;
@@ -575,30 +634,8 @@
     });
     drawConstellations();
     if (meteor) {
-      const t = Math.min(1, (clock - meteor.start) / meteor.duration);
-      const x = meteor.x + meteor.dx * t;
-      const y = meteor.y + meteor.dy * t - window.scrollY;
-      const tailFraction = Math.min(meteor.tail / meteor.distance, t);
-      const tailX = x - meteor.dx * tailFraction;
-      const tailY = y - meteor.dy * tailFraction;
-      const trail = ctx.createLinearGradient(tailX, tailY, x, y);
-      trail.addColorStop(0, 'rgba(185,202,235,0)');
-      const opacity = meteorOpacity(meteor, t);
-      trail.addColorStop(1, `rgba(185,202,235,${opacity})`);
-      const nx = -meteor.dy / meteor.distance * .5;
-      const ny = meteor.dx / meteor.distance * .5;
-      ctx.fillStyle = trail;
-      // A single fill prevents the trail/head overlap from brightening the head.
-      ctx.beginPath();
-      ctx.moveTo(tailX - nx, tailY - ny);
-      ctx.lineTo(x - nx, y - ny);
-      ctx.lineTo(x + nx, y + ny);
-      ctx.lineTo(tailX + nx, tailY + ny);
-      ctx.closePath();
-      ctx.moveTo(x + 1, y);
-      ctx.arc(x, y, 1, 0, Math.PI * 2);
-      ctx.fill();
-      if (opacity > 0 && canRun()) meteor.displayed = true;
+      meteor.companions.forEach(flight => drawMeteor(flight, .85));
+      if (drawMeteor(meteor, 1) > 0 && canRun()) meteor.displayed = true;
     }
     ctx.restore();
   }
@@ -642,6 +679,7 @@
     advance();
     twinkles = reducedMotion.matches ? [] : twinkles.filter(active => inView(active.star.y));
     if (meteor && (reducedMotion.matches || !meteorFits(meteor))) finishMeteor();
+    if (meteor) meteor.companions = meteor.companions.filter(meteorFits);
     if (retryPending && meteorPending && canRun()) tryMeteor();
     revealConstellations();
     updateGlow();

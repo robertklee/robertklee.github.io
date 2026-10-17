@@ -130,7 +130,7 @@ test.beforeEach(async ({ page }) => {
     const source = readFileSync(resolve(__dirname, '../assets/site/meteor-watch.js'), 'utf8');
     const options = { loader: 'js', minify: true, legalComments: 'inline' };
     expect(await response.text()).toBe(transformSync(source, options).code);
-    const instrumented = source.replace('function startMeteor() {', `function startMeteor() {
+    const instrumented = source.replace('function startMeteor(shower = false) {', `function startMeteor(shower = false) {
         window.meteorAttempts = (window.meteorAttempts || 0) + 1;`)
       .replace(/\n\}\)\(\);\s*$/, `
         window.readMeteorWatch = () => ({
@@ -368,6 +368,50 @@ test('shooting stars preserve large differences in travel length', async ({ page
     expect(meteor.tail).toBeLessThan(meteor.distance);
   }
   expect(Math.max(...distances) / Math.min(...distances)).toBeGreaterThan(8);
+});
+
+test('some meteors arrive as small showers of shorter parallel streaks that finish first', async ({ page }) => {
+  for (const [width, sample, count] of [[1440, 0, 2], [390, 0, 1], [1440, .5, 0]]) {
+    await resizeSky(page, width, 1000);
+    await page.goto(`${origin}/?sample=${sample}`);
+    await page.evaluate(() => document.fonts.ready);
+    await page.clock.runFor(100);
+    await showAbout(page);
+    await page.clock.runFor(100);
+    const scene = await state(page);
+    await page.clock.fastForward(scene.nextMeteor - scene.clock + 1);
+    const { meteor } = await state(page);
+    expect(meteor).not.toBeNull();
+    expect(meteor.companions).toHaveLength(count);
+    for (const flight of meteor.companions) {
+      expect(await page.evaluate(flight => window.meteorWatchFits(flight), flight)).toBe(true);
+      expect(flight.start).toBeGreaterThan(meteor.start);
+      expect(flight.start + flight.duration).toBeLessThanOrEqual(meteor.start + meteor.duration);
+      expect(flight.distance).toBeLessThan(meteor.distance);
+      expect(Math.sign(flight.dx)).toBe(Math.sign(meteor.dx));
+      // Parallel within a couple of degrees, and offset sideways rather than overlapping.
+      const cross = (meteor.dx * flight.dy - meteor.dy * flight.dx) / meteor.distance / flight.distance;
+      expect(Math.abs(cross)).toBeLessThan(.03);
+      const side = Math.abs((flight.x - meteor.x) * meteor.dy - (flight.y - meteor.y) * meteor.dx) / meteor.distance;
+      expect(side).toBeGreaterThanOrEqual(17);
+    }
+    if (!count) continue;
+    await page.evaluate(() => {
+      window.omitSkyStars = true;
+      window.omitSkyWash = true;
+      window.omitSkyDust = true;
+    });
+    const [last] = meteor.companions.slice(-1);
+    await page.clock.runFor(Math.ceil(last.start + last.duration / 2 - meteor.start));
+    const shower = await pixels(page);
+    expect(shower.maxAlpha).toBeLessThanOrEqual(82);
+    const single = await page.evaluate(() => {
+      const watch = window.readMeteorWatch();
+      watch.meteor.companions = [];
+      window.dispatchEvent(new Event('scroll'));
+    }).then(() => pixels(page));
+    expect(shower.lit).toBeGreaterThan(single.lit + 5);
+  }
 });
 
 test('twinkles vary by profile, animate on a throttled timer, and wait without an idle frame loop', async ({ page }) => {
