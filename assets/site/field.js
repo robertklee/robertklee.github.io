@@ -1895,8 +1895,9 @@
     if (interval && lastFrame) lastFrame += Math.max(1, Math.floor((now - lastFrame + .5) / interval)) * interval;
     else lastFrame = now;
     const started = performance.now();
+    const previousBackgroundDraw = lastBackgroundDraw;
     draw(now);
-    if (monitoring) qualityMonitor.paint(performance.now() - started);
+    if (monitoring) qualityMonitor.paint(performance.now() - started, lastBackgroundDraw !== previousBackgroundDraw);
     if (!motionQuery.matches) scheduleFrame(now);
   }
   function kick() {

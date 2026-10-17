@@ -156,6 +156,7 @@ test('moderate overload degrades one tier at a time without a recovery-only hold
   sim.advance(policy.warmupMs + policy.downgradeMs + 200, 25);
   assert.equal(sim.monitor.current.name, 'low');
   assert.ok(sim.changes[1].at - first < policy.recoveryHoldMs);
+  assert.ok(sim.changes[1].at < 8000, 'ordinary relief fits inside the initial idle sampling grace');
   sim.advance(policy.warmupMs + policy.downgradeMs + 200, 25);
   assert.equal(sim.monitor.current.name, 'low');
   sim.advance(policy.lastResortMs - policy.downgradeMs + 200, 25);
@@ -213,7 +214,7 @@ test('intentional pauses count no time, but smooth active windows can recover tr
   assert.equal(sim.monitor.current.name, 'traversal');
   for (let i = 0; i < 28; i++) {
     sim.monitor.pause();
-    sim.wait(60000);
+    sim.wait(1000);
     sim.advance(2200, 60, { allowRecovery: false });
     sim.monitor.recover(sim.now);
     if (sim.monitor.current.name === 'low') break;
@@ -330,5 +331,89 @@ test('bad or intermediate evidence interrupts recovery instead of accumulating s
   sim.advance(policy.warmupMs + policy.recoverMs / 2, 60, { paintCost: 2 });
   sim.advance(2 * policy.sampleMs + 200, 40, { paintCost: 2 });
   sim.advance(policy.recoverMs / 2 + 2000, 60, { paintCost: 2 });
+  assert.equal(sim.monitor.current.name, 'balanced');
+});
+
+test('partial active evidence survives short bursts and changing scheduler targets', () => {
+  const sim = simulation();
+  sim.advance(policy.warmupMs, 60);
+  for (let burst = 0; burst < 10 && sim.monitor.current.name === 'high'; burst++) {
+    const targetFps = burst % 2 ? 15 : 30;
+    sim.advance(600, targetFps * 5 / 6, { targetFps, paced: targetFps === 15, paintCost: 2 });
+    sim.monitor.pause();
+    sim.wait(1000);
+  }
+  assert.equal(sim.monitor.current.name, 'balanced');
+  assert.ok(sim.changes[0].at > 8000, 'idle waits are excluded, not treated as slow frames');
+});
+
+test('healthy mixed-cadence bursts do not look like missed 30 FPS deadlines', () => {
+  const sim = simulation();
+  sim.advance(policy.warmupMs, 60);
+  for (let burst = 0; burst < 16; burst++) {
+    const targetFps = burst % 2 ? 15 : 30;
+    sim.advance(600, targetFps === 15 ? 15 : 60, { targetFps, paced: targetFps === 15, paintCost: 2 });
+    sim.monitor.pause();
+    sim.wait(1000);
+  }
+  assert.equal(sim.monitor.current.name, 'high');
+});
+
+test('old paused evidence cannot trigger a downgrade or a deferred upgrade', () => {
+  const sim = simulation();
+  sim.advance(policy.warmupMs + 2200, 25);
+  sim.monitor.pause();
+  sim.wait(policy.evidenceMaxAgeMs + 1);
+  sim.advance(1200, 25);
+  assert.equal(sim.monitor.current.name, 'high');
+  sim.advance(2200, 25);
+  assert.equal(sim.monitor.current.name, 'balanced');
+  sim.advance(policy.warmupMs + policy.recoverMs + 1200, 60, { allowRecovery: false, paintCost: 2 });
+  sim.monitor.pause();
+  sim.wait(policy.evidenceMaxAgeMs + 1);
+  assert.equal(sim.monitor.recover(sim.now), null);
+  sim.advance(2200, 60, { paintCost: 2 });
+  assert.equal(sim.monitor.current.name, 'balanced');
+});
+
+test('repeated extreme active callbacks and draws bypass warmup without reacting to one expensive draw', () => {
+  const callbacks = simulation();
+  callbacks.advance(1500, 2);
+  assert.equal(callbacks.monitor.current.name, 'low');
+  const drawing = simulation();
+  drawing.advance(1000, 60, { paintCost: 120 });
+  assert.equal(drawing.changes[0].name, 'low');
+  assert.ok(drawing.changes[0].at < policy.warmupMs);
+  const isolated = simulation();
+  isolated.advance(100, 60, { paintCost: 2 });
+  isolated.monitor.paint(120);
+  isolated.advance(4000, 60, { paintCost: 2 });
+  assert.equal(isolated.monitor.current.name, 'high');
+});
+
+test('cheap traversal paints cannot hide expensive background work when recovering', () => {
+  const sim = simulation();
+  reachLow(sim);
+  let now = sim.now;
+  for (let frame = 0; frame < 1200; frame++) {
+    now += 1000 / 60;
+    sim.monitor.frame(now);
+    if (frame % 2 === 0) sim.monitor.paint(frame % 4 === 0 ? 30 : 2, frame % 4 === 0);
+  }
+  assert.equal(sim.monitor.current.name, 'low');
+  for (let frame = 0; frame < 1200 && sim.monitor.current.name === 'low'; frame++) {
+    now += 1000 / 60;
+    sim.monitor.frame(now);
+    if (frame % 2 === 0) sim.monitor.paint(2, frame % 4 === 0);
+  }
+  assert.equal(sim.monitor.current.name, 'balanced');
+});
+
+test('deferred recovery rechecks background headroom before the next full window', () => {
+  const sim = simulation();
+  reachBalanced(sim);
+  sim.advance(policy.warmupMs + policy.recoverMs + 1200, 60, { allowRecovery: false, paintCost: 2 });
+  sim.monitor.paint(30);
+  assert.equal(sim.monitor.recover(sim.now), null);
   assert.equal(sim.monitor.current.name, 'balanced');
 });

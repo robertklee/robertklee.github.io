@@ -894,16 +894,29 @@ test('low quality paints decoration at 15 FPS while traversal remains at 30 FPS 
   await expectFieldIdle(page);
   await page.evaluate(() => window.heroFieldTest.setQuality('low'));
   await expectFieldIdle(page);
-  await page.evaluate(() => window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] }));
+  await page.evaluate(() => {
+    window.heroBackgroundSamples = 0;
+    window.heroTraversalSamples = 0;
+    const monitor = window.heroFieldTest.qualityMonitor;
+    const paint = monitor.paint;
+    monitor.paint = (duration, background) => {
+      if (background === true) window.heroBackgroundSamples++;
+      if (background === false) window.heroTraversalSamples++;
+      paint(duration, background);
+    };
+    window.heroFieldTest.onQuery({ topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] });
+  });
   await page.waitForFunction(() => window.heroTraversalDrawCount > 2);
   const before = await page.evaluate(() => ({
     base: window.heroDrawCount, traversal: window.heroTraversalDrawCount, time: window.heroFieldTest.sceneTime,
     start: window.heroFieldTest.query.start, land: window.heroFieldTest.query.land,
+    backgroundSamples: window.heroBackgroundSamples, traversalSamples: window.heroTraversalSamples,
   }));
   await page.waitForTimeout(1000);
   const after = await page.evaluate(() => ({
     base: window.heroDrawCount, traversal: window.heroTraversalDrawCount, time: window.heroFieldTest.sceneTime,
     start: window.heroFieldTest.query.start, land: window.heroFieldTest.query.land,
+    backgroundSamples: window.heroBackgroundSamples, traversalSamples: window.heroTraversalSamples,
   }));
   expect(after.base - before.base).toBeGreaterThanOrEqual(10);
   expect(after.base - before.base).toBeLessThanOrEqual(17);
@@ -912,6 +925,10 @@ test('low quality paints decoration at 15 FPS while traversal remains at 30 FPS 
   expect(after.time - before.time).toBeGreaterThanOrEqual(800);
   expect(after.time - before.time).toBeLessThanOrEqual(1200);
   expect([after.start, after.land]).toEqual([before.start, before.land]);
+  expect(after.backgroundSamples - before.backgroundSamples).toBe(after.base - before.base);
+  expect(after.traversalSamples - before.traversalSamples).toBe(
+    after.traversal - before.traversal - (after.base - before.base)
+  );
 });
 
 test('a saved reduced-effects preference applies before the renderer or entrance can start', async ({ page }) => {

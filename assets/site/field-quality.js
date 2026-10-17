@@ -12,7 +12,12 @@
   const policy = {
     initialTier: 1,
     warmupMs: 1200,
+    changeWarmupMs: 250,
     sampleMs: 1000,
+    evidenceMaxAgeMs: 30000,
+    catastrophicFrameMs: 250,
+    catastrophicDrawMs: 100,
+    catastrophicFrames: 2,
     slowFps: 27,
     severeFps: 18,
     smoothFps: 45,
@@ -43,46 +48,104 @@
     let work = 0;
     let drawDurations = [];
     let observedPaints = false;
-    let longFrames = 0;
     let target = null;
+    let drawBudget = 1000 / 30;
+    let activeAt = null;
+    let lastActiveAt = null;
+    let catastrophicFrames = 0;
+    let catastrophicDraws = 0;
+    let backgroundCost = null;
+    let backgroundAt = null;
+    let evidence;
 
     function clearWindow() {
       previous = null;
-      elapsed = frames = paints = work = longFrames = 0;
+      elapsed = frames = paints = work = 0;
       drawDurations = [];
       measurement = null;
     }
 
-    function reset(now) {
+    function clearEvidence() {
+      // Policy evidence spans cadences; debug windows still report one target.
+      evidence = {
+        elapsed: 0, frames: 0, longFrames: 0, paints: 0, work: 0, budgetWork: 0,
+        expectedPaints: 0, slowCallbacks: 0, severeCallbacks: 0, smoothCallbacks: 0,
+        backgrounds: 0, backgroundWork: 0, backgroundBudgetWork: 0,
+      };
+    }
+
+    function reset(now, warmupMs = policy.warmupMs) {
       clearWindow();
+      clearEvidence();
       observedPaints = false;
       slowMs = severeMs = smoothMs = 0;
-      readyAt = Math.max(readyAt, now + policy.warmupMs);
+      activeAt = lastActiveAt = backgroundAt = null;
+      backgroundCost = null;
+      catastrophicFrames = catastrophicDraws = 0;
+      readyAt = now + warmupMs;
     }
 
     // Intentional timer-paced idle frames are not rendering-performance samples.
     function pause() {
       previous = null;
+      activeAt = null;
+      catastrophicFrames = 0;
     }
 
     function change(next, now) {
+      const downgrade = next > index;
       index = next;
-      reset(now);
+      reset(now, downgrade ? policy.changeWarmupMs : policy.warmupMs);
       recoverAt = now + policy.recoveryHoldMs;
       return tiers[index];
     }
     function recover(now) {
-      if (index > 0 && now >= Math.max(readyAt, recoverAt) && smoothMs >= policy.recoverMs) return change(index - 1, now);
+      const backgroundReady = !observedPaints || (backgroundAt !== null &&
+        now - backgroundAt <= policy.evidenceMaxAgeMs && backgroundCost <= 1000 / 30 * .5);
+      if (index > 0 && backgroundReady && lastActiveAt !== null && now - lastActiveAt <= policy.evidenceMaxAgeMs &&
+          now >= Math.max(readyAt, recoverAt) && smoothMs >= policy.recoverMs) return change(index - 1, now);
       return null;
     }
-    function paint(duration) {
+    function paint(duration, background = true) {
+      if (activeAt === null) return;
+      catastrophicDraws = duration >= Math.max(policy.catastrophicDrawMs, drawBudget * 3) ? catastrophicDraws + 1 : 0;
+      if (background) {
+        backgroundCost = duration;
+        backgroundAt = activeAt;
+      }
       if (previous === null) return;
       observedPaints = true;
       paints++;
       work += duration;
       if (trackDrawStats) drawDurations.push(duration);
+      evidence.paints++;
+      evidence.work += duration;
+      evidence.budgetWork += duration / drawBudget;
+      if (background) {
+        evidence.backgrounds++;
+        evidence.backgroundWork += duration;
+        evidence.backgroundBudgetWork += duration / (1000 / (tiers[index].backgroundFps || 30));
+      }
     }
     function frame(now, targetFps = 30, paced = false, allowRecovery = true) {
+      if (lastActiveAt !== null && now - lastActiveAt > policy.evidenceMaxAgeMs) {
+        clearWindow();
+        clearEvidence();
+        observedPaints = false;
+        slowMs = severeMs = smoothMs = 0;
+        catastrophicFrames = catastrophicDraws = 0;
+        backgroundCost = backgroundAt = null;
+        activeAt = null;
+      }
+      const activeInterval = activeAt === null ? 0 : now - activeAt;
+      activeAt = lastActiveAt = now;
+      const budget = 1000 / targetFps;
+      drawBudget = budget;
+      catastrophicFrames = activeInterval >= Math.max(policy.catastrophicFrameMs, budget * 3) ? catastrophicFrames + 1 : 0;
+      if ((catastrophicFrames >= policy.catastrophicFrames || catastrophicDraws >= policy.catastrophicFrames) &&
+          index < tiers.length - 1) {
+        return change(index < tiers.length - 2 ? tiers.length - 2 : index + 1, now);
+      }
       const nextTarget = `${targetFps}:${paced}`;
       if (target !== nextTarget) {
         target = nextTarget;
@@ -101,34 +164,47 @@
       if (interval <= 0) return null;
       elapsed += interval;
       frames++;
-      const budget = 1000 / targetFps;
-      if (interval > budget * 1.5) longFrames++;
-      if (elapsed + .5 < policy.sampleMs) return null;
-      fps = frames * 1000 / elapsed;
-      paintFps = paints * 1000 / elapsed;
-      const meanWork = paints ? work / paints : 0;
+      const activeMs = Math.min(interval, policy.sampleMs);
+      evidence.elapsed += activeMs;
+      evidence.frames++;
+      if (interval > budget * 1.5) evidence.longFrames++;
+      evidence.expectedPaints += activeMs / budget;
+      evidence.slowCallbacks += activeMs * (paced ? targetFps * .9 : policy.slowFps) / 1000;
+      evidence.severeCallbacks += activeMs * (paced ? targetFps * .6 : policy.severeFps) / 1000;
+      evidence.smoothCallbacks += activeMs * (paced ? targetFps * .9 : policy.smoothFps) / 1000;
+      if (elapsed + .5 >= policy.sampleMs) {
+        fps = frames * 1000 / elapsed;
+        paintFps = paints * 1000 / elapsed;
+        if (trackDrawStats) drawDurations.sort((a, b) => a - b);
+        measurement = {
+          fps, paintFps: observedPaints ? paintFps : null, targetFps,
+          meanDrawMs: paints ? work / paints : null,
+          p95DrawMs: drawDurations.length ? drawDurations[Math.ceil(drawDurations.length * .95) - 1] : null,
+        };
+        elapsed = frames = paints = work = 0;
+        drawDurations = [];
+      }
+      if (evidence.elapsed + .5 < policy.sampleMs) return null;
       const hasPaints = observedPaints;
-      if (trackDrawStats) drawDurations.sort((a, b) => a - b);
-      measurement = {
-        fps, paintFps: hasPaints ? paintFps : null, targetFps,
-        meanDrawMs: paints ? meanWork : null,
-        p95DrawMs: drawDurations.length ? drawDurations[Math.ceil(drawDurations.length * .95) - 1] : null,
-      };
-      const longFrameRatio = longFrames / frames;
-      const severe = fps < (paced ? targetFps * .6 : policy.severeFps) ||
-        (hasPaints && (paintFps < targetFps * .6 || meanWork > budget));
-      const slow = severe || fps < (paced ? targetFps * .9 : policy.slowFps) ||
-        (frames >= 10 && longFrameRatio >= policy.longFrameRatio) ||
-        (hasPaints && (paintFps < targetFps * .9 || meanWork > budget * .8));
-      const smooth = fps >= (paced ? targetFps * .9 : policy.smoothFps) &&
+      const longFrameRatio = evidence.longFrames / evidence.frames;
+      const meanBudgetWork = evidence.paints ? evidence.budgetWork / evidence.paints : 0;
+      const backgroundBudgetWork = evidence.backgrounds ? evidence.backgroundBudgetWork / evidence.backgrounds : 0;
+      if (evidence.backgrounds) backgroundCost = evidence.backgroundWork / evidence.backgrounds;
+      const severe = evidence.frames < evidence.severeCallbacks ||
+        (hasPaints && (evidence.paints < evidence.expectedPaints * .6 || meanBudgetWork > 1 || backgroundBudgetWork > 1));
+      const slow = severe || evidence.frames < evidence.slowCallbacks ||
+        (evidence.frames >= 10 && longFrameRatio >= policy.longFrameRatio) ||
+        (hasPaints && (evidence.paints < evidence.expectedPaints * .9 || meanBudgetWork > .8 || backgroundBudgetWork > .8));
+      const smooth = evidence.frames >= evidence.smoothCallbacks &&
         longFrameRatio <= policy.smoothLongFrameRatio &&
-        (!hasPaints || (paintFps >= targetFps * .9 && meanWork <= 1000 / 30 * .5));
+        (!hasPaints || (evidence.paints >= evidence.expectedPaints * .9 &&
+          evidence.work / Math.max(1, evidence.paints) <= 1000 / 30 * .5 &&
+          backgroundAt !== null && now - backgroundAt <= policy.evidenceMaxAgeMs && backgroundCost <= 1000 / 30 * .5));
       // A single stalled frame contributes one bad window, not an entire streak.
       slowMs = slow ? slowMs + policy.sampleMs : 0;
       severeMs = severe ? severeMs + policy.sampleMs : 0;
       smoothMs = smooth ? smoothMs + policy.sampleMs : 0;
-      elapsed = frames = paints = work = longFrames = 0;
-      drawDurations = [];
+      clearEvidence();
       // Skip density-preserving steps when the current renderer cannot keep up.
       if (severeMs >= policy.severeMs && index < tiers.length - 1) {
         return change(index < tiers.length - 2 ? tiers.length - 2 : index + 1, now);
@@ -138,6 +214,7 @@
       return allowRecovery ? recover(now) : null;
     }
 
+    clearEvidence();
     return {
       get current() { return tiers[index]; },
       get fps() { return fps; },
