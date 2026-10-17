@@ -254,6 +254,114 @@ function meanAlpha(operations) {
   return alphas.reduce((sum, alpha) => sum + alpha, 0) / alphas.length;
 }
 
+test('performance debug is opt-in and the built overlay fits desktop and mobile in both themes', async ({ page }) => {
+  for (const suffix of ['', '?debug=0', '?debug=true']) {
+    await page.goto(origin + suffix);
+    await expect(page.locator('.field-canvas').first()).toBeAttached();
+    await expect(page.locator('.field-debug')).toHaveCount(0);
+  }
+  await page.goto(origin + '?sample=.35&debug=1');
+  const panel = page.getByRole('complementary', { name: 'Hero performance debug' });
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('[data-field-debug="current"]')).toHaveText(/^\d+\.\d draws\/s$/, { timeout: 10000 });
+  await expect(panel.locator('[data-field-debug="callbacks"]')).toHaveText(/^\d+\.\d callbacks\/s$/);
+  await expect(panel.locator('[data-field-debug="target"]')).toHaveText(/^(15|30) draws\/s$/);
+  const quality = await page.locator('.hero').getAttribute('data-field-quality');
+  await expect(panel.locator('[data-field-debug="quality"]')).toHaveText(quality[0].toUpperCase() + quality.slice(1));
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 320, height: 640 }]) {
+    await page.setViewportSize(viewport);
+    for (const theme of ['dark', 'light']) {
+      await page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
+      await expect(panel).toBeVisible();
+      await expect(panel).toHaveCSS('pointer-events', 'none');
+      const box = await panel.boundingBox();
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+      expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+      expect(await panel.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+    }
+  }
+});
+
+test('performance debug uses the adaptive measurements and follows tier and scheduler targets', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin + '?debug=1');
+  await expectFieldIdle(page);
+  const value = name => page.locator(`[data-field-debug="${name}"]`);
+  const measurement = await page.evaluate(() => {
+    const field = window.heroFieldTest;
+    const start = performance.now() + 60000;
+    field.qualityMonitor.reset(start);
+    for (let i = 0; i <= 168; i++) {
+      field.sampleQuality(start + i * 1000 / 60);
+      if (i % 2 === 0) field.qualityMonitor.paint(2);
+    }
+    field.activate();
+    return field.qualityMonitor.measurement;
+  });
+  expect(measurement.paintFps).toBeGreaterThan(28);
+  expect(measurement.fps).toBeGreaterThan(59);
+  await expect(value('current')).toHaveText(`${measurement.paintFps.toFixed(1)} draws/s`);
+  await expect(value('callbacks')).toHaveText(`${measurement.fps.toFixed(1)} callbacks/s`);
+  await expect(value('target')).toHaveText('30 draws/s');
+  await page.evaluate(() => {
+    const field = window.heroFieldTest;
+    const start = performance.now() + 120000;
+    field.qualityMonitor.reset(start);
+    for (let t = start; t < start + 3500; t += 100) field.sampleQuality(t);
+    field.activate();
+  });
+  await expect(value('quality')).toHaveText('Low');
+  await expect(value('current')).toHaveText('Sampling...');
+  await expect(value('target')).toHaveText('15 draws/s');
+  await page.evaluate(() => window.heroFieldTest.onQuery({ topic: 'engine' }));
+  await expect(value('target')).toHaveText('30 draws/s');
+});
+
+test('performance debug labels idle, paused and override states without keeping the hero awake', async ({ page }) => {
+  await inspectIdleField(page);
+  await page.goto(origin + '?debug=1');
+  const value = name => page.locator(`[data-field-debug="${name}"]`);
+  await expectFieldIdle(page);
+  await expect(value('state')).toHaveText('Idle: rendering stopped');
+  await expect(value('current')).toHaveText('Not sampled');
+  await expect(value('target')).toHaveText('0 draws/s');
+  await page.evaluate(() => {
+    window.heroFieldTest.idleSince = performance.now() - 9000;
+    window.heroFieldTest.kick();
+  });
+  await expect(value('state')).toHaveText('Idle: sampling paused');
+  await expect(value('target')).toHaveText('8 draws/s');
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(value('state')).toHaveText('Paused: hidden tab');
+  await expect(value('target')).toHaveText('0 draws/s');
+  await page.evaluate(() => {
+    delete document.hidden;
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.locator('#profile-about').scrollIntoViewIfNeeded();
+  await expect(value('state')).toHaveText('Paused: hero offscreen');
+  await expect(value('current')).toHaveText('Not sampled');
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await page.getByRole('button', { name: 'Reduced effects', exact: true }).click();
+  await expect(value('quality')).toHaveText('Traversal');
+  await expect(value('state')).toHaveText('Manual: reduced effects');
+  await expect(value('current')).toHaveText('Not sampled');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(value('state')).toHaveText('Static: reduced motion');
+  await expect(value('target')).toHaveText('0 draws/s');
+  await page.getByRole('button', { name: 'Reduced effects', exact: true }).click();
+  await expect(value('quality')).toHaveText('High');
+  await expectFieldIdle(page);
+  await page.goto(origin + '/404.html?debug=1');
+  await expect(value('state')).toHaveText('Static: reduced motion');
+  await expect(value('quality')).toHaveText('High');
+});
+
 test('per-visit seeds vary shape and node count at a fixed viewport but remain stable within a visit', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await inspectIdleField(page);

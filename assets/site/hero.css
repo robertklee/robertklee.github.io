@@ -103,6 +103,27 @@
 .field-readout.is-active { color: var(--muted); }
 .field-readout.is-active .field-readout-dot { background: var(--amber-strong); box-shadow: 0 0 0 4px var(--amber-soft); }
 
+.field-debug {
+  position: fixed;
+  z-index: 50;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: min(300px, calc(100% - 24px));
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: 500 11px/1.5 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.field-debug strong { color: var(--heading); }
+.field-debug dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 8px 0; }
+.field-debug dt, .field-debug p { color: var(--muted); }
+.field-debug dd { margin: 0; text-align: right; }
+.field-debug p { margin: 0; font-size: 10px; }
+
 #hero-dim {
   position: absolute;
   inset: 0;

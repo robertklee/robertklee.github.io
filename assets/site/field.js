@@ -57,6 +57,25 @@
   // The homepage coordinates retrieval with its entrance; the 404 keeps its own pacing.
   const entranceEffect = window.HeroFieldEntrance;
 
+  const debugPanel = new URLSearchParams(location.search).get('debug') === '1' ? document.createElement('aside') : null;
+  const debugValues = {};
+  if (debugPanel) {
+    debugPanel.className = 'field-debug';
+    debugPanel.setAttribute('aria-label', 'Hero performance debug');
+    debugPanel.innerHTML = '<strong>Hero performance</strong><dl></dl><p>Sampled canvas draws and callbacks, not GPU or displayed FPS.</p>';
+    for (const [key, label] of Object.entries({
+      current: 'Current perf', target: 'Target perf', callbacks: 'RAF cadence', quality: 'Quality tier', state: 'State',
+    })) {
+      const term = document.createElement('dt');
+      term.textContent = label;
+      const value = document.createElement('dd');
+      value.dataset.fieldDebug = key;
+      debugPanel.querySelector('dl').append(term, value);
+      debugValues[key] = value;
+    }
+    document.body.appendChild(debugPanel);
+  }
+
   const CLUSTERS = [
     { id: 'diversity', label: 'Vector diversity', docs: ['Vector diversity capability', 'Redundancy reduction', 'Evidence across documents', 'Shopping & recommendations', 'Distributed execution', 'Team technical leadership'] },
     { id: 'agentic', label: 'Agentic retrieval', docs: ['Filter generation', 'Lucene boosts', 'Bounded operator set', 'Production analysis', 'Agent tool calling', 'RAG grounding'] },
@@ -541,6 +560,7 @@
     sizeCanvases();
     selectDecoration();
     lastDraw = lastFrame = lastBackgroundDraw = 0;
+    updatePerformanceDebug(performance.now());
   }
   function sampleQuality(now, interval = FRAME_MS) {
     if (reducedEffects) return;
@@ -1740,6 +1760,34 @@
   }
 
   // --- Loop and wiring -----------------------------------------------------------
+  function isMonitoringQuality(now, interval) {
+    return !reducedEffects && !motionQuery.matches && interval > 0 &&
+      (needsAnimation(now) || now - idleSince < IDLE_GRACE_MS);
+  }
+  function updatePerformanceDebug(now) {
+    if (!debugPanel) return;
+    const interval = frameInterval(now);
+    const targetFps = interval ? Math.round(1000 / interval) : 0;
+    const monitoring = isMonitoringQuality(now, interval);
+    const measurement = monitoring && qualityMonitor.measurement?.targetFps === targetFps ? qualityMonitor.measurement : null;
+    let state = measurement ? 'Automatic' : 'Warming up / sampling';
+    if (document.hidden) state = 'Paused: hidden tab';
+    else if (!visible) state = 'Paused: hero offscreen';
+    else if (motionQuery.matches) state = 'Static: reduced motion';
+    else if (reducedEffects) state = 'Manual: reduced effects';
+    else if (!interval) state = 'Idle: rendering stopped';
+    else if (!monitoring) state = 'Idle: sampling paused';
+    const values = {
+      current: measurement?.paintFps != null ? `${measurement.paintFps.toFixed(1)} draws/s` : monitoring ? 'Sampling...' : 'Not sampled',
+      target: `${targetFps} draws/s`,
+      callbacks: measurement ? `${measurement.fps.toFixed(1)} callbacks/s` : 'Not sampled',
+      quality: quality.name[0].toUpperCase() + quality.name.slice(1),
+      state,
+    };
+    for (const [key, value] of Object.entries(values)) {
+      if (debugValues[key].textContent !== value) debugValues[key].textContent = value;
+    }
+  }
   function backgroundNeedsAnimation(now) {
     if (quality.traversalOnly) return false;
     if (entranceProgress < 1 || colorTransition ||
@@ -1769,6 +1817,7 @@
   }
   function scheduleFrame(now) {
     const interval = frameInterval(now);
+    updatePerformanceDebug(now);
     if (interval === FRAME_MS) {
       frame = requestAnimationFrame(tick);
       return;
@@ -1794,13 +1843,13 @@
     clearTimeout(wakeTimer);
     frame = wakeTimer = 0;
     lastFrame = lastDraw = 0;
+    updatePerformanceDebug(performance.now());
   }
   function tick(now) {
     frame = 0;
     if (!visible || document.hidden) return;
     const interval = frameInterval(now);
-    const monitoring = !reducedEffects && !motionQuery.matches && interval &&
-      (needsAnimation(now) || now - idleSince < IDLE_GRACE_MS);
+    const monitoring = isMonitoringQuality(now, interval);
     if (monitoring) sampleQuality(now, interval);
     else qualityMonitor.pause();
     if (!reducedEffects && !motionQuery.matches && canRecoverQuality(now)) {

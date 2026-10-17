@@ -162,6 +162,16 @@ hold. Recovering to Balanced removes the extra canvas and resumes normal motion
 without rebuilding the graph or replaying the entrance. Inspect `.hero`'s
 `data-field-quality` attribute to see the current tier.
 
+Add `?debug=1` to the homepage URL (or `&debug=1` alongside other query parameters)
+to show a fixed **Hero performance** overlay. It displays the latest sampled
+canvas draw rate, the scheduler's current target, RAF callback cadence, and the
+applied quality tier. These are the adaptive monitor's one-second measurements,
+not GPU/compositor or displayed FPS. Warm-up, intentional idle pacing/stops,
+offscreen/hidden pauses, and reduced-motion/effects overrides are labelled;
+unsampled states do not show stale rates as current performance. The overlay
+also works on the shared 404 hero. It is absent without `debug=1`, does not save
+a preference, and adds no polling timer or extra animation frames.
+
 The header's **Reduced effects** toggle on the homepage and 404 page forces
 Traversal, disables automatic quality changes, and suppresses decorative hero
 pulses. It preserves animated retrieval and leaves the below-hero sky/demos alone.

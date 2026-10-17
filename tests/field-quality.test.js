@@ -74,6 +74,29 @@ test('warmup and isolated slow windows do not lower quality', () => {
   assert.equal(sim.monitor.current.name, 'high');
 });
 
+test('debug measurements use sampled draw and callback rates and discard obsolete windows', () => {
+  const sim = simulation();
+  sim.advance(policy.warmupMs, 60, { paintCost: 2 });
+  assert.equal(sim.monitor.measurement, null);
+  sim.advance(policy.sampleMs + 100, 60, { paintCost: 2 });
+  let measurement = sim.monitor.measurement;
+  assert.ok(Math.abs(measurement.fps - 60) < .01);
+  assert.ok(Math.abs(measurement.paintFps - 30) < 1);
+  assert.equal(measurement.targetFps, 30);
+  sim.monitor.frame(sim.now + 1, 15, true);
+  assert.equal(sim.monitor.measurement, null);
+  sim.advance(policy.sampleMs + 100, 15, { targetFps: 15, paced: true, paintCost: 2, paintFps: 15 });
+  measurement = sim.monitor.measurement;
+  assert.ok(Math.abs(measurement.fps - 15) < .1);
+  assert.ok(Math.abs(measurement.paintFps - 15) < 1);
+  assert.equal(measurement.targetFps, 15);
+  sim.monitor.reset(sim.now);
+  assert.equal(sim.monitor.measurement, null);
+  sim.advance(policy.warmupMs + policy.severeMs + 300, 10);
+  assert.equal(sim.monitor.current.name, 'low');
+  assert.equal(sim.monitor.measurement, null, 'a tier change starts a fresh measurement');
+});
+
 test('one long main-thread stall cannot satisfy a sustained-slow-frame streak', () => {
   const sim = simulation();
   sim.advance(policy.warmupMs + policy.sampleMs + 100, 60);

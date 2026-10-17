@@ -38,6 +38,7 @@
     let recoverAt = 0;
     let fps = null;
     let paintFps = null;
+    let measurement = null;
     let paints = 0;
     let work = 0;
     let observedPaints = false;
@@ -47,6 +48,7 @@
     function clearWindow() {
       previous = null;
       elapsed = frames = paints = work = longFrames = 0;
+      measurement = null;
     }
 
     function reset(now) {
@@ -103,6 +105,7 @@
       paintFps = paints * 1000 / elapsed;
       const meanWork = paints ? work / paints : 0;
       const hasPaints = observedPaints;
+      measurement = { fps, paintFps: hasPaints ? paintFps : null, targetFps };
       const longFrameRatio = longFrames / frames;
       const severe = fps < (paced ? targetFps * .6 : policy.severeFps) ||
         (hasPaints && (paintFps < targetFps * .6 || meanWork > budget));
@@ -130,6 +133,7 @@
       get current() { return tiers[index]; },
       get fps() { return fps; },
       get paintFps() { return paintFps; },
+      get measurement() { return measurement; },
       frame,
       paint,
       recover,
