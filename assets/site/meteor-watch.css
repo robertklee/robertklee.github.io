@@ -1,5 +1,6 @@
 body.meteor-watch { isolation: isolate; }
-.meteor-watch-canvas {
+.meteor-watch-canvas,
+.meteor-watch-dust {
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -8,7 +9,15 @@ body.meteor-watch { isolation: isolate; }
   height: 100%;
   pointer-events: none;
 }
-:root:not([data-theme="dark"]) .meteor-watch-canvas { display: none; }
+.meteor-watch-dust { overflow: hidden; }
+.meteor-watch-dust-layer {
+  position: absolute;
+  inset: -448px 0 0;
+  background-size: 512px 448px;
+  will-change: transform;
+}
+.meteor-watch-dust[hidden],
+:root:not([data-theme="dark"]) :is(.meteor-watch-canvas, .meteor-watch-dust) { display: none; }
 @media print {
-  .meteor-watch-canvas { display: none; }
+  .meteor-watch-canvas, .meteor-watch-dust { display: none; }
 }

@@ -25,6 +25,7 @@ const showSection = (page, selector) => page.locator(selector).evaluate(element 
 });
 const showAbout = page => showSection(page, '#profile-about');
 const pixels = page => sky(page).evaluate(canvas => {
+  window.readMeteorWatch();
   const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
   let lit = 0;
   let maxAlpha = 0;
@@ -81,15 +82,9 @@ test.beforeEach(async ({ page }) => {
     contentType: 'text/javascript', body: '',
   }));
   await page.addInitScript(() => {
-    localStorage.setItem('theme', 'dark');
+    localStorage.setItem('theme', new URL(location.href).searchParams.get('theme') || 'dark');
     const sample = new URL(location.href).searchParams.get('sample');
     Math.random = () => sample === null ? .5 : Number(sample);
-    const setPatternTransform = CanvasPattern.prototype.setTransform;
-    window.patternShifts = [];
-    CanvasPattern.prototype.setTransform = function (matrix) {
-      window.patternShifts = [...window.patternShifts.slice(-7), matrix.f];
-      return setPatternTransform.call(this, matrix);
-    };
     const proto = CanvasRenderingContext2D.prototype;
     const fillRect = proto.fillRect;
     const fill = proto.fill;
@@ -132,16 +127,33 @@ test.beforeEach(async ({ page }) => {
     expect(await response.text()).toBe(transformSync(source, options).code);
     const instrumented = source.replace('function startMeteor(shower = false) {', `function startMeteor(shower = false) {
         window.meteorAttempts = (window.meteorAttempts || 0) + 1;`)
+      .replace('function draw() {', 'function draw() { window.skyDraws = (window.skyDraws || 0) + 1;')
+      .replace('function placeConstellations(random) {', `function placeConstellations(random) {
+        window.skyLayouts = (window.skyLayouts || 0) + 1;`)
+      .replace('sampleQuality(performance.now());', 'if (window.sampleSkyQualityAutomatically) sampleQuality(performance.now());')
       .replace(/\n\}\)\(\);\s*$/, `
-        window.readMeteorWatch = () => ({
+        window.readMeteorWatch = () => {
+          if (scrollFrame) { cancelAnimationFrame(scrollFrame); updateScroll(); }
+          return {
           width, height, headerHeight, skyTop, skyBottom, stars, protectedRects, footerRects, constellations,
+          qualityIndex, dust, layoutKey, draws: window.skyDraws || 0, layouts: window.skyLayouts || 0,
           appearances: stars.map(starAppearance), meteorPending,
           glows: stars.map(star => glowing.get(star) || 0), pointer,
           attempts: window.meteorAttempts || 0,
           clock: clock + (lastNow === null ? 0 : performance.now() - lastNow),
           nextTwinkle, nextMeteor, welcomeAt, twinkles, meteor, running: canRun(),
           timer: Boolean(timer), animationFrame: Boolean(animationFrame)
-        });
+          };
+        };
+        window.sampleMeteorWatchQuality = samples => {
+          for (const { now, delay, cost = 0 } of samples) {
+            expectedDelay = qualities[qualityIndex].frame;
+            scheduledAt = now - delay;
+            drawCost = cost;
+            sampleQuality(now);
+          }
+          sync();
+        };
         window.setMeteorWatchRects = (rects, footers = footerRects) => {
           protectedRects = rects;
           footerRects = footers;
@@ -281,6 +293,7 @@ test('all soft bounded stars are curved astroids and avoid protected content', a
 test('stars mix stellar colours, mostly blue-white with rare orange-red points', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
+  await showAbout(page);
   const { stars } = await state(page);
   const share = color => stars.filter(star => star.color === color).length / stars.length;
   expect(new Set(stars.map(star => star.color)).size).toBe(5);
@@ -293,6 +306,7 @@ test('stars mix stellar colours, mostly blue-white with rare orange-red points',
     window.scrollTo({ top: y - window.innerHeight / 2, behavior: 'instant' });
     window.dispatchEvent(new Event('scroll'));
   }, red.y);
+  await state(page);
   const [r, g, b] = await sky(page).evaluate((canvas, star) => {
     const ratio = canvas.width / document.documentElement.clientWidth;
     const data = canvas.getContext('2d').getImageData(Math.round(star.x * ratio), Math.round((star.y - window.scrollY) * ratio), 1, 1).data;
@@ -563,35 +577,50 @@ test('all profiles keep curved astroid silhouettes while gently extending their 
 
 test('faint background dust fills the sky behind content and fades in below the hero', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.evaluate(() => { window.omitSkyWash = true; });
-  const region = selector => sky(page).evaluate((canvas, selector) => {
-    const ratio = canvas.width / document.documentElement.clientWidth;
-    const r = selector === 'fade' ? (() => {
-      const top = document.querySelector('.hero').getBoundingClientRect().bottom;
-      return { left: 0, top, width: innerWidth, height: 30 };
-    })() : document.querySelector(selector).getBoundingClientRect();
-    const data = canvas.getContext('2d').getImageData(
-      Math.round(r.left * ratio), Math.round(r.top * ratio),
-      Math.round(r.width * ratio), Math.round(r.height * ratio)).data;
-    let lit = 0;
-    let max = 0;
-    let total = 0;
-    for (let i = 3; i < data.length; i += 4) {
-      if (data[i]) lit++;
-      max = Math.max(max, data[i]);
-      total += data[i];
-    }
-    return { lit, max, mean: total / (data.length / 4) };
-  }, selector);
+  await page.addStyleTag({ content: `
+    html, body { background: transparent !important; }
+    body > *:not(.meteor-watch-dust) { visibility: hidden !important; }
+    body::before, body::after { display: none !important; }
+  ` });
+  const region = async selector => {
+    await state(page);
+    const image = (await page.screenshot({ omitBackground: true })).toString('base64');
+    return page.evaluate(async ({ image, selector }) => {
+      const bitmap = new Image();
+      bitmap.src = `data:image/png;base64,${image}`;
+      await bitmap.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bitmap, 0, 0);
+      const ratio = bitmap.width / innerWidth;
+      const r = selector === 'fade' ? {
+        left: 0, top: document.querySelector('.hero').getBoundingClientRect().bottom, width: innerWidth, height: 30,
+      } : document.querySelector(selector).getBoundingClientRect();
+      const data = ctx.getImageData(
+        Math.round(r.left * ratio), Math.round(r.top * ratio),
+        Math.round(r.width * ratio), Math.round(r.height * ratio)).data;
+      let lit = 0;
+      let max = 0;
+      let total = 0;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i]) lit++;
+        max = Math.max(max, data[i]);
+        total += data[i];
+      }
+      return { lit, max, mean: total / (data.length / 4) };
+    }, { image, selector });
+  };
   await showAbout(page);
   await page.clock.runFor(100);
   const copy = await region('.cv-about-copy');
   expect(copy.lit).toBeGreaterThan(50);
   expect(copy.max).toBeLessThanOrEqual(80);
-  await page.evaluate(() => { window.omitSkyDust = true; window.dispatchEvent(new Event('scroll')); });
+  await page.locator('.meteor-watch-dust').evaluate(element => { element.style.visibility = 'hidden'; });
   expect((await region('.cv-about-copy')).lit).toBe(0);
   await page.evaluate(() => {
-    window.omitSkyDust = false;
+    document.querySelector('.meteor-watch-dust').style.visibility = '';
     window.scrollTo({ top: document.querySelector('.hero').offsetHeight - 400, behavior: 'instant' });
     window.dispatchEvent(new Event('scroll'));
   });
@@ -610,14 +639,16 @@ test('dust layers drift slower than the page for parallax depth, except under re
     const scroll = y => page.evaluate(y => {
       window.scrollTo({ top: y, behavior: 'instant' });
       window.dispatchEvent(new Event('scroll'));
-      return [window.scrollY, ...window.patternShifts.slice(-2)];
+      window.readMeteorWatch();
+      return [window.scrollY, ...[...document.querySelectorAll('.meteor-watch-dust-layer')]
+        .map(element => new DOMMatrix(getComputedStyle(element).transform).m42)];
     }, y);
     const top = await page.evaluate(() => document.getElementById('profile-about').offsetTop);
     const [y0, far0, near0] = await scroll(top);
-    const [y1, far1, near1] = await scroll(top + 600);
+    const [y1, far1, near1] = await scroll(top + 100);
     const scrolled = y1 - y0;
-    expect(scrolled).toBe(600);
-    return [(far0 - far1) / scrolled, (near0 - near1) / scrolled];
+    expect(scrolled).toBe(100);
+    return [(far0 - far1 + 448) % 448 / scrolled, (near0 - near1 + 448) % 448 / scrolled];
   };
   await showAbout(page);
   await page.clock.runFor(100);
@@ -630,8 +661,115 @@ test('dust layers drift slower than the page for parallax depth, except under re
   expect((await state(page)).stars.map(({ x, y }) => [x, y])).toEqual(positions);
 });
 
+test('sky setup waits for a visible dark sky and cached dust does not change during twinkles', async ({ page }) => {
+  expect((await state(page)).layouts).toBe(0);
+  expect((await state(page)).dust).toBeNull();
+  await page.goto(`${origin}/?theme=light`);
+  await page.evaluate(() => document.fonts.ready);
+  await showAbout(page);
+  await page.clock.runFor(100);
+  const light = await state(page);
+  expect(light.layouts).toBe(0);
+  expect(light.dust).toBeNull();
+  expect(light.timer).toBe(false);
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'dark';
+    document.dispatchEvent(new CustomEvent('site:themechange'));
+  });
+  const dark = await state(page);
+  expect(dark.layouts).toBe(1);
+  expect(dark.dust.image).toMatch(/^data:image\/png;base64,/);
+  await expect(page.locator('.meteor-watch-dust')).toBeVisible();
+  const styles = await page.locator('.meteor-watch-dust-layer').evaluateAll(elements =>
+    elements.map(element => element.getAttribute('style')));
+  await page.clock.runFor(2000);
+  expect((await state(page)).draws).toBeGreaterThan(dark.draws);
+  expect((await state(page)).dust).toEqual(dark.dust);
+  expect(await page.locator('.meteor-watch-dust-layer').evaluateAll(elements =>
+    elements.map(element => element.getAttribute('style')))).toEqual(styles);
+});
+
+test('scroll bursts draw once and height-only viewport changes reuse safe sky placement', async ({ page }) => {
+  await showAbout(page);
+  await page.clock.runFor(100);
+  const before = await state(page);
+  const burst = await page.evaluate(() => {
+    const before = window.skyDraws;
+    for (let i = 0; i < 20; i++) window.dispatchEvent(new Event('scroll'));
+    return { before, after: window.skyDraws };
+  });
+  expect(burst.after).toBe(burst.before);
+  const flushed = await state(page);
+  expect(flushed.draws).toBe(burst.before + 1);
+  await resizeSky(page, 1440, 950);
+  const resized = await state(page);
+  expect(resized.layouts).toBe(before.layouts);
+  const shift = resized.skyTop - before.skyTop;
+  expect(resized.stars.map(({ x, y }) => [x, y - shift])).toEqual(before.stars.map(({ x, y }) => [x, y]));
+  await page.locator('#profile-work-entry-1').evaluate(element => { element.open = true; });
+  await page.clock.runFor(100);
+  expect((await state(page)).layouts).toBeGreaterThan(resized.layouts);
+});
+
+test('sustained missed deadlines lower sky resolution and effects, then stop animation if still too slow', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'devicePixelRatio', { value: 4 });
+  });
+  await page.setViewportSize({ width: 1800, height: 1100 });
+  await page.reload();
+  await page.evaluate(() => document.fonts.ready);
+  await showAbout(page);
+  await page.clock.runFor(100);
+  const before = await state(page);
+  const area = () => sky(page).evaluate(canvas => canvas.width * canvas.height);
+  expect(await area()).toBeLessThanOrEqual(6000000);
+  expect(before.qualityIndex).toBe(0);
+  await page.evaluate(() => window.sampleMeteorWatchQuality([{ now: 6000, delay: 6000 }]));
+  expect((await state(page)).qualityIndex).toBe(0);
+  const slow = start => Array.from({ length: 17 }, (_, i) => ({ now: start + i * 200, delay: 200 }));
+  await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), slow(7000));
+  const low = await state(page);
+  expect(low.qualityIndex).toBe(1);
+  expect(await area()).toBeLessThanOrEqual(2000000);
+  expect(low.stars).toEqual(before.stars);
+  expect(low.constellations.map(({ box }) => box)).toEqual(before.constellations.map(({ box }) => box));
+  await expect(page.locator('.meteor-watch-dust')).toBeHidden();
+  expect(low.running).toBe(true);
+  await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), slow(11000));
+  const stopped = await state(page);
+  expect(stopped.qualityIndex).toBe(2);
+  expect(stopped.running).toBe(false);
+  expect(stopped.timer).toBe(false);
+  expect(stopped.animationFrame).toBe(false);
+  const image = await sky(page).evaluate(canvas => canvas.toDataURL());
+  await page.clock.fastForward(10000);
+  expect(await sky(page).evaluate(canvas => canvas.toDataURL())).toBe(image);
+});
+
+test('healthy frames and hidden periods break a slow-performance streak', async ({ page }) => {
+  await showAbout(page);
+  await state(page);
+  const samples = (start, delay, count) => Array.from({ length: count }, (_, i) => ({
+    now: start + i * delay, delay,
+  }));
+  await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), samples(100, 200, 12));
+  expect((await state(page)).qualityIndex).toBe(0);
+  await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), samples(2500, 33, 70));
+  await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), samples(5000, 200, 12));
+  expect((await state(page)).qualityIndex).toBe(0);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.evaluate(samples => window.sampleMeteorWatchQuality(samples), samples(8000, 200, 12));
+  expect((await state(page)).qualityIndex).toBe(0);
+});
+
 test('familiar constellations sit in clear space, trace in once when scrolled into view, then settle', async ({ page }) => {
   await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
+  await showAbout(page);
   const scene = await state(page);
   expect(scene.constellations.length).toBe(7);
   expect(new Set(scene.constellations.map(({ name }) => name)).size).toBe(7);
@@ -692,6 +830,7 @@ test('familiar constellations sit in clear space, trace in once when scrolled in
 test('brighter stars have soft cores and faint compact halo edges, not solid disks', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
+  await showAbout(page);
   const scene = await state(page);
   const bright = scene.stars.find(star => star.halo && star.radius > 2.05 &&
     star.shape === 'astroid' && star.y >= scene.skyTop + 180);
@@ -1169,6 +1308,7 @@ for (const ratio of [1, 2]) {
       await page.evaluate(() => { window.omitSkyWash = true; window.omitSkyDust = true; });
       for (const width of [1440, 390]) {
         await resizeSky(page, width, 1000);
+        await showAbout(page);
         const scene = await state(page);
         const points = scene.stars.filter(star => star.shape === 'astroid' &&
           star.scaleX === star.scaleY && star.curve >= .53 && star.curve <= .63 &&

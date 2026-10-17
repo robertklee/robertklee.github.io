@@ -18,15 +18,31 @@
   }
   document.body.classList.add('meteor-watch');
   document.body.prepend(canvas);
+  const dustBackdrop = document.createElement('div');
+  dustBackdrop.className = 'meteor-watch-dust';
+  dustBackdrop.setAttribute('aria-hidden', 'true');
+  canvas.before(dustBackdrop);
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   const between = (min, max) => min + Math.random() * (max - min);
   const twinkleRest = () => between(800, 2000);
   const twinkleGap = () => between(400, 1200);
-  const twinkleLimit = () => width <= 860 ? 3 : 5;
-  // Slow fades read smoothly at ~30fps, so twinkle-only animation skips every other frame.
+  const twinkleLimit = () => qualityIndex ? 2 : width <= 860 ? 3 : 5;
   const twinkleFrame = 33;
+  const qualities = [
+    { maxDpr: 2, maxPixels: 6000000, frame: twinkleFrame, dust: true },
+    { maxDpr: 1, maxPixels: 2000000, frame: 66, dust: false },
+    { maxDpr: 1, maxPixels: 2000000, frame: 0, dust: false },
+  ];
+  let qualityIndex = 0;
+  let qualityStart = 0;
+  let qualityFrames = 0;
+  let lateFrames = 0;
+  let slowWindows = 0;
+  let scheduledAt = 0;
+  let expectedDelay = 0;
+  let drawCost = 0;
   const meteorWait = () => between(12000, 36000);
   const meteorRest = () => between(36000, 72000);
   // Lands just after the theme toggle's 500ms circular reveal finishes.
@@ -54,6 +70,10 @@
   let fastTimer = false;
   let animationFrame = 0;
   let layoutFrame = 0;
+  let scrollFrame = 0;
+  let layoutKey = '';
+  let layoutTop = 0;
+  let layoutDirty = true;
   let pageActive = true;
   let nextTwinkle = twinkleRest();
   let nextMeteor = meteorWait();
@@ -64,8 +84,10 @@
   let glowClock = 0;
 
   const inView = y => y >= window.scrollY + headerHeight + 16 && y <= window.scrollY + height - 24;
-  const canRun = () => pageActive && !document.hidden && !reducedMotion.matches &&
-    root.dataset.theme === 'dark' && window.scrollY + height > skyTop + 24 && window.scrollY < skyBottom;
+  const skyVisible = () => pageActive && !document.hidden && root.dataset.theme === 'dark' &&
+    window.scrollY + height > skyTop + 24 && window.scrollY < skyBottom;
+  const still = () => reducedMotion.matches || !qualities[qualityIndex].frame;
+  const canRun = () => skyVisible() && !still();
   const overlaps = (rect, p) => rect.x < p.x + p.w && rect.x + rect.w > p.x &&
     rect.y < p.y + p.h && rect.y + rect.h > p.y;
   const clearBounds = rect => rect.x >= (width <= 860 ? 0 : 8) &&
@@ -99,13 +121,18 @@
     };
   }
 
-  // Faint background dust is pre-rendered into one tile and filled as a pattern,
-  // so hundreds of points cost a single fill per layer per frame. Both parallax
-  // layers share the tile; the nearer one is mirrored and shifted to hide repeats.
+  // Separate cached backgrounds keep twinkles from repainting full-screen dust.
   const dustLayers = [
     { depth: .35, alpha: .7, mirror: false, shift: 0 },
     { depth: .65, alpha: 1, mirror: true, shift: 211 },
   ];
+  dustLayers.forEach(layer => {
+    layer.element = document.createElement('div');
+    layer.element.className = 'meteor-watch-dust-layer';
+    layer.element.style.opacity = layer.alpha;
+    layer.element.style.backgroundPositionX = `${layer.shift}px`;
+    dustBackdrop.append(layer.element);
+  });
   function buildDust(mobile, dpr) {
     const key = `${mobile}:${dpr}`;
     if (dust?.key === key) return;
@@ -116,7 +143,7 @@
     tile.height = Math.round(tileHeight * dpr);
     const tileCtx = tile.getContext('2d');
     if (!tileCtx) {
-      dust = { key, pattern: null };
+      console.warn('Meteor watch: Canvas 2D is unavailable for the decorative dust.');
       return;
     }
     tileCtx.scale(dpr, dpr);
@@ -133,31 +160,70 @@
       tileCtx.arc(x, y, radius, 0, Math.PI * 2);
       tileCtx.fill();
     }
-    dust = { key, dpr, pattern: ctx.createPattern(tile, 'repeat') };
+    const image = tile.toDataURL();
+    dust = { key, dpr, image };
+    dustLayers.forEach(layer => { layer.element.style.backgroundImage = `url("${image}")`; });
   }
 
-  function drawDust(visibleTop) {
-    if (!dust?.pattern) return;
+  function updateDust() {
+    dustBackdrop.hidden = !dust || !skyVisible() || !qualities[qualityIndex].dust;
+    if (dustBackdrop.hidden) return;
     const top = skyTop - window.scrollY;
-    const rest = Math.max(visibleTop, top + 180);
+    const visibleTop = Math.max(headerHeight, top);
+    dustBackdrop.style.clipPath = `inset(${visibleTop}px 0 ${Math.max(0, height - skyBottom + window.scrollY)}px)`;
+    dustBackdrop.style.maskImage = top <= -180 ? 'none' :
+      `linear-gradient(to bottom, transparent ${top}px, #000 ${top + 180}px)`;
     for (const layer of dustLayers) {
-      // Distant layers drift slower than the page; reduced motion pins them to it.
       const depth = reducedMotion.matches ? 1 : layer.depth;
       const offset = Math.round(top * depth * dust.dpr) / dust.dpr;
-      dust.pattern.setTransform(new DOMMatrix().translate(layer.shift, offset)
-        .scale((layer.mirror ? -1 : 1) / dust.dpr, 1 / dust.dpr));
-      ctx.fillStyle = dust.pattern;
-      // Match the stars' 180px fade-in below the hero with a few stepped bands.
-      for (let band = 0; band < 6; band++) {
-        const y = top + band * 30;
-        if (y + 30 < visibleTop || y > height) continue;
-        ctx.globalAlpha = layer.alpha * (band + .5) / 6;
-        ctx.fillRect(0, y, width, 30);
-      }
-      ctx.globalAlpha = layer.alpha;
-      if (rest < height) ctx.fillRect(0, rest, width, height - rest);
+      const wrapped = (offset % 448 + 448) % 448;
+      layer.element.style.transform = `translateY(${wrapped}px) scaleX(${layer.mirror ? -1 : 1})`;
     }
-    ctx.globalAlpha = 1;
+  }
+
+  function resizeCanvas() {
+    const quality = qualities[qualityIndex];
+    const dpr = Math.min(window.devicePixelRatio || 1, quality.maxDpr,
+      Math.sqrt(quality.maxPixels / (width * height)), 8192 / width, 8192 / height);
+    const w = Math.max(1, Math.floor(width * dpr));
+    const h = Math.max(1, Math.floor(height * dpr));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+    ctx.setTransform(w / width, 0, 0, h / height, 0, 0);
+    if (quality.dust) buildDust(width <= 860, Math.min(window.devicePixelRatio || 1, 2));
+  }
+
+  function resetQuality() {
+    qualityStart = qualityFrames = lateFrames = slowWindows = 0;
+    expectedDelay = 0;
+  }
+
+  function sampleQuality(now) {
+    if (!expectedDelay || !canRun()) return;
+    const interval = now - scheduledAt;
+    // Sleep, debugger pauses, and intentionally long idle waits are not evidence.
+    if (interval > 1000) { resetQuality(); return; }
+    if (!qualityStart) { qualityStart = now; return; }
+    qualityFrames++;
+    if (interval > expectedDelay * 1.8 || drawCost > expectedDelay * .6) lateFrames++;
+    if (now - qualityStart < 1000) return;
+    slowWindows = qualityFrames >= 2 && lateFrames / qualityFrames >= .3 ? slowWindows + 1 : 0;
+    qualityStart = now;
+    qualityFrames = lateFrames = 0;
+    if (slowWindows < 3 || qualityIndex === qualities.length - 1) return;
+    // Keep the safer tier for this visit instead of oscillating on marginal devices.
+    qualityIndex++;
+    resetQuality();
+    twinkles = [];
+    glowing.clear();
+    if (meteor) {
+      if (still()) finishMeteor();
+      else meteor.companions = [];
+    }
+    resizeCanvas();
+    updateDust();
   }
 
   // Recognizable schematic patterns, not sky coordinates: [x, y, magnitude, colour?].
@@ -195,9 +261,9 @@
       const h = Math.max(...pattern.points.map(([, y]) => y)) * scale;
       const candidates = [];
       for (let y = y0; y + h <= y1; y += step) {
+        const row = nearby.filter(rect => y - pad < rect.y + rect.h && y + h + pad > rect.y);
         for (let x = 12; x + w <= width - 12; x += step) {
-          const box = { x: x - pad, y: y - pad, w: w + pad * 2, h: h + pad * 2 };
-          if (!nearby.some(rect => overlaps(box, rect))) candidates.push([x, y]);
+          if (!row.some(rect => x - pad < rect.x + rect.w && x + w + pad > rect.x)) candidates.push([x, y]);
         }
       }
       if (!candidates.length) continue;
@@ -255,7 +321,7 @@
   }
 
   const constellationAge = constellation => constellation.start === null ? -1 : clock - constellation.start;
-  const constellationAnimating = constellation => !reducedMotion.matches && constellationAge(constellation) >= 0 &&
+  const constellationAnimating = constellation => !still() && constellationAge(constellation) >= 0 &&
     constellationAge(constellation) < constellation.duration + constellationHold + constellationFade + constellationFlash;
 
   function revealConstellations() {
@@ -271,7 +337,7 @@
 
   function constellationFlashOf(star) {
     const constellation = constellations[star.constellation];
-    if (!constellation || reducedMotion.matches) return 0;
+    if (!constellation || still()) return 0;
     const t = (constellationAge(constellation) - star.arrival) / constellationFlash;
     return t < 0 || t > 1 || constellationAge(constellation) < 0 ? 0 : Math.sin(Math.PI * t) ** 2;
   }
@@ -281,7 +347,7 @@
     for (const constellation of constellations) {
       const { box, points, edges, lengths, total, duration } = constellation;
       if (box.y + box.h < window.scrollY - 20 || box.y > window.scrollY + height + 20) continue;
-      const age = reducedMotion.matches ? Infinity : constellationAge(constellation);
+      const age = still() ? Infinity : constellationAge(constellation);
       if (age > 0) {
         const fading = Math.min(1, Math.max(0, (age - duration - constellationHold) / constellationFade));
         const alpha = .38 - .24 * fading * fading * (3 - 2 * fading);
@@ -313,18 +379,37 @@
 
   function measure() {
     advance();
-    if (meteor) finishMeteor();
+    const previousWidth = width;
+    const previousHeight = height;
     width = root.clientWidth;
     height = window.innerHeight;
     headerHeight = header.getBoundingClientRect().height;
     skyTop = hero.getBoundingClientRect().bottom + window.scrollY;
     skyBottom = document.body.getBoundingClientRect().top + window.scrollY + document.body.offsetHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (width !== previousWidth || height !== previousHeight) resetQuality();
+    if (!skyVisible()) {
+      sync();
+      return;
+    }
+    resizeCanvas();
+    const key = `${width}:${skyBottom - skyTop}:${headerHeight}`;
+    if (!layoutDirty && layoutKey === key) {
+      const shift = skyTop - layoutTop;
+      if (shift) {
+        stars.forEach(star => { star.y += shift; });
+        protectedRects.forEach(rect => { rect.y += shift; });
+        constellations.forEach(constellation => {
+          constellation.box.y += shift;
+          constellation.points.forEach(star => { star.y += shift; });
+        });
+        if (meteor) finishMeteor();
+      }
+      layoutTop = skyTop;
+      sync(true);
+      return;
+    }
+    if (meteor) finishMeteor();
     const mobile = width <= 860;
-    buildDust(mobile, dpr);
     const selectors = [
       'h1', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'figure', 'details', 'a', 'button', 'input', 'select',
       '.section-heading', '.cv-about-copy', '.chapter-copy', '.chapter-figure', '.cv-record', '.award-card', '.contact-card',
@@ -379,6 +464,9 @@
       if (mobile) addPoint(row++ % 2 ? width - 8 : 8, y + random() * (cell - 24));
     }
     placeConstellations(seededRandom(Math.round(width) + 97));
+    layoutKey = key;
+    layoutTop = skyTop;
+    layoutDirty = false;
     twinkles = [];
     sync(true);
   }
@@ -389,6 +477,15 @@
       layoutFrame = 0;
       measure();
     });
+  }
+
+  function updateScroll() {
+    scrollFrame = 0;
+    sync(true);
+  }
+
+  function queueScroll() {
+    if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll);
   }
 
   function startTwinkle() {
@@ -473,7 +570,7 @@
           start: clock, duration: between(800, 1300) + distance * .7,
           displayed: false, companions: [],
         };
-        if (shower || Math.random() < .25) addCompanions(meteor);
+        if (!qualityIndex && (shower || Math.random() < .25)) addCompanions(meteor);
         return true;
       }
     }
@@ -502,7 +599,7 @@
   }
 
   function nearPointer() {
-    if (!pointer) return [];
+    if (!pointer || qualityIndex) return [];
     const y = pointer.y + window.scrollY;
     return [...stars, ...constellations.flatMap(({ points }) => points)]
       .filter(star => Math.abs(star.y - y) < glowRadius && Math.abs(star.x - pointer.x) < glowRadius);
@@ -630,7 +727,6 @@
     wash.addColorStop(1, 'rgba(24,40,75,.03)');
     ctx.fillStyle = wash;
     ctx.fillRect(0, 0, width, height);
-    drawDust(visibleTop);
     stars.forEach(star => {
       if (star.y < window.scrollY + visibleTop - 16 || star.y > window.scrollY + height + 16) return;
       const fade = Math.min(1, Math.max(0, (star.y - skyTop) / 180));
@@ -650,19 +746,25 @@
     timer = 0;
     fastTimer = false;
     animationFrame = 0;
-    if (!canRun()) return;
-    if (meteor) {
+    expectedDelay = 0;
+    if (!canRun()) { resetQuality(); return; }
+    scheduledAt = performance.now();
+    if (meteor && !qualityIndex) {
+      expectedDelay = 1000 / 60;
       animationFrame = requestAnimationFrame(tick);
-    } else if (twinkles.length || glowing.size || constellations.some(constellationAnimating)) {
+    } else if (meteor || twinkles.length || glowing.size || constellations.some(constellationAnimating)) {
       fastTimer = true;
-      timer = setTimeout(tick, twinkleFrame);
+      expectedDelay = meteor ? twinkleFrame : qualities[qualityIndex].frame;
+      timer = setTimeout(tick, expectedDelay);
     } else {
+      resetQuality();
       const deadline = Math.min(nextTwinkle, meteorPending ? Infinity : nextMeteor, welcomeAt ?? Infinity);
       timer = setTimeout(tick, Math.max(16, deadline - clock));
     }
   }
 
   function tick() {
+    sampleQuality(performance.now());
     advance();
     if (canRun()) {
       twinkles = twinkles.filter(active => clock < active.start + active.duration);
@@ -679,20 +781,28 @@
       if (!meteor && !meteorPending && clock >= nextMeteor) tryMeteor();
       revealConstellations();
     }
+    const started = performance.now();
     updateGlow();
     draw();
+    drawCost = performance.now() - started;
     schedule();
   }
 
   function sync(retryPending = false) {
+    if (skyVisible() && (layoutDirty || skyTop !== layoutTop ||
+      layoutKey !== `${width}:${skyBottom - skyTop}:${headerHeight}`)) {
+      measure();
+      return;
+    }
     advance();
-    twinkles = reducedMotion.matches ? [] : twinkles.filter(active => inView(active.star.y));
-    if (meteor && (reducedMotion.matches || !meteorFits(meteor))) finishMeteor();
+    twinkles = still() ? [] : twinkles.filter(active => inView(active.star.y));
+    if (meteor && (still() || !meteorFits(meteor))) finishMeteor();
     if (meteor) meteor.companions = meteor.companions.filter(meteorFits);
     if (!canRun()) welcomeAt = null;
     if (retryPending && meteorPending && canRun()) tryMeteor();
     revealConstellations();
     updateGlow();
+    updateDust();
     canvas.hidden = root.dataset.theme !== 'dark';
     draw();
     schedule();
@@ -707,10 +817,10 @@
     sync();
   });
   document.addEventListener('visibilitychange', () => sync());
-  document.addEventListener('toggle', queueMeasure, true);
-  reducedMotion.addEventListener('change', () => sync());
+  document.addEventListener('toggle', () => { layoutDirty = true; queueMeasure(); }, true);
+  reducedMotion.addEventListener('change', () => { resetQuality(); sync(); });
   window.addEventListener('resize', queueMeasure);
-  window.addEventListener('scroll', () => sync(true), { passive: true });
+  window.addEventListener('scroll', queueScroll, { passive: true });
   window.addEventListener('pointermove', event => {
     if (event.pointerType !== 'mouse' || !finePointer.matches) return;
     pointer = event.clientY > headerHeight ? { x: event.clientX, y: event.clientY } : null;
@@ -728,6 +838,8 @@
     sync();
     cancelAnimationFrame(layoutFrame);
     layoutFrame = 0;
+    cancelAnimationFrame(scrollFrame);
+    scrollFrame = 0;
   });
   window.addEventListener('pageshow', () => {
     pageActive = true;
