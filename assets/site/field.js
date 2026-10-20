@@ -740,8 +740,11 @@
     orderDecoration();
 
     readoutStats.textContent = nodes.length + ' vectors · ' + (TOP + 1) + '-layer HNSW · ' + CLUSTERS.length + ' topics';
-    if (query) planQuery(query.spec, query.start);
-    else setReadout('', false);
+    if (query) {
+      // Plan against the live camera, not the neutral one used to compose the layout.
+      setCamera(sceneTime, motionQuery.matches);
+      planQuery(query.spec, query.start);
+    } else setReadout('', false);
   }
 
   function layoutAiryBackdrop(rand, add) {

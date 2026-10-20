@@ -1031,7 +1031,7 @@ em { font-style: italic; }
   .site-nav a { padding-inline: 10px; }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1360px) {
   .site-header { flex-wrap: wrap; row-gap: 4px; padding-block: 10px 6px; }
   .site-nav { order: 3; width: calc(100% + 2 * var(--page-pad)); margin-inline: calc(-1 * var(--page-pad)); padding-inline: calc(var(--page-pad) - 10px); overflow-x: auto; scrollbar-width: none; }
   .site-nav::-webkit-scrollbar { display: none; }

@@ -1119,6 +1119,15 @@ test('theme toggle hides and clears the sky without reshuffling the stars; reduc
 });
 
 test('switching to dark mode with the sky in view greets it with a shower once the reveal ends', async ({ page }) => {
+  await page.evaluate(() => {
+    if (!document.startViewTransition) return;
+    const startViewTransition = document.startViewTransition.bind(document);
+    document.startViewTransition = (...args) => {
+      const transition = startViewTransition(...args);
+      window.meteorThemeTransition = transition;
+      return transition;
+    };
+  });
   // Unlike locator.click(), a dispatched click does not scroll the sticky header's static position into view.
   const toggle = async theme => {
     await page.locator('#theme-toggle').dispatchEvent('click');
@@ -1127,6 +1136,7 @@ test('switching to dark mode with the sky in view greets it with a shower once t
       if (await page.evaluate(() => document.documentElement.dataset.theme) !== theme) await page.clock.runFor(16);
       return page.evaluate(() => document.documentElement.dataset.theme);
     }).toBe(theme);
+    await page.evaluate(() => window.meteorThemeTransition?.ready);
   };
   await showAbout(page);
   await page.clock.runFor(100);

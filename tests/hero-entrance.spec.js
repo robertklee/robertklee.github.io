@@ -595,7 +595,7 @@ test('retrieval excludes destination regions under the current camera and replan
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await inspectIdleField(page);
   await page.goto(origin);
-  await page.waitForFunction(() => window.heroFieldTest?.activity.visible);
+  await expectFieldIdle(page);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const inspectEntry = () => page.evaluate(() => {
     const field = window.heroFieldTest;
@@ -621,15 +621,17 @@ test('retrieval excludes destination regions under the current camera and replan
       field.onQuery({ topic: 'all-topics', docs });
     }, direction);
     expect(await inspectEntry()).toBe(true);
+    const originalQuery = await page.evaluate(() => window.heroFieldTest.query);
+    for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
+      await page.setViewportSize(viewport);
+      await page.waitForFunction(width => document.querySelector('.field-near').style.width === `${width}px`, viewport.width);
+      expect(await inspectEntry()).toBe(true);
+      const resizedQuery = await page.evaluate(() => window.heroFieldTest.query);
+      expect(resizedQuery.spec).toEqual(originalQuery.spec);
+      expect(resizedQuery.start).toBe(originalQuery.start);
+      expect(resizedQuery.entry).toBe(resizedQuery.branches[0][0].from);
+    }
   }
-  const originalQuery = await page.evaluate(() => window.heroFieldTest.query);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.waitForFunction(() => document.querySelector('.field-near').style.width === '390px');
-  expect(await inspectEntry()).toBe(true);
-  const resizedQuery = await page.evaluate(() => window.heroFieldTest.query);
-  expect(resizedQuery.spec).toEqual(originalQuery.spec);
-  expect(resizedQuery.start).toBe(originalQuery.start);
-  expect(resizedQuery.entry).toBe(resizedQuery.branches[0][0].from);
 });
 
 for (const pathname of ['/', '/404.html']) {
@@ -1429,7 +1431,7 @@ for (const pathname of ['/', '/404.html']) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await inspectIdleField(page);
     await page.goto(origin + pathname);
-    await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+    await expectFieldIdle(page);
     await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
     await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 0);
     const light = await page.evaluate(() => ({
@@ -1456,7 +1458,7 @@ test('hero colors and idle contrast interpolate without rebuilding on interrupte
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await inspectIdleField(page);
   await page.goto(origin);
-  await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+  await expectFieldIdle(page);
   const graph = await page.evaluate(() => window.heroFieldTest.graph);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
@@ -1519,7 +1521,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await inspectIdleField(page);
     await page.goto(origin);
-    await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+    await expectFieldIdle(page);
     const light = await page.evaluate(() => window.heroFieldTest.visibility);
     await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
     await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 1);
@@ -1549,7 +1551,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await inspectIdleField(page);
     await page.goto(origin);
-    await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+    await expectFieldIdle(page);
     const search = () => page.evaluate(() => {
       document.dispatchEvent(new CustomEvent('herochat:query', {
         detail: { topic: 'performance', docs: ['Scalar quantization', 'Binary quantization'] },
@@ -1606,7 +1608,7 @@ test('hover restores a dark idle region and expired retrieval restores topic lab
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await inspectIdleField(page);
   await page.goto(origin);
-  await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+  await expectFieldIdle(page);
   await page.evaluate(() => { document.documentElement.dataset.theme = 'dark'; });
   await page.waitForFunction(() => window.heroFieldTest.colors.darkMix === 1);
   const target = await page.evaluate(() => window.heroFieldTest.hoverTarget);
@@ -1746,7 +1748,7 @@ for (const pathname of ['/', '/404.html']) {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await inspectIdleField(page);
     await page.goto(origin + pathname);
-    await page.waitForFunction(() => window.heroFieldTest?.graph.nodes.length > 0);
+    await expectFieldIdle(page);
     const stats = page.locator('.field-readout-stats');
     const status = page.locator('.field-readout-text');
     const nodeCount = await page.evaluate(() => window.heroFieldTest.graph.nodes.length);

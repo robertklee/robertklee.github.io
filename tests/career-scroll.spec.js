@@ -203,7 +203,7 @@ test('editorial glow is reserved for three achievements across themes and layout
   await expect(accents).toHaveCount(3);
   await expect(accents.locator('.cv-record-title, h3')).toHaveText([
     'Senior Software Engineer, Microsoft Azure AI Search',
-    "Founder & Program Director, Senior's Digital Literacy Program, University of Victoria",
+    "Founder & Program Director, Seniors' Digital Literacy Program, University of Victoria",
     'Schulich Leader Scholarship',
   ]);
   await expect(page.locator('#profile-work-entry-2').locator('..')).not.toHaveClass(/card-accent/);
@@ -464,7 +464,7 @@ test('header navigation includes leadership, awards, and education in page order
 
 test('header links fit desktop and scroll independently on narrower screens', async ({ page }) => {
   await page.evaluate(() => document.fonts.ready);
-  for (const width of [1440, 320, 390, 768, 860, 1024, 1280, 1281, 1366, 1920, 1440]) {
+  for (const width of [1440, 320, 390, 768, 860, 1024, 1280, 1281, 1360, 1361, 1366, 1920, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     await expect.poll(() => page.locator('.site-header').evaluate(header => {
       const root = document.documentElement;
@@ -486,7 +486,7 @@ test('header links fit desktop and scroll independently on narrower screens', as
     });
     expect(layout.pageWidth).toBe(width);
     expect(layout.separated).toBe(true);
-    if (width <= 1280) {
+    if (width <= 1360) {
       expect(layout.navBelow).toBe(true);
       expect(layout.overflow).toBe('auto');
     } else {

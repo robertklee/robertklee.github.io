@@ -316,6 +316,13 @@ team technical-lead wording and matching chat/field document labels.
 
 Playwright is a development dependency for browser checks and screenshots. After `npm ci`, run `npx playwright install chromium` to install its Chromium browser.
 
+GitHub Actions runs `.github/workflows/tests.yml` on every push and pull request,
+and supports manual runs. It checks production JavaScript syntax, runs all Node.js
+unit and build tests, and runs the production browser suites in Chromium.
+Experimental tests and syntax checks under `spikes/` are excluded from CI and
+remain available through their local npm scripts. Failed browser runs upload
+traces and any generated screenshots as artifacts for seven days.
+
 ## Cloudflare Workers Builds deployment
 
 The build script recreates `dist/` and copies only the site's public runtime
