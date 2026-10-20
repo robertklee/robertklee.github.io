@@ -40,7 +40,12 @@
     if (disclosures.length !== 5) throw new Error('Expected five work examples in the homepage.');
     disclosures.forEach((details, index) => {
       details.open = item.variant === 'first' && index === 0;
-      if (item.variant !== 'previews') details.querySelector('.demo-miniature').remove();
+      if (item.variant !== 'previews') {
+        details.querySelector('.demo-miniature').remove();
+        details.classList.remove('demo-disclosure-featured');
+        details.querySelector('.demo-preview-note')?.remove();
+        details.querySelector('.demo-explore').textContent = 'Explore demo';
+      }
     });
     doc.documentElement.dataset.demoVariant = item.variant;
   }

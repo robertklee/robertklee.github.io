@@ -3,11 +3,21 @@
 
   const miniatures = {
     'work-diversity': `
-      <ellipse class="mini-fill" cx="48" cy="45" rx="38" ry="30"/><ellipse class="mini-fill" cx="146" cy="50" rx="40" ry="32"/>
-      <path class="mini-edge" d="M95 50L28 35M95 50L62 60M95 50L140 30M95 50L166 60M28 35L52 26L62 60L28 35M140 30L166 60L133 68Z"/>
-      <g class="mini-node"><circle cx="28" cy="35" r="5"/><circle cx="52" cy="26" r="4"/><circle cx="62" cy="60" r="5"/><circle cx="140" cy="30" r="5"/><circle cx="166" cy="60" r="5"/><circle cx="133" cy="68" r="4"/></g>
-      <g class="mini-selected"><circle cx="28" cy="35" r="5"/><circle cx="140" cy="30" r="5"/><circle cx="166" cy="60" r="5"/></g>
-      <path class="mini-warm" d="M95 42L103 50L95 58L87 50Z"/><text x="100" y="98" text-anchor="middle">Relevance + coverage</text>`,
+      <g class="mini-fill"><ellipse cx="100" cy="100" rx="72" ry="58"/><ellipse cx="250" cy="82" rx="60" ry="54"/><ellipse cx="410" cy="108" rx="64" ry="53"/><ellipse cx="558" cy="78" rx="60" ry="51"/></g>
+      <path class="mini-edge" d="M55 87L90 64L135 81L145 119L108 138L70 121Z M55 87L145 119M90 64L108 138M70 121L135 81
+        M214 67L252 49L280 76L269 113L232 108Z M214 67L269 113M252 49L232 108
+        M369 96L404 75L447 93L439 130L392 142Z M369 96L439 130M404 75L392 142
+        M523 64L560 46L593 74L579 106L539 110Z M523 64L579 106M560 46L539 110"/>
+      <path class="mini-query-links" d="M325 29L90 64M325 29L145 119M325 29L252 49M325 29L404 75M325 29L439 130M325 29L560 46"/>
+      <g class="mini-node">
+        <circle cx="55" cy="87" r="5"/><circle cx="90" cy="64" r="8"/><circle cx="135" cy="81" r="5"/><circle cx="145" cy="119" r="8"/><circle cx="108" cy="138" r="5"/><circle cx="70" cy="121" r="5"/>
+        <circle cx="214" cy="67" r="5"/><circle cx="252" cy="49" r="8"/><circle cx="280" cy="76" r="5"/><circle cx="269" cy="113" r="5"/><circle cx="232" cy="108" r="5"/>
+        <circle cx="369" cy="96" r="5"/><circle cx="404" cy="75" r="8"/><circle cx="447" cy="93" r="5"/><circle cx="439" cy="130" r="8"/><circle cx="392" cy="142" r="5"/>
+        <circle cx="523" cy="64" r="5"/><circle cx="560" cy="46" r="8"/><circle cx="593" cy="74" r="5"/><circle cx="579" cy="106" r="5"/><circle cx="539" cy="110" r="5"/>
+      </g>
+      <g class="mini-selected"><circle cx="90" cy="64" r="8"/><circle cx="145" cy="119" r="8"/><circle cx="252" cy="49" r="8"/><circle cx="404" cy="75" r="8"/><circle cx="439" cy="130" r="8"/><circle cx="560" cy="46" r="8"/></g>
+      <circle class="mini-query-halo" cx="325" cy="29" r="20"/>
+      <path class="mini-warm" d="M325 18L336 29L325 40L314 29Z"/>`,
     'work-agentic': `
       <rect class="mini-fill" x="8" y="12" width="184" height="23" rx="5"/><text x="100" y="28" text-anchor="middle">A request in plain words</text>
       <path class="mini-edge" d="M100 35V44M49 44H151M49 44V51M151 44V51"/>
@@ -75,6 +85,17 @@
       svg.setAttribute('focusable', 'false');
       svg.innerHTML = miniatures[chapter.id];
       summary.prepend(svg);
+      if (chapter.id === 'work-diversity') {
+        details.classList.add('demo-disclosure-featured');
+        svg.setAttribute('viewBox', '0 0 640 180');
+        summary.querySelector('.demo-summary-copy').after(svg);
+        const note = document.createElement('span');
+        note.className = 'demo-preview-note';
+        note.textContent = 'One query. Results across more topics.';
+        const action = summary.querySelector('.demo-summary-action');
+        action.before(note);
+        action.querySelector('.demo-explore').textContent = 'Try the interactive demo';
+      }
 
       const close = document.createElement('button');
       close.className = 'demo-close';

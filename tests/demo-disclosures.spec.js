@@ -91,6 +91,52 @@ test('keyboard expansion preserves real controls and restores focus when collaps
   await expect(page.locator('#work-diversity figure')).toHaveAccessibleName(name);
 });
 
+test('only the first demo has a full-width visual peek and a prominent working action', async ({ page }) => {
+  await page.goto(origin);
+  const featured = page.locator('#work-diversity-demo');
+  const graphic = featured.locator('.demo-miniature');
+  const action = featured.locator('.demo-summary-action');
+  await expect(page.locator('.demo-disclosure-featured')).toHaveCount(1);
+  await expect(action).toHaveText('Try the interactive demo', { useInnerText: true });
+  for (const width of [1440, 860, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const layout = await featured.evaluate(demo => {
+      const box = selector => demo.querySelector(selector).getBoundingClientRect();
+      const summary = box('summary');
+      const copy = box('.demo-summary-copy');
+      const preview = box('.demo-miniature');
+      const action = box('.demo-summary-action');
+      const style = getComputedStyle(demo.querySelector('summary'));
+      return {
+        fillsWidth: Math.abs(preview.width - (summary.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight))) < 1,
+        belowTitle: preview.top >= copy.bottom,
+        actionBelow: action.top >= preview.bottom,
+        graphicHeight: preview.height,
+        actionHeight: action.height,
+      };
+    });
+    expect(layout.fillsWidth).toBe(true);
+    expect(layout.belowTitle).toBe(true);
+    expect(layout.actionBelow).toBe(true);
+    expect(layout.graphicHeight).toBeGreaterThanOrEqual(140);
+    expect(layout.graphicHeight).toBeLessThanOrEqual(200);
+    expect(layout.actionHeight).toBeGreaterThanOrEqual(44);
+    for (const thumbnail of await page.locator('.demo-disclosure:not(.demo-disclosure-featured) .demo-miniature').all()) {
+      expect((await thumbnail.boundingBox()).height).toBeLessThanOrEqual(110);
+    }
+  }
+  await graphic.click();
+  await expect(featured).toHaveAttribute('open', '');
+  await expect(graphic).toBeHidden();
+  await expect(featured.locator('.demo-preview-note')).toBeHidden();
+  await expect(page.locator('#dv-diversity')).toBeVisible();
+  await featured.locator('.demo-close').click();
+  await expect(graphic).toBeVisible();
+  await action.click();
+  await expect(featured).toHaveAttribute('open', '');
+  await expect(page.locator('.demo-disclosure[open]')).toHaveCount(1);
+});
+
 test('chapter, nested control, title and history links open before scrolling', async ({ page }) => {
   await page.goto(`${origin}/#work-simd`);
   await expect(page.locator('#work-simd-demo')).toHaveAttribute('open', '');
