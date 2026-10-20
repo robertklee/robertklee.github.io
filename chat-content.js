@@ -31,7 +31,7 @@ window.HeroChatContent = (function () {
   var VARIANTS = [
     {
       thought: "Lead with enterprise retrieval and technical leadership. Connect vector-search diversity to broader evidence and reduced redundancy, then pair that current effort with shipped agentic filter and boost generation and quantization's measured customer impact.",
-      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval systems for enterprise AI. I'm the technical lead for a team of five engineers and scientists building vector-search diversity to reduce redundant results. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
+      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval systems for enterprise AI. I'm the technical lead for a team of six engineers and scientists building vector-search diversity to reduce redundant results. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
       docs: ['Vector diversity capability', 'Team technical leadership', 'Filter generation', 'Lucene boosts', 'Scalar quantization']
     },
     {
@@ -41,12 +41,12 @@ window.HeroChatContent = (function () {
     },
     {
       thought: "Make technical leadership concrete: team size, technical direction, distributed architecture, and hands-on delivery. Pair the current vector-search diversity effort with completed research-to-production ownership for agentic filter and boost generation.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I bridge retrieval research and production engineering. I'm the technical lead for a team of five engineers and scientists building vector-search diversity, setting technical direction and owning delivery from distributed architecture through hands-on implementation. I also led agentic-retrieval filter and boost generation from research into production.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I bridge retrieval research and production engineering. I'm the technical lead for a team of six engineers and scientists building vector-search diversity, setting technical direction and owning delivery from distributed architecture through hands-on implementation. I also led agentic-retrieval filter and boost generation from research into production.",
       docs: ['Team technical leadership', 'Distributed execution', 'Filter generation', 'Lucene boosts']
     },
     {
       thought: "Lead with quantization's shipped cost and latency impact, qualified by workload. Keep preview-to-general-availability ownership explicit, then connect that delivery record to technical leadership for the current vector-search diversity effort.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of five engineers and scientists building vector-search diversity to improve result coverage and reduce redundancy.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of six engineers and scientists building vector-search diversity to improve result coverage and reduce redundancy.",
       docs: ['Scalar quantization', 'Binary quantization', 'Team technical leadership', 'Redundancy reduction']
     },
     {
@@ -66,12 +66,12 @@ window.HeroChatContent = (function () {
     },
     {
       thought: "Show end-to-end ownership through two substantial efforts: technical leadership for vector-search diversity, and agentic-retrieval benchmarking that informed a shipped billing model. Keep algorithm analysis and implementation visible alongside the product impact.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of five engineers and scientists building vector-search diversity, owning delivery from algorithm analysis to implementation. I also built agentic-retrieval benchmarks from scratch and turned the workload measurements into a production billing model that I proposed and shipped.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists building vector-search diversity, owning delivery from algorithm analysis to implementation. I also built agentic-retrieval benchmarks from scratch and turned the workload measurements into a production billing model that I proposed and shipped.",
       docs: ['Team technical leadership', 'Vector diversity capability', 'Workload benchmarks', 'Billing model']
     },
     {
       thought: "Lead with current technical leadership, then show applied-ML breadth through the human pose estimation project. Retain training from random initialization and ownership of the model architecture and cloud pipeline as concrete engineering signals.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of five engineers and scientists building vector-search diversity. My background also includes machine learning: I led a student team that trained a human pose estimation network from scratch, where I owned the model architecture and cloud training pipeline.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists building vector-search diversity. My background also includes machine learning: I led a student team that trained a human pose estimation network from scratch, where I owned the model architecture and cloud training pipeline.",
       docs: ['Vector diversity capability', 'Team technical leadership', 'Pose estimation']
     },
     {
@@ -113,11 +113,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Choose three substantial engineering stories, distinguishing current research-to-production work from shipped impact. Vector-search diversity demonstrates distributed algorithm design and team technical leadership; agentic filter generation demonstrates a verifiable reformulation; quantization demonstrates measured production gains.",
-          answer: "I'd highlight three. Currently, I'm the technical lead for a team of five engineers and scientists building vector-search diversity, rethinking a research algorithm for distributed execution while preserving its strengths at production scale. I also led agentic-retrieval filter and boost generation into production by replacing open-ended synthesis with a bounded, verifiable operator set. And I drove scalar and binary vector quantization from preview to general availability, with SIMD-accelerated distance computation, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload."
+          answer: "I'd highlight three. Currently, I'm the technical lead for a team of six engineers and scientists building vector-search diversity, rethinking a research algorithm for distributed execution while preserving its strengths at production scale. I also led agentic-retrieval filter and boost generation into production by replacing open-ended synthesis with a bounded, verifiable operator set. And I drove scalar and binary vector quantization from preview to general availability, with SIMD-accelerated distance computation, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload."
         },
         {
           thought: "Start with the strongest shipped result, then explain the deeper design work in agentic retrieval and current vector-search diversity. Attribute the quantization outcome to the capability, not one kernel, and do not imply vector-search diversity has already shipped.",
-          answer: "For shipped impact, vector quantization stands out: I drove scalar and binary quantization to general availability, including SIMD distance optimization, with 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency depending on the workload. For research-to-production design, I led agentic filter and boost generation using a bounded, verifiable operator set. My current focus is vector-search diversity: as the technical lead for a team of five engineers and scientists, I'm redesigning a research algorithm for distributed execution under scalability, durability, and performance constraints."
+          answer: "For shipped impact, vector quantization stands out: I drove scalar and binary quantization to general availability, including SIMD distance optimization, with 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency depending on the workload. For research-to-production design, I led agentic filter and boost generation using a bounded, verifiable operator set. My current focus is vector-search diversity: as the technical lead for a team of six engineers and scientists, I'm redesigning a research algorithm for distributed execution under scalability, durability, and performance constraints."
         }
       ]
     },
@@ -175,12 +175,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Give team leadership appropriate weight while keeping Senior Software Engineer as the role title. Robert is the technical lead for a team of five engineers and scientists building vector-search diversity. He sets the technical direction and owns delivery end to end, from algorithm analysis through distributed architecture, cross-team alignment, and hands-on implementation.",
-          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of five engineers and scientists building a new vector-search diversity capability. I set the technical direction and own delivery end to end, from algorithm analysis and distributed architecture through cross-team alignment and hands-on implementation."
+          thought: "Give team leadership appropriate weight while keeping Senior Software Engineer as the role title. Robert is the technical lead for a team of six engineers and scientists building vector-search diversity. He sets the technical direction and owns delivery end to end, from algorithm analysis through distributed architecture, cross-team alignment, and hands-on implementation.",
+          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of six engineers and scientists building a new vector-search diversity capability. I set the technical direction and own delivery end to end, from algorithm analysis and distributed architecture through cross-team alignment and hands-on implementation."
         },
         {
           thought: "Technical leadership for the vector-search diversity team means connecting research thinking with production engineering. Robert's own deep analysis of the algorithm gave the team common ground. Describe his technical direction, end-to-end ownership, and hands-on implementation.",
-          answer: "As a Senior Software Engineer, I'm the technical lead for a team of five engineers and scientists building vector-search diversity. My algorithm analysis established which properties we need to preserve as we move toward production. I use that to set the team's technical direction, shape the distributed architecture, align partner teams, and own delivery through hands-on implementation."
+          answer: "As a Senior Software Engineer, I'm the technical lead for a team of six engineers and scientists building vector-search diversity. My algorithm analysis established which properties we need to preserve as we move toward production. I use that to set the team's technical direction, shape the distributed architecture, align partner teams, and own delivery through hands-on implementation."
         }
       ]
     },
@@ -409,11 +409,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Explain the service and Robert's own scope without replacing them with an analogy. Define vector search briefly, keep the scale and team technical leadership, and avoid claiming that the search engine literally understands a request.",
-          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search, a service businesses use to search their documents and power AI apps. I helped scale vector search, which compares numerical representations of text to find related meanings, not just matching words. Today I'm the technical lead for a team of five engineers and scientists building vector-search diversity to reduce repetitive search results."
+          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search, a service businesses use to search their documents and power AI apps. I helped scale vector search, which compares numerical representations of text to find related meanings, not just matching words. Today I'm the technical lead for a team of six engineers and scientists building vector-search diversity to reduce repetitive search results."
         },
         {
-          thought: "Keep a concrete example, but pair it with the engineering work. Vector search can match related meanings rather than exact words; Robert helped scale it across billions of embeddings and is now technical lead for the five-person vector-search diversity team.",
-          answer: "I'm a Senior Software Engineer building the search technology behind business apps and AI assistants at Microsoft. With vector search, a query for \u201ccheap flights\u201d can find \u201cbudget airfare\u201d without sharing the same words. I helped scale that capability across billions of embeddings, the numerical representations used for matching. Now I'm the technical lead for a team of five engineers and scientists building vector-search diversity to make results less repetitive."
+          thought: "Keep a concrete example, but pair it with the engineering work. Vector search can match related meanings rather than exact words; Robert helped scale it across billions of embeddings and is now technical lead for the six-person vector-search diversity team.",
+          answer: "I'm a Senior Software Engineer building the search technology behind business apps and AI assistants at Microsoft. With vector search, a query for \u201ccheap flights\u201d can find \u201cbudget airfare\u201d without sharing the same words. I helped scale that capability across billions of embeddings, the numerical representations used for matching. Now I'm the technical lead for a team of six engineers and scientists building vector-search diversity to make results less repetitive."
         }
       ]
     },
@@ -430,11 +430,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Use product choice as a concrete example of result redundancy, then connect it to broader evidence for AI grounding. Keep Robert's research-to-production scope, but don't expose the vector-diversity algorithm.",
-          answer: "I'm a Senior Software Engineer and the technical lead for a team of five engineers and scientists building a new vector-search diversity capability for Azure AI Search. It reduces redundant results: an online store should offer meaningful choices, not ten near-identical products. The same issue matters for AI grounding, where a broad question may need evidence from different parts of a document collection. Our work spans research and production engineering, with applications in e-commerce and recommendations."
+          answer: "I'm a Senior Software Engineer and the technical lead for a team of six engineers and scientists building a new vector-search diversity capability for Azure AI Search. It reduces redundant results: an online store should offer meaningful choices, not ten near-identical products. The same issue matters for AI grounding, where a broad question may need evidence from different parts of a document collection. Our work spans research and production engineering, with applications in e-commerce and recommendations."
         },
         {
           thought: "Explain search diversity as reducing redundancy, not guaranteeing a complete or correct answer. Connect the product goal to Robert's technical responsibility, with both recommendations and broad AI grounding as examples.",
-          answer: "My current focus is vector-search diversity: reducing repetition without losing sight of relevance. As a Senior Software Engineer, I'm the technical lead for a team of five engineers and scientists taking this new capability from research toward production. It can give shoppers and recommendation users more distinct choices, and provide AI assistants with broader evidence for questions that span a document collection."
+          answer: "My current focus is vector-search diversity: reducing repetition without losing sight of relevance. As a Senior Software Engineer, I'm the technical lead for a team of six engineers and scientists taking this new capability from research toward production. It can give shoppers and recommendation users more distinct choices, and provide AI assistants with broader evidence for questions that span a document collection."
         }
       ]
     },
@@ -471,12 +471,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Tell it as growing technical scope: Garage in 2018, search internships in 2019 and 2020, full-time from 2021, scaling vector search, then Senior Software Engineer from 2025. He is currently technical lead for the five-person vector-search diversity team, setting direction and owning delivery.",
-          answer: "I've moved from owning parts of an app to owning broader technical efforts. At Microsoft Garage in 2018, I helped build a chest X-ray classification app, followed by search internships in 2019 and 2020. I joined Azure AI Search full-time in 2021 and helped scale vector search for broad adoption. I've been a Senior Software Engineer since 2025; currently I'm the technical lead for a team of five engineers and scientists building vector-search diversity."
+          thought: "Tell it as growing technical scope: Garage in 2018, search internships in 2019 and 2020, full-time from 2021, scaling vector search, then Senior Software Engineer from 2025. He is currently technical lead for the six-person vector-search diversity team, setting direction and owning delivery.",
+          answer: "I've moved from owning parts of an app to owning broader technical efforts. At Microsoft Garage in 2018, I helped build a chest X-ray classification app, followed by search internships in 2019 and 2020. I joined Azure AI Search full-time in 2021 and helped scale vector search for broad adoption. I've been a Senior Software Engineer since 2025; currently I'm the technical lead for a team of six engineers and scientists building vector-search diversity."
         },
         {
           thought: "Use the progression to show breadth as well as ownership: mobile ML at Garage, production search features, vector search at scale, and technical leadership for the vector-search diversity team. Keep the emphasis on direction, end-to-end delivery, and hands-on engineering.",
-          answer: "The growth has been in both breadth and technical ownership: mobile ML in a chest X-ray app at Microsoft Garage, production features on the search team, then vector storage, quantization, and relevance at scale. I helped take vector search to broad production adoption. Now, as a Senior Software Engineer and the technical lead for a team of five engineers and scientists building vector-search diversity, I set the technical direction and own delivery through partner alignment and hands-on implementation."
+          answer: "The growth has been in both breadth and technical ownership: mobile ML in a chest X-ray app at Microsoft Garage, production features on the search team, then vector storage, quantization, and relevance at scale. I helped take vector search to broad production adoption. Now, as a Senior Software Engineer and the technical lead for a team of six engineers and scientists building vector-search diversity, I set the technical direction and own delivery through partner alignment and hands-on implementation."
         }
       ]
     },

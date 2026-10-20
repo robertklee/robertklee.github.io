@@ -790,7 +790,7 @@ test.describe('touch query placement', () => {
 test('current-role copy describes team technical leadership and qualifies search diversity throughout the chat', async ({ page }) => {
   await expect(page.locator('#experience-role-1-title')).toHaveText('Senior Software Engineer');
   for (const selector of ['.cv-about-copy', '#career-map-desc', '.experience-role-heading', '#profile-work-entry-1', '#work-diversity .chapter-copy']) {
-    await expect(page.locator(selector).first()).toContainText(/technical lead for a team of five engineers and scientists/i);
+    await expect(page.locator(selector).first()).toContainText(/technical lead for a team of six engineers and scientists/i);
   }
   await expect(page.locator('.cm-step-now .cm-areas')).toContainText('Technical lead');
   await expect(page.locator('.cm-step-now .cm-areas')).toContainText('Vector diversity');
@@ -810,7 +810,7 @@ test('current-role copy describes team technical leadership and qualifies search
     for (const doc of topic.docs) expect(fieldDocs.has(doc), doc).toBe(true);
     const copy = [topic.thought, topic.answer, ...(topic.prompts || []),
       ...(topic.variants || []).flatMap(variant => [variant.thought, variant.answer])].filter(Boolean).join(' ');
-    expect(copy).not.toMatch(/(?:lead|leading|tech-lead|tech-leading) (?:a team of five|five engineers)/i);
+    expect(copy).not.toMatch(/(?:lead|leading|tech-lead|tech-leading) (?:a team of six|six engineers)/i);
     expect(copy).not.toMatch(/technical lead on (?:a new vector-diversity effort|vector diversity)/i);
     expect(copy).not.toMatch(/(?<!vector[- ]|search[- ])\bdiversity\b/i);
     for (const [id, label] of topic.sources || []) {
@@ -819,7 +819,7 @@ test('current-role copy describes team technical leadership and qualifies search
   }
   for (const variant of content.TOPICS.find(topic => topic.id === 'tech-lead').variants) {
     expect(variant.answer).toContain('Senior Software Engineer');
-    expect(variant.answer).toContain('technical lead for a team of five engineers and scientists');
+    expect(variant.answer).toContain('technical lead for a team of six engineers and scientists');
     expect(variant.answer).toContain('technical direction');
     expect(variant.answer).toContain('own delivery');
     expect(variant.answer).toContain('hands-on implementation');

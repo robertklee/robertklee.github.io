@@ -1891,7 +1891,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
         await turn.locator('.retry-item').first().click();
       }
       await expect(answer).toContainText(topic.variants[index].answer);
-      await expect(answer).toContainText('technical lead for a team of five engineers and scientists');
+      await expect(answer).toContainText('technical lead for a team of six engineers and scientists');
       await expect(answer).toContainText('distributed execution');
       await expect(answer).toContainText('bounded, verifiable operator set');
       await expect(answer).toContainText(/8\u201332\u00d7.*20\u00d7.*depending on the workload/);
