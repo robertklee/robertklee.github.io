@@ -14,7 +14,8 @@
     let paused = false;
     const stop = () => { clearInterval(timer); timer = 0; };
     const clearRepeat = () => { clearTimeout(repeatTimer); repeatTimer = 0; };
-    const canRepeat = () => inView && !paused && !reduced.matches && !document.hidden;
+    const expanded = () => target.closest('.demo-disclosure')?.open !== false;
+    const canRepeat = () => expanded() && inView && !paused && !reduced.matches && !document.hidden;
     const complete = () => {
       stop();
       index = frames.length - 1;
@@ -45,7 +46,7 @@
       index = 0;
       if (reduced.matches || paused) { complete(); return; }
       paint(frames[index]);
-      run();
+      if (expanded()) run();
     };
     const syncControls = () => {
       pauseButton.hidden = reduced.matches || !('IntersectionObserver' in window);
@@ -97,6 +98,9 @@
       paused = !paused;
       syncCycle();
     });
+    document.addEventListener('toggle', event => {
+      if (event.target.matches('.demo-disclosure') && event.target.contains(target)) syncCycle();
+    }, true);
     return {
       show,
       play,

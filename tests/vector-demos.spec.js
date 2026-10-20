@@ -41,8 +41,11 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
   await page.clock.pauseAt(new Date('2026-01-01T00:00:01Z'));
   await page.goto(origin);
+  await openDemos(page);
 });
 test.afterEach(async ({ page }) => { expect(errors.get(page)).toEqual([]); });
+
+const openDemos = page => page.locator('.demo-disclosure').evaluateAll(demos => demos.forEach(demo => { demo.open = true; }));
 
 const setRange = async (page, selector, value) => {
   await page.locator(selector).evaluate((input, next) => {
@@ -345,6 +348,7 @@ for (const demo of repeatingDemos) {
       await page.setViewportSize(viewport);
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       await page.reload();
+      await openDemos(page);
       await page.clock.runFor(10000);
       expect(await page.evaluate(demo.done)).toBe(true);
       await viewDemo(page, demo.target);
@@ -431,6 +435,7 @@ for (const demo of repeatingDemos) {
     await page.addInitScript(() => { delete window.IntersectionObserver; });
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.reload();
+    await openDemos(page);
     await expect(page.locator(`[data-${demo.prefix}-pause]`)).toBeHidden();
     await expect(page.locator(`[data-${demo.prefix}-loop-note]`)).toBeHidden();
     await page.locator(`[data-${demo.prefix}-replay]`).evaluate(button => button.click());
@@ -578,6 +583,7 @@ test('HNSW has four nested levels and valid descent points between all adjacent 
   });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.reload();
+  await openDemos(page);
   await page.evaluate(() => {
     window.hnswLevels = [];
     window.hnswPools = [];
@@ -1015,6 +1021,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.reload();
+    await openDemos(page);
     await viewSIMD(page);
     await page.clock.runFor(1400);
     await expect(page.locator('[data-si-vector-ops]')).toHaveText('4 / 4 vector MAC operations');
@@ -1053,7 +1060,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 1080, height: 90
       for (const id of ['work-simd', 'work-hnsw']) {
         await page.locator(`#${id} .chapter-figure`).evaluate(node => node.scrollIntoView({ block: 'start', behavior: 'instant' }));
         await expect(page.locator(`#${id} .vector-demo-body`)).toBeVisible();
-        await page.locator(`#${id} details`).evaluate(node => { node.open = true; });
+        await page.locator(`#${id} figcaption details`).evaluate(node => { node.open = true; });
         const overflow = await page.locator(`#${id}`).evaluate(card => ({
           page: document.documentElement.scrollWidth - innerWidth,
           elements: [...card.querySelectorAll('*')].filter(node => {

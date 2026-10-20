@@ -45,13 +45,13 @@
   // On first view, cross zero and return to the original value to show each format's precision.
   if (!reduced.matches && 'IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => {
-      if (!entries.some(entry => entry.isIntersecting)) return;
+      if (!entries.some(entry => entry.isIntersecting) || slider.closest('.demo-disclosure')?.open === false) return;
       io.disconnect();
       if (touched || reduced.matches) return;
       const from = slider.valueAsNumber;
       const start = performance.now() + 500;
       const step = now => {
-        if (touched || reduced.matches) return;
+        if (touched || reduced.matches || slider.closest('.demo-disclosure')?.open === false) return;
         const t = Math.min(1, Math.max(0, (now - start) / 2400));
         const phase = t < 0.5 ? t * 2 : (1 - t) * 2;
         const eased = phase < 0.5 ? 2 * phase * phase : 1 - Math.pow(-2 * phase + 2, 2) / 2;

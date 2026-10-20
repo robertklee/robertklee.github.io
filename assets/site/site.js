@@ -81,8 +81,14 @@
       window.scrollTo({ top: 0, behavior });
       return;
     }
-    const target = document.getElementById(id);
+    let target = document.getElementById(id);
     if (!target) return;
+    const demo = target.closest('.demo-disclosure') || target.querySelector(':scope > .demo-disclosure');
+    if (demo) demo.open = true;
+    for (let ancestor = target.parentElement; ancestor; ancestor = ancestor.parentElement) {
+      if (ancestor.tagName === 'DETAILS') ancestor.open = true;
+    }
+    if (demo && target.closest('.figure-heading')) target = demo.querySelector('summary');
     if (target.tagName === 'DETAILS') target.open = true;
     target.scrollIntoView({ block: 'start', behavior });
     if (focus) {
@@ -100,6 +106,7 @@
     scrollToSection(true, link.hash !== '#top');
   });
   window.addEventListener('popstate', () => scrollToSection());
+  window.addEventListener('hashchange', () => scrollToSection());
   if (window.location.hash) scrollToSection();
   // A reload can restore the old scroll position after collapsed records change height.
   window.addEventListener('pageshow', event => {

@@ -289,12 +289,12 @@
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (!reduced.matches && 'IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => {
-      if (!entries.some(e => e.isIntersecting)) return;
+      if (!entries.some(e => e.isIntersecting) || figure.closest('.demo-disclosure')?.open === false) return;
       io.disconnect();
       const start = performance.now() + 500;
       const to = 0.5;
       const step = now => {
-        if (touched) return;
+        if (touched || reduced.matches || figure.closest('.demo-disclosure')?.open === false) return;
         const t = Math.min(1, Math.max(0, (now - start) / 1600));
         const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
         input.value = (to * eased).toFixed(2);

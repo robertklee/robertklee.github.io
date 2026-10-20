@@ -74,6 +74,7 @@ test.afterEach(async ({ page }) => {
 
 async function showChart(page) {
   await page.locator('.quantization-chart').evaluate(chart => {
+    chart.closest('.demo-disclosure').open = true;
     chart.scrollIntoView({ block: 'center', behavior: 'instant' });
   });
 }
