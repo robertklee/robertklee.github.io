@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Selected work / disclosure studies</title>
+    <link rel="stylesheet" href="../../assets/site/site.css">
+    <link rel="stylesheet" href="preview.css">
+    <script src="preview.js" defer></script>
+  </head>
+  <body>
+    <header class="lab-header">
+      <div class="lab-intro">
+        <div>
+          <p class="eyebrow">Layout lab / isolated spike</p>
+          <h1>A little less demo. <em>All the substance.</em></h1>
+        </div>
+        <a href="../../index.html" target="_blank" rel="noopener">Homepage / option C &#8599;</a>
+      </div>
+      <p class="lab-lede">Three ways to make room for the rest of the profile. Every contribution, metric, and bullet stays visible. Only the concept illustrations fold away.</p>
+      <fieldset class="variants">
+        <legend class="cv-sr-only">Layout alternative</legend>
+        <label><input type="radio" name="variant" value="collapsed"><span><strong>A / On demand</strong><small>Descriptive rows. Open any demo.</small></span></label>
+        <label><input type="radio" name="variant" value="first"><span><strong>B / Lead with one</strong><small>Vector diversity open. The rest tucked away.</small></span></label>
+        <label><input type="radio" name="variant" value="previews" checked><span><strong>C / Keep a glimpse</strong><small>A small visual for every demo.</small></span></label>
+      </fieldset>
+      <div class="lab-controls">
+        <label>Viewport <select id="width"><option value="fit">Fit window</option><option value="1440">Desktop / 1440px</option><option value="390">Phone / 390px</option></select></label>
+        <label>Theme <select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+        <label class="compare-label"><input id="compare" type="checkbox">Side by side</label>
+        <button id="reset" type="button">Reset demos</button>
+        <label>Jump to <select id="section"><option value="work-diversity">Selected work</option><option value="profile-experience">Detailed experience</option><option value="top">Page top</option></select></label>
+        <p id="view-note">Start with C for the gentlest change. Open a demo to try the original interaction.</p>
+      </div>
+      <p id="preview-error" role="alert" hidden></p>
+      <noscript><p>This comparison needs JavaScript. The <a href="../../index.html">homepage</a> remains available.</p></noscript>
+    </header>
+    <main id="comparison" aria-label="Layout previews" aria-busy="true"></main>
+  </body>
+</html>
