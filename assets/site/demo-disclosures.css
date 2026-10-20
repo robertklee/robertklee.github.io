@@ -30,7 +30,7 @@
 .demo-disclosure[open] .demo-hide { display: inline; }
 .demo-disclosure[open] > summary { border-bottom: 1px solid var(--line); }
 .demo-disclosure .chapter-figure { width: min(100%, 820px); margin: auto; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-.demo-disclosure .figure-heading { display: none; }
+.demo-disclosure .figure-heading > :not(p[data-demo-preview]) { display: none; }
 .demo-disclosure .chapter-figure.reveal { opacity: 1; transform: none; }
 .demo-close { display: block; min-height: 44px; margin: 8px auto 24px; padding: 10px 18px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--accent); font: 500 13px/1.5 var(--font-body); cursor: pointer; }
 .demo-miniature { display: block; flex: 0 0 200px; width: 200px; height: 110px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--accent-soft); color: var(--accent); }

@@ -74,6 +74,10 @@ test('keyboard expansion preserves real controls and restores focus when collaps
   await summary.focus();
   await summary.press('Enter');
   await expect(page.locator('#work-diversity figure')).toBeVisible();
+  const explanation = page.locator('#work-diversity .figure-heading [data-demo-preview]');
+  await expect(explanation).toBeVisible();
+  await expect(page.locator('#work-diversity .demo-summary-description')).toHaveText(await explanation.getAttribute('data-demo-preview'));
+  expect(await explanation.textContent()).not.toBe(await explanation.getAttribute('data-demo-preview'));
   await expect(page.locator('#work-diversity .demo-miniature')).toBeHidden();
   await page.locator('#dv-diversity').focus();
   await page.locator('#dv-diversity').press('End');

@@ -271,7 +271,7 @@
             <header class="figure-heading">
       <p class="figure-illustration-label">Concept demo</p>
               <h4 id="diversity-figure-title">Same query, broader evidence.</h4>
-              <p>Nearest-neighbour ranking can produce a homogeneous result set: highly relevant near-duplicates from one topic cluster. Increase search diversity to balance relevance with broader coverage.</p>
+              <p data-demo-preview="Adjust search diversity to balance relevance with broader coverage, rather than returning near-duplicates.">Nearest-neighbour ranking can produce a homogeneous result set: highly relevant near-duplicates from one topic cluster. Increase search diversity to balance relevance with broader coverage.</p>
             </header>
             <div class="dv-body" hidden>
               <div class="segmented" role="group" aria-label="Example">
@@ -321,7 +321,7 @@
             <header class="figure-heading">
       <p class="figure-illustration-label">Concept demo</p>
               <h4 id="agentic-figure-title">Every constraint, checked.</h4>
-              <p>Filters combine only <code>eq</code>, <code>ne</code>, <code>and</code>, and <code>or</code> over categorical fields, and preferences become Lucene boosts. Each is validated against the index before it runs; anything outside the set is left to ranking, not guessed.</p>
+              <p data-demo-preview="Follow a natural-language request as it becomes search filters and ranking preferences, checked against the index.">Filters combine only <code>eq</code>, <code>ne</code>, <code>and</code>, and <code>or</code> over categorical fields, and preferences become Lucene boosts. Each is validated against the index before it runs; anything outside the set is left to ranking, not guessed.</p>
             </header>
             <div class="ag-body" hidden>
               <div class="segmented" role="group" aria-label="Example request">
@@ -399,7 +399,7 @@
             <header class="figure-heading quantization-heading">
       <p class="figure-illustration-label">Concept demo</p>
               <h4 id="quantization-title">How much detail do you keep?</h4>
-              <p>One value. Three representations.</p>
+              <p data-demo-preview="Compare FP32, INT8, and binary representations to see the trade-off between precision and memory.">One value. Three representations.</p>
             </header>
             <div class="quantization-chart">
               <div class="quantization-axis" aria-hidden="true"><span>+1</span><span>0</span><span>&minus;1</span></div>
@@ -485,7 +485,7 @@
             <header class="figure-heading">
       <p class="figure-illustration-label">Concept demo</p>
               <h4 id="simd-figure-title">Same dot product. Different machinery.</h4>
-              <p>Multiply, accumulate, reduce. Compare a scalar loop with parallel lanes on two 16-dimensional unit vectors.</p>
+              <p data-demo-preview="Compare scalar and SIMD computation: processing one value at a time versus several in parallel, with the same dot product.">Multiply, accumulate, reduce. Compare a scalar loop with parallel lanes on two 16-dimensional unit vectors.</p>
             </header>
             <p data-vector-fallback>A scalar loop uses 16 multiply-accumulate operations; four SIMD lanes use four vector multiply-accumulate operations plus a final reduction to the same dot product. For unit vectors, that is cosine similarity.</p>
             <div class="vector-demo-body" hidden>
@@ -564,7 +564,7 @@
             <header class="figure-heading">
       <p class="figure-illustration-label">Concept demo</p>
               <h4 id="hnsw-figure-title">Take the graph's shortcuts.</h4>
-              <p>The query vector is the search target, not a stored point. Move it to see how the graph finds nearby vectors without always comparing every one.</p>
+              <p data-demo-preview="Move the query vector and see how HNSW uses graph connections to find nearby vectors with fewer comparisons.">The query vector is the search target, not a stored point. Move it to see how the graph finds nearby vectors without always comparing every one.</p>
             </header>
             <p data-vector-fallback>Search takes shortcuts through the upper graph levels, then explores candidates at Level 0. Larger candidate pools can find neighbours missed by a narrower search.</p>
             <div class="vector-demo-body" hidden>
