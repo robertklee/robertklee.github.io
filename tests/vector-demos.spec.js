@@ -788,7 +788,7 @@ test.describe('touch query placement', () => {
 });
 
 test('current-role copy describes team technical leadership and qualifies search diversity throughout the chat', async ({ page }) => {
-  await expect(page.locator('#experience-role-1-title')).toHaveText('Senior Software Engineer');
+  await expect(page.locator('#experience-role-1-title')).toHaveText('Technical Lead · Senior Software Engineer');
   for (const selector of ['.cv-about-copy', '#career-map-desc', '.experience-role-heading', '#profile-work-entry-1', '#work-diversity .chapter-copy']) {
     await expect(page.locator(selector).first()).toContainText(/technical lead for a team of six engineers and scientists/i);
   }
@@ -940,7 +940,7 @@ test('experience, examples, full role details, and biography stay connected', as
   ]);
   await expect(page.locator('#profile-experience #profile-work-records > .cv-record')).toHaveCount(6);
   await expect(page.locator('#profile-work-records .cv-record-title')).toHaveText([
-    'Senior Software Engineer, Microsoft Azure AI Search', 'Software Engineer II, Microsoft Azure AI Search',
+    'Technical Lead · Senior Software Engineer, Microsoft Azure Foundry IQ (CoreAI)', 'Software Engineer II, Microsoft Azure AI Search',
     'Software Engineer, Microsoft Azure AI Search', 'Software Engineer Intern, Microsoft Azure Cognitive Search',
     'Software Engineer Intern, Microsoft Azure Search (AI Platform)', 'Software Developer Intern, Microsoft Garage'
   ]);

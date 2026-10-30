@@ -202,8 +202,8 @@ test('editorial glow is reserved for three achievements across themes and layout
   const accents = page.locator('.card-accent');
   await expect(accents).toHaveCount(3);
   await expect(accents.locator('.cv-record-title, h3')).toHaveText([
-    'Senior Software Engineer, Microsoft Azure AI Search',
-    "Founder & Program Director, Senior's Digital Literacy Program, University of Victoria",
+    'Technical Lead · Senior Software Engineer, Microsoft Azure Foundry IQ (CoreAI)',
+    "Founder & Program Director, Seniors' Digital Literacy Program, University of Victoria",
     'Schulich Leader Scholarship',
   ]);
   await expect(page.locator('#profile-work-entry-2').locator('..')).not.toHaveClass(/card-accent/);

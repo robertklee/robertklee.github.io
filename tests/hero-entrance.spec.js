@@ -1856,7 +1856,7 @@ test('all ten opening answers foreground standout work and keep minor features o
     expect(content.VARIANTS).toHaveLength(10);
     const variant = content.VARIANTS[index];
     expect([variant.thought, variant.answer, ...variant.docs].join(' ')).not.toMatch(minorFeatures);
-    expect(variant.answer).toContain('Senior Software Engineer on Microsoft Azure AI Search');
+    expect(variant.answer).toContain('Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI)');
     expect(variant.answer).toMatch(/vector-search diversity|agentic/i);
     expect(variant.answer.trim().split(/\s+/).length).toBeLessThanOrEqual(75);
     expect(variant.answer).toMatch(/\b(?:retrieval|quantization|HNSW|SIMD|distributed|pose estimation)\b/i);

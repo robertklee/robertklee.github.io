@@ -31,52 +31,52 @@ window.HeroChatContent = (function () {
   var VARIANTS = [
     {
       thought: "Lead with technical leadership and vector-search diversity's pre-shipping performance gains. Keep those distinct from quantization's workload-dependent customer savings, and connect both to research-to-production delivery of agentic filter and boost generation.",
-      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity, with 4.68\u00d7 better latency and 85.6% less memory before shipping. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
+      answer: "Hi! I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity, with 4.68\u00d7 better latency and 85.6% less memory before shipping. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
       docs: ['Vector diversity capability', 'Team technical leadership', 'Filter generation', 'Lucene boosts', 'Scalar quantization']
     },
     {
       thought: "Connect vector search and HNSW graph-search engineering to relevance and production performance. Explain current search-diversity work through result coverage, and connect shipped natural-language filters and binary quantization to customer capabilities and cost.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My work spans vector search and HNSW graph search, with a focus on relevance, performance, and production scale. I lead technical delivery of vector-search diversity to improve result coverage, led natural-language filter generation into production, and helped lower search costs through vector quantization.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). My work spans vector search and HNSW graph search, with a focus on relevance, performance, and production scale. I lead technical delivery of vector-search diversity to improve result coverage, led natural-language filter generation into production, and helped lower search costs through vector quantization.",
       docs: ['HNSW graph search', 'Redundancy reduction', 'Filter generation', 'Binary quantization']
     },
     {
       thought: "Make technical leadership concrete: team size, leadership buy-in, cross-org alignment, greenfield architecture, and investment decisions. Pair vector-search diversity ownership with research-to-production delivery of agentic filter and boost generation.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. I own technical vision and end-to-end delivery, from leadership buy-in and cross-org alignment to greenfield distributed architecture and technical investment decisions. I also led agentic-retrieval filter and boost generation from research into production.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. I own technical vision and end-to-end delivery, from leadership buy-in and cross-org alignment to greenfield distributed architecture and technical investment decisions. I also led agentic-retrieval filter and boost generation from research into production.",
       docs: ['Team technical leadership', 'Distributed execution', 'Filter generation', 'Lucene boosts']
     },
     {
       thought: "Lead with quantization's shipped cost and latency impact, qualified by workload. Keep preview-to-general-availability ownership explicit, then connect that delivery record to technical leadership for the current vector-search diversity effort.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity to improve result coverage and reduce redundancy.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity to improve result coverage and reduce redundancy.",
       docs: ['Scalar quantization', 'Binary quantization', 'Team technical leadership', 'Redundancy reduction']
     },
     {
       thought: "Show systems depth across HNSW graph search, SIMD distance kernels, billions of embeddings, and distributed algorithm design. Preserve team attribution for broad adoption, and name the seven innovations and production constraints without inventing their internals.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My work spans HNSW graph search and SIMD-optimized vector-distance kernels, helping scale search across billions of embeddings. For vector-search diversity, I rearchitected a state-of-the-art research algorithm for distributed execution and drove seven targeted innovations for hyperscalability, durability, corpus drift, availability, and performance.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). My work spans HNSW graph search and SIMD-optimized vector-distance kernels, helping scale search across billions of embeddings. For vector-search diversity, I rearchitected a state-of-the-art research algorithm for distributed execution and drove seven targeted innovations for hyperscalability, durability, corpus drift, availability, and performance.",
       docs: ['HNSW graph search', 'SIMD distance', 'Vector search at scale', 'Distributed execution']
     },
     {
       thought: "Connect governed enterprise grounding and filter and boost generation to workload benchmarking. Name both agentic retrieval and diversity-aware search in the serverless billing scope, and keep the 80% memory reduction qualified to key paths.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I ground agents in governed enterprise knowledge and led filter and boost generation into production. I also architected benchmarks covering CPU, memory, and throughput to establish the serverless billing formula for agentic retrieval and diversity-aware search, reducing memory by 80% on key paths.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). I ground agents in governed enterprise knowledge and led filter and boost generation into production. I also architected benchmarks covering CPU, memory, and throughput to establish the serverless billing formula for agentic retrieval and diversity-aware search, reducing memory by 80% on key paths.",
       docs: ['RAG grounding', 'Filter generation', 'Lucene boosts', 'Workload benchmarks', 'Billing model']
     },
     {
       thought: "Use research to production as the connecting thread. Vector-search diversity preserved algorithmic strengths under distributed execution; agentic filter generation bounded an unbounded problem and used production evidence to align teams.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I turn retrieval research into production systems. For vector-search diversity, I rearchitected a research algorithm for distributed execution while preserving its strengths. For agentic retrieval, I reformulated unbounded filter synthesis as a bounded, verifiable operator set, demonstrated real-workload coverage through production analysis, and brought research and product teams to consensus.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). I turn retrieval research into production systems. For vector-search diversity, I rearchitected a research algorithm for distributed execution while preserving its strengths. For agentic retrieval, I reformulated unbounded filter synthesis as a bounded, verifiable operator set, demonstrated real-workload coverage through production analysis, and brought research and product teams to consensus.",
       docs: ['Vector diversity capability', 'Distributed execution', 'Bounded operator set', 'Filter generation']
     },
     {
       thought: "Show end-to-end ownership through vector-search diversity leadership, a shared core that enabled three engineers to work in parallel, and benchmarking that established serverless billing for two retrieval capabilities.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. I consolidated infrastructure into a shared core and decoupled mechanisms so three engineers could work in parallel. I also architected workload benchmarks to establish the serverless billing formula for agentic retrieval and diversity-aware search.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. I consolidated infrastructure into a shared core and decoupled mechanisms so three engineers could work in parallel. I also architected workload benchmarks to establish the serverless billing formula for agentic retrieval and diversity-aware search.",
       docs: ['Team technical leadership', 'Vector diversity capability', 'Workload benchmarks', 'Billing model']
     },
     {
       thought: "Lead with current technical leadership, then show applied-ML breadth through the human pose estimation project. Retain training from random initialization and ownership of the model architecture and cloud pipeline as concrete engineering signals.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. My background also includes machine learning: I led a student team that trained a human pose estimation network from scratch, where I owned the model architecture and cloud training pipeline.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. My background also includes machine learning: I led a student team that trained a human pose estimation network from scratch, where I owned the model architecture and cloud training pipeline.",
       docs: ['Vector diversity capability', 'Team technical leadership', 'Pose estimation']
     },
     {
       thought: "Connect retrieval quality, production scale, and cost. Use current vector-search diversity, shipped agentic filter and boost generation, HNSW graph search, and quantization as concrete evidence of that focus, not as an unexplained technology list.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is retrieval quality at production scale. I lead technical delivery of vector-search diversity for broader evidence, led agentic filter and boost generation into production, and helped scale vector search, including HNSW graph search, across billions of embeddings. Quantization delivered 8\u201332\u00d7 cost savings depending on the workload.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI). My focus is retrieval quality at production scale. I lead technical delivery of vector-search diversity for broader evidence, led agentic filter and boost generation into production, and helped scale vector search, including HNSW graph search, across billions of embeddings. Quantization delivered 8\u201332\u00d7 cost savings depending on the workload.",
       docs: ['Vector diversity capability', 'Filter generation', 'Lucene boosts', 'Vector search at scale', 'HNSW graph search', 'Binary quantization']
     }
   ];
@@ -176,7 +176,7 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Keep Senior Software Engineer as the role title while making technical leadership concrete: vision, leadership buy-in, cross-org alignment, greenfield architecture, investment decisions, and hands-on delivery.",
-          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of six engineers and scientists delivering a novel vector-search diversity capability. I set the technical direction and own delivery end to end, from leadership buy-in and cross-org alignment to greenfield architecture, technical investment decisions, and hands-on implementation."
+          answer: "I'm a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI) and the technical lead for a team of six engineers and scientists delivering a novel vector-search diversity capability. I set the technical direction and own delivery end to end, from leadership buy-in and cross-org alignment to greenfield architecture, technical investment decisions, and hands-on implementation."
         },
         {
           thought: "Show how system-wide architecture decisions enabled the team: resolve scalability, recovery, and extensibility tradeoffs, consolidate infrastructure, and decouple shared mechanisms for three engineers' parallel execution. Retain technical direction and hands-on ownership.",
@@ -409,7 +409,7 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Explain the service and Robert's own scope without replacing them with an analogy. Define vector search briefly, keep the scale and team technical leadership, and avoid claiming that the search engine literally understands a request.",
-          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search, a service businesses use to search their documents and power AI apps. I helped scale vector search, which compares numerical representations of text to find related meanings, not just matching words. Today I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity to reduce repetitive search results."
+          answer: "I'm a Senior Software Engineer at Microsoft Azure Foundry IQ (CoreAI), building retrieval systems for business documents and AI apps. I helped scale vector search, which compares numerical representations of text to find related meanings, not just matching words. Today I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity to reduce repetitive search results."
         },
         {
           thought: "Keep a concrete example, but pair it with the engineering work. Vector search can match related meanings rather than exact words; Robert helped scale it across billions of embeddings and is now technical lead for the six-person vector-search diversity team.",
