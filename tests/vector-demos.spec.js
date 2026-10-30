@@ -812,7 +812,7 @@ test('current-role copy describes team technical leadership and qualifies search
       ...(topic.variants || []).flatMap(variant => [variant.thought, variant.answer])].filter(Boolean).join(' ');
     expect(copy).not.toMatch(/(?:lead|leading|tech-lead|tech-leading) (?:a team of six|six engineers)/i);
     expect(copy).not.toMatch(/technical lead on (?:a new vector-diversity effort|vector diversity)/i);
-    expect(copy).not.toMatch(/(?<!vector[- ]|search[- ])\bdiversity\b/i);
+    expect(copy).not.toMatch(/(?<!vector[- ]|search[- ])\bdiversity\b(?!-aware search)/i);
     for (const [id, label] of topic.sources || []) {
       if (id === 'work-diversity') expect(label).toBe('Vector diversity');
     }

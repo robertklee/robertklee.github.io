@@ -30,53 +30,53 @@ window.HeroChatContent = (function () {
   // the intro runs as a diverse retrieval.
   var VARIANTS = [
     {
-      thought: "Lead with enterprise retrieval and technical leadership. Connect vector-search diversity to broader evidence and reduced redundancy, then pair that current effort with shipped agentic filter and boost generation and quantization's measured customer impact.",
-      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I build retrieval systems for enterprise AI. I'm the technical lead for a team of six engineers and scientists building vector-search diversity to reduce redundant results. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
+      thought: "Lead with technical leadership and vector-search diversity's pre-shipping performance gains. Keep those distinct from quantization's workload-dependent customer savings, and connect both to research-to-production delivery of agentic filter and boost generation.",
+      answer: "Hi! I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity, with 4.68\u00d7 better latency and 85.6% less memory before shipping. I also led agentic-retrieval filter and boost generation into production and drove vector quantization to general availability, delivering 8\u201332\u00d7 customer cost savings depending on the workload.",
       docs: ['Vector diversity capability', 'Team technical leadership', 'Filter generation', 'Lucene boosts', 'Scalar quantization']
     },
     {
       thought: "Connect vector search and HNSW graph-search engineering to relevance and production performance. Explain current search-diversity work through result coverage, and connect shipped natural-language filters and binary quantization to customer capabilities and cost.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My work spans vector search and HNSW graph search, with a focus on relevance, performance, and production scale. I'm building vector-search diversity to improve result coverage, led natural-language filter generation into production, and helped lower search costs through vector quantization.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My work spans vector search and HNSW graph search, with a focus on relevance, performance, and production scale. I lead technical delivery of vector-search diversity to improve result coverage, led natural-language filter generation into production, and helped lower search costs through vector quantization.",
       docs: ['HNSW graph search', 'Redundancy reduction', 'Filter generation', 'Binary quantization']
     },
     {
-      thought: "Make technical leadership concrete: team size, technical direction, distributed architecture, and hands-on delivery. Pair the current vector-search diversity effort with completed research-to-production ownership for agentic filter and boost generation.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I bridge retrieval research and production engineering. I'm the technical lead for a team of six engineers and scientists building vector-search diversity, setting technical direction and owning delivery from distributed architecture through hands-on implementation. I also led agentic-retrieval filter and boost generation from research into production.",
+      thought: "Make technical leadership concrete: team size, leadership buy-in, cross-org alignment, greenfield architecture, and investment decisions. Pair vector-search diversity ownership with research-to-production delivery of agentic filter and boost generation.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. I own technical vision and end-to-end delivery, from leadership buy-in and cross-org alignment to greenfield distributed architecture and technical investment decisions. I also led agentic-retrieval filter and boost generation from research into production.",
       docs: ['Team technical leadership', 'Distributed execution', 'Filter generation', 'Lucene boosts']
     },
     {
       thought: "Lead with quantization's shipped cost and latency impact, qualified by workload. Keep preview-to-general-availability ownership explicit, then connect that delivery record to technical leadership for the current vector-search diversity effort.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of six engineers and scientists building vector-search diversity to improve result coverage and reduce redundancy.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I drove vector quantization from preview to general availability, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload. Today I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity to improve result coverage and reduce redundancy.",
       docs: ['Scalar quantization', 'Binary quantization', 'Team technical leadership', 'Redundancy reduction']
     },
     {
-      thought: "Show systems depth across scales: HNSW graph search, SIMD distance kernels, billions of embeddings, and distributed algorithm design. Preserve team attribution for broad adoption, and make production constraints part of the current search-diversity story.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My systems work spans HNSW graph search and SIMD-optimized vector-distance kernels, helping scale vector search across billions of embeddings. I'm now adapting a research algorithm for distributed execution as part of vector-search diversity, preserving its properties under scalability, durability, and performance constraints.",
+      thought: "Show systems depth across HNSW graph search, SIMD distance kernels, billions of embeddings, and distributed algorithm design. Preserve team attribution for broad adoption, and name the seven innovations and production constraints without inventing their internals.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My work spans HNSW graph search and SIMD-optimized vector-distance kernels, helping scale search across billions of embeddings. For vector-search diversity, I rearchitected a state-of-the-art research algorithm for distributed execution and drove seven targeted innovations for hyperscalability, durability, corpus drift, availability, and performance.",
       docs: ['HNSW graph search', 'SIMD distance', 'Vector search at scale', 'Distributed execution']
     },
     {
-      thought: "Introduce agentic retrieval through its purpose and delivery scope: grounded LLM agents, filter and boost generation, workload benchmarking, and a shipped billing model. Connect engineering measurements to the product decision without implying ownership of the whole agent platform.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is agentic retrieval: grounding LLM agents in governed enterprise knowledge. I led filter and boost generation into production, built a workload benchmarking system, and used CPU, memory, and throughput measurements to propose and ship the production billing model for agentic retrieval.",
+      thought: "Connect governed enterprise grounding and filter and boost generation to workload benchmarking. Name both agentic retrieval and diversity-aware search in the serverless billing scope, and keep the 80% memory reduction qualified to key paths.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I ground agents in governed enterprise knowledge and led filter and boost generation into production. I also architected benchmarks covering CPU, memory, and throughput to establish the serverless billing formula for agentic retrieval and diversity-aware search, reducing memory by 80% on key paths.",
       docs: ['RAG grounding', 'Filter generation', 'Lucene boosts', 'Workload benchmarks', 'Billing model']
     },
     {
-      thought: "Use research to production as the connecting thread. Vector-search diversity requires preserving algorithmic properties under distributed execution; agentic filter generation required a bounded, verifiable design. Highlight those engineering decisions rather than merely listing features.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I turn retrieval research into production systems. My current vector-search diversity work adapts a research algorithm for distributed execution. For agentic retrieval, I led filter generation into production by reformulating open-ended synthesis as a bounded, verifiable operator set\u2014limit to operations we can reliably generate.",
+      thought: "Use research to production as the connecting thread. Vector-search diversity preserved algorithmic strengths under distributed execution; agentic filter generation bounded an unbounded problem and used production evidence to align teams.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I turn retrieval research into production systems. For vector-search diversity, I rearchitected a research algorithm for distributed execution while preserving its strengths. For agentic retrieval, I reformulated unbounded filter synthesis as a bounded, verifiable operator set, demonstrated real-workload coverage through production analysis, and brought research and product teams to consensus.",
       docs: ['Vector diversity capability', 'Distributed execution', 'Bounded operator set', 'Filter generation']
     },
     {
-      thought: "Show end-to-end ownership through two substantial efforts: technical leadership for vector-search diversity, and agentic-retrieval benchmarking that informed a shipped billing model. Keep algorithm analysis and implementation visible alongside the product impact.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists building vector-search diversity, owning delivery from algorithm analysis to implementation. I also built agentic-retrieval benchmarks from scratch and turned the workload measurements into a production billing model that I proposed and shipped.",
+      thought: "Show end-to-end ownership through vector-search diversity leadership, a shared core that enabled three engineers to work in parallel, and benchmarking that established serverless billing for two retrieval capabilities.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. I consolidated infrastructure into a shared core and decoupled mechanisms so three engineers could work in parallel. I also architected workload benchmarks to establish the serverless billing formula for agentic retrieval and diversity-aware search.",
       docs: ['Team technical leadership', 'Vector diversity capability', 'Workload benchmarks', 'Billing model']
     },
     {
       thought: "Lead with current technical leadership, then show applied-ML breadth through the human pose estimation project. Retain training from random initialization and ownership of the model architecture and cloud pipeline as concrete engineering signals.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists building vector-search diversity. My background also includes machine learning: I led a student team that trained a human pose estimation network from scratch, where I owned the model architecture and cloud training pipeline.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. My background also includes machine learning: I led a student team that trained a human pose estimation network from scratch, where I owned the model architecture and cloud training pipeline.",
       docs: ['Vector diversity capability', 'Team technical leadership', 'Pose estimation']
     },
     {
       thought: "Connect retrieval quality, production scale, and cost. Use current vector-search diversity, shipped agentic filter and boost generation, HNSW graph search, and quantization as concrete evidence of that focus, not as an unexplained technology list.",
-      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is retrieval quality at production scale. I'm building vector-search diversity for broader evidence, led agentic filter and boost generation into production, and helped scale vector search, including HNSW graph search, across billions of embeddings. Quantization delivered 8\u201332\u00d7 cost savings depending on the workload.",
+      answer: "Hi, I'm Robert, a Senior Software Engineer on Microsoft Azure AI Search. My focus is retrieval quality at production scale. I lead technical delivery of vector-search diversity for broader evidence, led agentic filter and boost generation into production, and helped scale vector search, including HNSW graph search, across billions of embeddings. Quantization delivered 8\u201332\u00d7 cost savings depending on the workload.",
       docs: ['Vector diversity capability', 'Filter generation', 'Lucene boosts', 'Vector search at scale', 'HNSW graph search', 'Binary quantization']
     }
   ];
@@ -112,12 +112,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Choose three substantial engineering stories, distinguishing current research-to-production work from shipped impact. Vector-search diversity demonstrates distributed algorithm design and team technical leadership; agentic filter generation demonstrates a verifiable reformulation; quantization demonstrates measured production gains.",
-          answer: "I'd highlight three. Currently, I'm the technical lead for a team of six engineers and scientists building vector-search diversity, rethinking a research algorithm for distributed execution while preserving its strengths at production scale. I also led agentic-retrieval filter and boost generation into production by replacing open-ended synthesis with a bounded, verifiable operator set. And I drove scalar and binary vector quantization from preview to general availability, with SIMD-accelerated distance computation, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload."
+          thought: "Choose three engineering stories: vector-search diversity's distributed redesign and pre-shipping gains, agentic filter generation's verifiable reformulation, and quantization's workload-dependent customer impact. Keep each result attributed to the right effort.",
+          answer: "I'd highlight three. I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. I rearchitected a research algorithm for distributed execution, drove seven targeted innovations, and improved latency by 4.68\u00d7 while reducing memory by 85.6% before shipping through SIMD, architectural refinements, and hot-path profiling. I also led agentic-retrieval filter and boost generation into production using a bounded, verifiable operator set. Earlier, I drove scalar and binary vector quantization to general availability with SIMD-accelerated distance computation, delivering 8\u201332\u00d7 customer cost savings and up to 20\u00d7 lower latency depending on the workload."
         },
         {
-          thought: "Start with the strongest shipped result, then explain the deeper design work in agentic retrieval and current vector-search diversity. Attribute the quantization outcome to the capability, not one kernel, and do not imply vector-search diversity has already shipped.",
-          answer: "For shipped impact, vector quantization stands out: I drove scalar and binary quantization to general availability, including SIMD distance optimization, with 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency depending on the workload. For research-to-production design, I led agentic filter and boost generation using a bounded, verifiable operator set. My current focus is vector-search diversity: as the technical lead for a team of six engineers and scientists, I'm redesigning a research algorithm for distributed execution under scalability, durability, and performance constraints."
+          thought: "Start with quantization's customer impact, then connect agentic retrieval's bounded design to vector-search diversity's production architecture and measured pre-shipping gains. Do not invent availability dates or attribute the full gains to SIMD alone.",
+          answer: "Vector quantization stands out: I drove scalar and binary quantization to general availability, including SIMD distance optimization, with 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency depending on the workload. I also led agentic filter and boost generation using a bounded, verifiable operator set. For vector-search diversity, I'm the technical lead for a team of six engineers and scientists. I rearchitected a research algorithm for distributed execution with seven targeted innovations, then improved latency by 4.68\u00d7 and reduced memory by 85.6% before shipping through SIMD, architectural refinements, and profiling."
         }
       ]
     },
@@ -134,11 +134,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Distinguish query relevance from coverage of the result set. Nearest-neighbour search ranks candidates by their distance to the query embedding, so individually relevant hits can still be redundant. Explain the consequences for evidence across a document collection and e-commerce, without exposing the vector-diversity algorithm.",
-          answer: "Nearest-neighbour search ranks candidates by distance to the query embedding, but individually relevant results may still repeat the same evidence. Near-duplicates can dominate the highest-ranked results, limiting coverage for corpus-spanning grounding or crowding out alternatives in e-commerce and recommendations. I'm the technical lead for the team building vector-search diversity to reduce redundancy while retaining relevance."
+          answer: "Nearest-neighbour search ranks candidates by distance to the query embedding, but individually relevant results may still repeat the same evidence. Near-duplicates can dominate the highest-ranked results, limiting coverage for complex, corpus-spanning grounding or crowding out alternatives in e-commerce and recommendations. I'm the technical lead for the team delivering vector-search diversity to reduce redundancy through broader topical coverage while retaining relevance."
         },
         {
           thought: "A good way to put it: relevance is judged one result at a time, but usefulness is judged across the whole set. Ten relevant results that repeat each other are worth less than five that each add something. Make that point, then give the document-collection and shopping examples.",
-          answer: "Relevance is judged per result; coverage is judged across the result set. Ten highly similar passages may all match the query while supplying the same evidence. That homogeneity limits corpus-spanning grounding and narrows choices in e-commerce and recommendations. I'm the technical lead for the team building vector-search diversity to strengthen nearest-neighbour search through reduced redundancy and broader coverage."
+          answer: "Relevance is judged per result; coverage is judged across the result set. Ten highly similar passages may all match the query while supplying the same evidence. That homogeneity limits corpus-spanning grounding and narrows choices in e-commerce and recommendations. I'm the technical lead for the team delivering vector-search diversity to strengthen nearest-neighbour search through reduced redundancy and broader topical coverage."
         }
       ]
     },
@@ -149,17 +149,17 @@ window.HeroChatContent = (function () {
       docs: ['Vector diversity capability', 'Distributed execution'],
       sources: [['work-diversity', 'Vector diversity'], ['profile-work-entry-1', 'Senior Software Engineer']],
       prompts: [
-        "How is Robert taking vector-diversity research toward production?",
+        "How did Robert take vector-diversity research into production?",
         "What makes vector diversity hard to build for production?"
       ],
       variants: [
         {
-          thought: "This is the research-to-production story. Robert analyzed the algorithm stage by stage to understand what made each stage work, then rethought its architecture for distributed execution, adding targeted algorithmic and systems innovations to keep those properties at scale. Describe the process, but keep the internals out.",
-          answer: "I analyzed the research algorithm stage by stage to identify the properties that made each stage effective, then redesigned its architecture for distributed execution. We're developing algorithmic and systems innovations to preserve those properties at production scale while meeting scalability, durability, and performance requirements for vector-search diversity."
+          thought: "Explain the completed algorithm and architecture redesign without revealing internals. Name the seven targeted innovations and the full production constraints, then connect the pre-shipping gains to SIMD, architectural refinements, and hot-path profiling.",
+          answer: "For vector-search diversity, I analyzed a state-of-the-art research algorithm and rethought both its algorithm and architecture for distributed execution while preserving its core strengths. I drove seven targeted innovations for hyperscalability, durability, corpus drift, availability, and performance. Before shipping, SIMD, architectural refinements, and hot-path profiling improved latency by 4.68\u00d7 and reduced memory by 85.6%."
         },
         {
-          thought: "The hard part is keeping what makes the algorithm good once it runs across a distributed engine with real production requirements: scalability, durability, and performance. Frame it as preserving properties, not porting code, and stay high level.",
-          answer: "The hard part is preserving the algorithm's strengths in a distributed engine. I analyzed it stage by stage before redesigning the architecture. That analysis guides the algorithmic and systems innovations needed to make vector-search diversity scalable, durable, and performant."
+          thought: "Frame the work as preserving research strengths rather than porting code. Tie the seven innovations to production requirements and explain how a shared core and decoupled mechanisms made the architecture maintainable and enabled parallel work.",
+          answer: "The challenge was preserving a research algorithm's strengths in a distributed engine. For vector-search diversity, I rearchitected it and drove seven targeted innovations addressing hyperscalability, durability, corpus drift, availability, and performance. I resolved system-wide scalability, recovery, and extensibility tradeoffs, consolidated infrastructure into a shared core, and decoupled shared mechanisms so three engineers could work in parallel. SIMD, architectural refinements, and profiling then delivered 4.68\u00d7 better latency and 85.6% less memory before shipping."
         }
       ]
     },
@@ -175,12 +175,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Give team leadership appropriate weight while keeping Senior Software Engineer as the role title. Robert is the technical lead for a team of six engineers and scientists building vector-search diversity. He sets the technical direction and owns delivery end to end, from algorithm analysis through distributed architecture, cross-team alignment, and hands-on implementation.",
-          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of six engineers and scientists building a new vector-search diversity capability. I set the technical direction and own delivery end to end, from algorithm analysis and distributed architecture through cross-team alignment and hands-on implementation."
+          thought: "Keep Senior Software Engineer as the role title while making technical leadership concrete: vision, leadership buy-in, cross-org alignment, greenfield architecture, investment decisions, and hands-on delivery.",
+          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search and the technical lead for a team of six engineers and scientists delivering a novel vector-search diversity capability. I set the technical direction and own delivery end to end, from leadership buy-in and cross-org alignment to greenfield architecture, technical investment decisions, and hands-on implementation."
         },
         {
-          thought: "Technical leadership for the vector-search diversity team means connecting research thinking with production engineering. Robert's own deep analysis of the algorithm gave the team common ground. Describe his technical direction, end-to-end ownership, and hands-on implementation.",
-          answer: "As a Senior Software Engineer, I'm the technical lead for a team of six engineers and scientists building vector-search diversity. My algorithm analysis established which properties we need to preserve as we move toward production. I use that to set the team's technical direction, shape the distributed architecture, align partner teams, and own delivery through hands-on implementation."
+          thought: "Show how system-wide architecture decisions enabled the team: resolve scalability, recovery, and extensibility tradeoffs, consolidate infrastructure, and decouple shared mechanisms for three engineers' parallel execution. Retain technical direction and hands-on ownership.",
+          answer: "As a Senior Software Engineer, I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity. I set technical direction and own delivery through hands-on implementation. I designed a maintainable architecture around scalability, recovery, and extensibility, consolidated infrastructure responsibilities into a shared system core, and decoupled shared mechanisms to unlock parallel execution for three engineers."
         }
       ]
     },
@@ -259,12 +259,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Agentic retrieval workloads vary a lot, so a single average says little. Robert built a benchmarking system from scratch covering CPU, memory, throughput, latency distributions, tool-calling iterations, and dependency patterns, then used it to propose and ship the billing model. Go from measurement to decision.",
-          answer: "Agentic retrieval workloads vary a lot from one request to the next, so I built a benchmarking system from scratch to profile them: CPU, memory, and throughput, plus latency distributions, tool-calling iterations, and dependency patterns. I used those measurements to propose and ship the production billing model for agentic retrieval, which launched with a new serverless enterprise search offering."
+          thought: "Connect highly variable workloads to the need for CPU, memory, and throughput profiling. State the serverless billing scope as both agentic retrieval and diversity-aware search, and keep the 80% memory reduction limited to key paths.",
+          answer: "Agentic-retrieval workloads vary substantially between requests, so I architected a new benchmarking system to profile CPU, memory, and throughput. Those measurements established the serverless billing formula for agentic retrieval and diversity-aware search. The profiling also supported memory optimization, reducing memory by 80% on key paths."
         },
         {
-          thought: "Keep the workload dimensions and dependency patterns, then connect those measurements to the billing model and memory optimizations. Don't imply a particular pricing formula.",
-          answer: "I built workload benchmarks that modeled CPU, memory, throughput, latency distributions, tool-calling iterations, and dependency patterns. Those measurements informed the production billing model I proposed and shipped with a serverless enterprise search launch. The same profiling also identified memory optimizations, which I implemented."
+          thought: "Explain the measurement-to-product connection without inventing pricing details. Distinguish the benchmark-related 80% memory reduction on key paths from vector-search diversity's separate 85.6% pre-shipping reduction.",
+          answer: "I designed benchmarks around the variability of agentic retrieval rather than treating every request as equivalent. Profiling CPU, memory, and throughput let me establish the serverless billing formula for both agentic retrieval and diversity-aware search. I also optimized memory by 80% on key paths\u2014a separate result from the 85.6% pre-shipping memory reduction in my vector-search diversity work."
         }
       ]
     },
@@ -409,11 +409,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Explain the service and Robert's own scope without replacing them with an analogy. Define vector search briefly, keep the scale and team technical leadership, and avoid claiming that the search engine literally understands a request.",
-          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search, a service businesses use to search their documents and power AI apps. I helped scale vector search, which compares numerical representations of text to find related meanings, not just matching words. Today I'm the technical lead for a team of six engineers and scientists building vector-search diversity to reduce repetitive search results."
+          answer: "I'm a Senior Software Engineer on Microsoft Azure AI Search, a service businesses use to search their documents and power AI apps. I helped scale vector search, which compares numerical representations of text to find related meanings, not just matching words. Today I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity to reduce repetitive search results."
         },
         {
           thought: "Keep a concrete example, but pair it with the engineering work. Vector search can match related meanings rather than exact words; Robert helped scale it across billions of embeddings and is now technical lead for the six-person vector-search diversity team.",
-          answer: "I'm a Senior Software Engineer building the search technology behind business apps and AI assistants at Microsoft. With vector search, a query for \u201ccheap flights\u201d can find \u201cbudget airfare\u201d without sharing the same words. I helped scale that capability across billions of embeddings, the numerical representations used for matching. Now I'm the technical lead for a team of six engineers and scientists building vector-search diversity to make results less repetitive."
+          answer: "I'm a Senior Software Engineer building the search technology behind business apps and AI assistants at Microsoft. With vector search, a query for \u201ccheap flights\u201d can find \u201cbudget airfare\u201d without sharing the same words. I helped scale that capability across billions of embeddings, the numerical representations used for matching. Now I'm the technical lead for a team of six engineers and scientists delivering vector-search diversity to make results less repetitive."
         }
       ]
     },
@@ -430,11 +430,11 @@ window.HeroChatContent = (function () {
       variants: [
         {
           thought: "Use product choice as a concrete example of result redundancy, then connect it to broader evidence for AI grounding. Keep Robert's research-to-production scope, but don't expose the vector-diversity algorithm.",
-          answer: "I'm a Senior Software Engineer and the technical lead for a team of six engineers and scientists building a new vector-search diversity capability for Azure AI Search. It reduces redundant results: an online store should offer meaningful choices, not ten near-identical products. The same issue matters for AI grounding, where a broad question may need evidence from different parts of a document collection. Our work spans research and production engineering, with applications in e-commerce and recommendations."
+          answer: "I'm a Senior Software Engineer and the technical lead for a team of six engineers and scientists delivering a novel vector-search diversity capability for Azure AI Search. It reduces repetitive results: an online store should offer meaningful choices, not ten near-identical products. AI assistants similarly need evidence from different parts of a document collection for broad questions. I own the work from technical vision through delivery, including making it faster and more memory-efficient before shipping."
         },
         {
           thought: "Explain search diversity as reducing redundancy, not guaranteeing a complete or correct answer. Connect the product goal to Robert's technical responsibility, with both recommendations and broad AI grounding as examples.",
-          answer: "My current focus is vector-search diversity: reducing repetition without losing sight of relevance. As a Senior Software Engineer, I'm the technical lead for a team of six engineers and scientists taking this new capability from research toward production. It can give shoppers and recommendation users more distinct choices, and provide AI assistants with broader evidence for questions that span a document collection."
+          answer: "My current focus is vector-search diversity: reducing repetition without losing sight of relevance. As a Senior Software Engineer, I'm the technical lead for a team of six engineers and scientists delivering this new capability. It can give shoppers and recommendation users more distinct choices, and provide AI assistants with broader evidence for questions spanning a document collection. Before shipping, I improved latency by 4.68\u00d7 and reduced memory by 85.6%."
         }
       ]
     },
