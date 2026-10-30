@@ -1028,7 +1028,7 @@ em { font-style: italic; }
 
 /* Responsive */
 @media (max-width: 1400px) {
-  .site-nav a { padding-inline: 10px; }
+  .site-nav a { padding-inline: 7px; }
 }
 
 @media (max-width: 1280px) {

@@ -352,6 +352,11 @@
   }
 
   function tick() {
+    // A queued frame can run before the media-query change event arrives.
+    if (reducedMotion.matches) {
+      sync();
+      return;
+    }
     advance();
     if (canRun()) {
       if (twinkle && clock >= twinkle.start + twinkle.duration) twinkle = null;
