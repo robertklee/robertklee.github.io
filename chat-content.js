@@ -19,8 +19,8 @@ window.HeroChatContent = (function () {
     "I'm curious about Robert. Where should I start?"
   ];
 
-  // Current work follows the canonical CV in index.html; earlier career and
-  // project details also draw on the linked resume. These are scripted traces.
+  // Career answers draw on the resume; earlier project details follow
+  // index.html. These are scripted traces.
   // Real language models are non-deterministic: the same prompt yields a
   // different chain-of-thought and answer each time. To echo that, we keep a
   // set of {thought, answer} pairs and pick one at random on every page load.
@@ -191,17 +191,17 @@ window.HeroChatContent = (function () {
       docs: ['Filter generation', 'Lucene boosts', 'Bounded operator set'],
       sources: [['work-agentic', 'Agentic retrieval'], ['profile-work-entry-1', 'Senior Software Engineer']],
       prompts: [
-        "How does agentic retrieval generate filters and boosts?",
-        "What does filter and boost generation do?"
+        "How did Robert unblock the filter-generation launch?",
+        "What was Robert's key decision in agentic filter generation?"
       ],
       variants: [
         {
-          thought: "Give the actual field types and operator boundaries, then distinguish hard filters from ranking preferences. The bounded set uses eq/ne with and/or over categorical or low-cardinality string, string[], and bool fields. Boosts are Lucene-style, and unsupported constraints must not be presented as enforced filters.",
-          answer: "It translates natural-language intent into hard filters and ranking preferences. The supported operator set uses categorical, low-cardinality fields\u2014fields with few distinct values\u2014of type string, string[], or bool. Filters combine equal (eq) and not-equal (ne) with and/or; Lucene-style boosts affect ranking rather than eligibility. Generated filters can be validated against the index schema; unsupported constraints aren't enforced as filters."
+          thought: "Frame the narrower operator set as a risk decision that unblocked a launch. Distinguish loss of evidence from access control, and hard eligibility constraints from uncertain ranking preferences.",
+          answer: "The launch had stalled around arbitrary natural-language-to-filter generation. A wrong filter silently removes evidence, so I narrowed the problem to high-confidence operators covering 67% of production filter traffic and aligned science to favor abstention over guessing. Generated filters are ANDed with security filters so they never widen access; uncertain intent becomes a soft ranking boost instead. The launch raised nDCG@5 from 55.7 to 82.7, with 30 enterprises adopting in month one. On FreshStack, boosts improved answer match by 5.3 points with 12.4% fewer tokens."
         },
         {
-          thought: "Explain the research-to-production decision through the actual supported set, not a vague promise of simpler filters. Both variants should retain the field types, operator restrictions, and the distinction between filtering and Lucene boosting.",
-          answer: "I led this from research to production using a bounded, verifiable operator set: equal (eq), not-equal (ne), and logical and/or over categorical, low-cardinality string, string[], and bool fields with few distinct values. Filters constrain eligibility; Lucene-style boosts express ranking preferences. The restricted set lets us validate generated filters against the index schema."
+          thought: "Start with why less expressive filtering was the better design, then the evidence, adoption, and separate boost result. Keep the security-filter intersection explicit.",
+          answer: "I chose reliable coverage over expressive but risky filters. Production analysis showed that a bounded operator set covered 67% of filter traffic, enough to unblock the launch without pretending we could safely infer every constraint. I pushed for abstention when uncertain, ANDed generated filters with security filters to preserve access boundaries, and used ranking boosts for softer intent. nDCG@5 improved from 55.7 to 82.7, and 30 enterprises adopted in the first month. Separately, boosts delivered 5.3 points better answer match and 12.4% fewer tokens on FreshStack."
         }
       ]
     },
@@ -217,12 +217,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "This is about decision-making. For agentic filter generation, the open question was whether a bounded operator set would cover what customers actually need. Robert answered it with production analysis, which brought research and product to agreement. Keep it about the evidence.",
-          answer: "The design question was which filter operations we needed to support. I analyzed production usage to show that a limited set of operations we could validate covered real customer workloads. That gave research and product a shared basis for agreeing on the technical direction."
+          thought: "Make the debate and its resolution concrete: arbitrary synthesis versus a reliable subset, measured production coverage, and launch adoption. Focus on Robert's influence rather than implementation details.",
+          answer: "For filter generation, the debate was whether a limited design could be useful enough to ship. I analyzed production traffic and showed that a high-confidence operator set covered 67% of existing filter usage. That reframed the choice: we didn't need arbitrary filter synthesis to help customers, and a wrong filter could silently discard the answer. I aligned research and product around that scope and an abstention-first policy. The launch reached 30 enterprises in its first month."
         },
         {
-          thought: "The general lesson is to turn a debate into a question data can answer. A smaller design only convinces people if it still covers real usage, so Robert measured that directly from production. Tell it as a repeatable approach, using the filter-generation work.",
-          answer: "I try to turn a design debate into a testable question. For agentic filter generation, we needed to know whether a limited set of supported operations covered real usage. Production analysis demonstrated that coverage, and I brought research and product to consensus around the evidence."
+          thought: "Use evidence to explain why Robert could narrow scope without merely lowering ambition. Connect the decision to both retrieval quality and enterprise adoption.",
+          answer: "I try to replace an abstract debate with a question we can measure. A filter-generation launch was stuck on supporting arbitrary natural language, so I measured how much production usage a reliable subset would cover: 67% of filter traffic. I used that evidence to align research and product on bounded operators and abstention rather than guessing. The narrower design raised nDCG@5 from 55.7 to 82.7 and attracted 30 enterprise adopters in month one."
         }
       ]
     },
@@ -259,12 +259,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Connect highly variable workloads to the need for CPU, memory, and throughput profiling. State the serverless billing scope as both agentic retrieval and diversity-aware search, and keep the 80% memory reduction limited to key paths.",
-          answer: "Agentic-retrieval workloads vary substantially between requests, so I architected a new benchmarking system to profile CPU, memory, and throughput. Those measurements established the serverless billing formula for agentic retrieval and diversity-aware search. The profiling also supported memory optimization, reducing memory by 80% on key paths."
+          thought: "Show the path from production evidence to a pricing decision. Keep the benchmark's scenario and request counts, measured resources, and key-path memory saving distinct.",
+          answer: "Agentic requests can do very different amounts of work, so a single average request wasn't a sound basis for pricing. I architected a 150-scenario benchmark harness from 537,000 production requests, measuring CPU, memory, and throughput. Those measurements let me establish the serverless billing formula. I also cut memory by 80% on key paths. The accomplishment was connecting production workload variability to both the product's economics and the engine's resource use."
         },
         {
-          thought: "Explain the measurement-to-product connection without inventing pricing details. Distinguish the benchmark-related 80% memory reduction on key paths from vector-search diversity's separate 85.6% pre-shipping reduction.",
-          answer: "I designed benchmarks around the variability of agentic retrieval rather than treating every request as equivalent. Profiling CPU, memory, and throughput let me establish the serverless billing formula for both agentic retrieval and diversity-aware search. I also optimized memory by 80% on key paths\u2014a separate result from the 85.6% pre-shipping memory reduction in my vector-search diversity work."
+          thought: "Explain why workload variability changes the measurement problem. Preserve the difference between billing design and a measured resource reduction rather than inventing a customer price saving.",
+          answer: "I needed to price agentic retrieval without pretending every request cost the same. Starting from 537,000 production requests, I designed 150 benchmark scenarios covering CPU, memory, and throughput, and used the results to set the serverless billing formula. I also reduced key-path memory by 80%, addressing the resource costs behind the pricing decision."
         }
       ]
     },
@@ -280,12 +280,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Connect scalar and binary quantization and SIMD distance kernels to the shipped cost and latency improvements. Include the approximation tradeoff as well as the workload-dependent numbers, rather than presenting compression as free.",
-          answer: "I drove vector quantization from public preview to general availability on Azure AI Search. Scalar and binary quantization reduce vector storage precision, while SIMD-accelerated distance kernels make comparisons efficient. The work delivered 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency, depending on the workload. The tradeoff is approximation: savings need to be evaluated alongside retrieval quality."
+          thought: "Make the accomplishment end-to-end delivery with a small team and a measured quality tradeoff. Separate distance-kernel speed from index memory and whole-query latency.",
+          answer: "With two other engineers, I built scalar and binary vector quantization from scratch to general availability. The hard part wasn't just storing fewer bits: I took it through C++ SIMD distance kernels, segment merges, and distributed sharding. We reduced index memory by up to 32\u00d7 at about 1% recall loss, with distance calculations 8\u201312\u00d7 faster. I also caught a float16 binary-quantization failure that would have returned near-random results without an error, and strengthened release gates with pseudorandom-vector tests."
         },
         {
-          thought: "Use the 32-to-8-to-1-bit comparison, but retain the precision tradeoff. Smaller representations save storage and support efficient comparisons; they approximate the original vectors, so retrieval quality and workload matter alongside cost and latency.",
-          answer: "For float32 embeddings, scalar quantization reduces each dimension from 32 bits to 8, and binary quantization to 1. Those smaller representations trade precision for lower storage cost and efficient SIMD distance computation. I drove the capability from preview to general availability, delivering 8\u201332\u00d7 cost savings and up to 20\u00d7 lower latency, with results depending on the workload."
+          thought: "Lead with the economic constraint, then engineering ownership and the recall safeguard. Do not equate representation size or faster distance kernels with total service cost or end-to-end latency.",
+          answer: "Vector memory was a major scaling cost, but shrinking it is only useful if search still finds the right results. I built scalar and binary quantization with two other engineers, from SIMD kernels to distributed-engine integration and general availability. The result was up to 32\u00d7 less index memory at about 1% recall loss, plus 8\u201312\u00d7 faster distance calculations. To protect that tradeoff, I built tests that exposed a silent float16 binary-search failure before it could return near-random results."
         }
       ]
     },
@@ -301,12 +301,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "This is about the inner loop. Robert optimized the vector distance kernel with SIMD, loop unrolling, multiple independent accumulators, and fused multiply-add. Explain what each one buys, without crediting the whole quantization speedup to one kernel.",
-          answer: "I optimized vector distance kernels with SIMD (single instruction, multiple data), loop unrolling, multiple independent accumulators, and fused multiply-add (FMA). SIMD processes several dimensions per instruction; independent accumulators break up the serial dependency chain so the CPU can overlap work. FMA combines multiplication and accumulation. Because this kernel runs for every candidate distance evaluation, its efficiency matters across the whole search."
+          thought: "Start with the measured kernel improvement and explain the hardware decision behind it. Keep 8 to 12 times faster distances distinct from whole-query performance.",
+          answer: "I built C++ vector-distance kernels that made distance calculations 8\u201312\u00d7 faster. SIMD processes several dimensions per instruction, but that alone doesn't remove a serial accumulation bottleneck. I used loop unrolling and independent accumulators to expose more parallel work, with fused multiply-add combining multiplication and accumulation. This carried hardware-level optimization into the quantization engine's candidate comparisons."
         },
         {
-          thought: "Frame it as hardware-aware engineering. Vector search spends much of its time computing distances, so the kernel matters. Robert used SIMD, unrolling, multiple accumulators, and FMA, drawing on an embedded-systems background. Connect those.",
-          answer: "The distance kernel is a hot path in vector search. I used SIMD to process dimensions in parallel, loop unrolling to expose more work, and independent accumulators to reduce dependency bottlenecks. Fused multiply-add combines multiplication and accumulation in one instruction. That hardware-aware approach builds on my embedded-systems background in ARM assembly and VHDL."
+          thought: "Explain why dependency chains mattered, then the measured benefit and production context. Avoid presenting a list of CPU techniques as the achievement.",
+          answer: "I focused on a tiny operation repeated throughout vector search: comparing candidate vectors. Packing dimensions into SIMD instructions helped, but I also broke the accumulation dependency chain with multiple independent accumulators and loop unrolling. Together with fused multiply-add, the C++ kernels delivered 8\u201312\u00d7 faster distance calculations. My contribution was carrying that low-level work into a quantization system that shipped, rather than stopping at an isolated microbenchmark."
         }
       ]
     },
@@ -322,12 +322,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Explain HNSW as graph-based approximate nearest-neighbour search, then tie it to Robert's documented engine work. Distinguish traversal from distance computation and the recall-versus-effort tradeoff from production quota enforcement. Do not imply authorship of HNSW.",
-          answer: "HNSW is a graph search approach to approximate nearest-neighbour retrieval: vectors are nodes, and links guide the search toward nearby candidates. Sparse upper levels provide shortcuts; the base level explores a candidate pool. Keeping more candidates can improve recall\u2014the share of true nearest neighbours found\u2014but usually requires more distance comparisons. My work included resource-aware quota enforcement for HNSW indexes and SIMD-optimized distance kernels that process several values per CPU instruction."
+          thought: "Lead with Robert's preview-to-GA engine ownership and service adoption, then explain the graph-search tradeoff. Distinguish HNSW indexing, physical-memory quota enforcement, and distance kernels.",
+          answer: "I joined vector search before preview and built core HNSW indexing and the k-NN query path through general availability. The platform scaled to millions of indexes and supported OpenAI's custom-GPT launch. HNSW graph search trades candidate pool size for recall and work; making it dependable also required physical-memory quota enforcement and efficient SIMD distance kernels. I reduced memory-limit overshoot from 10\u201320% to under 1% across more than 10,000 services, rather than treating the graph algorithm alone as the finished product."
         },
         {
-          thought: "Start with Robert's contributions, then explain how HNSW graph traversal and SIMD distance kernels fit together. Keep the resource-quota work distinct from search parameters, and make the approximation tradeoff explicit.",
-          answer: "My HNSW graph search work focused on the vector engine: I designed quota enforcement tied to physical resource use and optimized vector-distance kernels with SIMD, processing several values per CPU instruction. HNSW follows links between stored vectors, taking shortcuts through sparse upper levels before exploring candidates at the base. A larger candidate pool can improve recall\u2014the share of true nearest neighbours found\u2014at the cost of more search effort."
+          thought: "Connect approximate graph traversal to Robert's production work, keeping service scale attributed to the platform. Explain the resource-control outcome without reusing the superseded overshoot multiplier.",
+          answer: "HNSW graph search follows links between vectors instead of comparing every vector. A larger candidate pool can improve recall, but costs more work. I built its indexing and k-NN query path from pre-preview through GA, optimized distance calculations with SIMD, and tied quota enforcement to physical memory. That cut memory-limit overshoot from 10\u201320% to under 1% across 10,000+ services. The broader vector platform reached millions of indexes and was trusted by OpenAI for its custom-GPT launch."
         }
       ]
     },
@@ -344,12 +344,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Keep the distinction between ranking and eligibility. Hybrid search combines keyword and vector retrieval signals; subscore fusion shapes their contribution to the final ranking, while score thresholds exclude insufficient matches. Don't invent a fusion formula or internal implementation.",
-          answer: "Hybrid search combines keyword and vector retrieval signals, which have different scoring semantics. I designed subscore fusion to improve how those signals contribute to the final ranking, and score thresholding to exclude insufficient matches. These address different parts of relevance: how candidates are ranked, and whether they're strong enough to return at all."
+          thought: "Use the resume's explicit BM25 and vector RRF contribution. Explain why per-retriever subscores and thresholds mattered for debugging and tuning rather than listing controls.",
+          answer: "I built BM25-plus-vector retrieval with reciprocal rank fusion, or RRF, as part of taking vector search through GA. A blended ranking can hide why a result surfaced, so I added per-retriever subscores and thresholds to make hybrid results debuggable, tunable, and filterable. The distinction matters: combining ranks determines ordering; thresholds let callers reject weak evidence instead of assuming that a high-ranked result is necessarily a good match."
         },
         {
-          thought: "Connect the features to why they matter now. When results become an LLM's evidence, a weak match can be worse than none. Subscore fusion and score thresholding were Robert's designs for blended vector and keyword search. Tie both to grounding.",
-          answer: "I worked on two controls for blended vector and keyword retrieval: subscore fusion for combining ranking signals, and score thresholds for filtering out weak matches. They're especially useful when results become an LLM's grounding context: a high position in the ranking isn't, by itself, evidence that a passage is a sufficiently strong match."
+          thought: "Lead with making a blended retrieval system explainable and controllable. Name the fusion method and distinguish the contribution from inventing RRF itself.",
+          answer: "My contribution was making hybrid retrieval both usable and diagnosable. I built the BM25-plus-vector RRF integration, then exposed per-retriever subscores and thresholds so customers could understand, tune, and filter the combined results. That is especially important when results become an AI model's evidence: the best-ranked item in a weak candidate set may still be a poor source. I wanted callers to see and control that distinction."
         }
       ]
     },
@@ -359,19 +359,19 @@ window.HeroChatContent = (function () {
       weight: 1,
       followupOnly: true,
       docs: ['HNSW quotas', 'Incident response'],
-      sources: [['work-hnsw', 'HNSW graph search'], ['profile-work-entry-2', 'Software Engineer II']],
+      sources: [['work-hnsw', 'HNSW graph search'], ['profile-work-entry-2', 'Software Engineer II'], ['profile-work-entry-1', 'Senior Software Engineer']],
       prompts: [
         "How does Robert keep a large search service reliable?",
         "How does Robert approach reliability in production?"
       ],
       variants: [
         {
-          thought: "Reliability has two sides: prevention and recovery. For prevention, HNSW indexes are resource-hungry, and Robert built a data-driven quota mechanism tied to physical resource use that cut limit overshoot by 100\u00d7. For recovery, he root-causes hard incidents across teams. Cover both.",
-          answer: "I work on both prevention and incident response. For HNSW graph search indexes, I designed quota enforcement tied to physical resource utilization, cutting limit overshoot by 100\u00d7 through cross-team design work. I also root-cause production incidents across teams and review distributed-systems and vector-algorithm changes, with the goal of restoring service quickly and preventing recurrence."
+          thought: "Show a reliability decision under stale telemetry, its measured effect, and durable on-call leverage. Do not turn incident counts into an unsupported reduction metric.",
+          answer: "I found that vector-memory statistics could lag by 3\u201312 minutes, so I tied HNSW quotas to physical memory and reserved exact accounting for utilization above 85%. That reduced limit overshoot from 10\u201320% to under 1% across 10,000+ services. I also try to make incident knowledge reusable: after resolving six Sev 2 incidents in one shift, I turned the investigations into onboarding workshops and support's RAG troubleshooting guide, so on-call didn't depend on one expert."
         },
         {
-          thought: "Start with incidents, then the structural fix. Robert root-causes cross-team incidents and reviews distributed-systems and vector-algorithm changes, and the HNSW quota work fixed one class of problem at the source. Keep incident details private.",
-          answer: "Incident response means tracing failures across team and system boundaries, restoring service, and following through with a durable fix. I also work on structural prevention: the quota enforcement I designed for HNSW graph search indexes ties limits to physical resource use and cut overshoot by 100\u00d7. Reviews of distributed-systems and vector-algorithm changes are another part of preventing the next incident."
+          thought: "Use a specific cross-system diagnosis, then the quota outcome and knowledge transfer. Keep the permanent shard-rebalancing work attributed as a design proposal rather than a shipped fix.",
+          answer: "I look past the failing component to the system assumption that broke. In one incident, a vector-blind shard rebalancer packed 138 GB onto 108 GB nodes. I restored a top customer's service and wrote the permanent-fix design proposal. Separately, I cut HNSW memory-limit overshoot from 10\u201320% to under 1% across 10,000+ services. After a shift with six Sev 2s, I codified investigation techniques in workshops and a RAG troubleshooting guide to spread that judgment beyond me."
         }
       ]
     },
@@ -387,12 +387,54 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "The facet-aggregation engine is the compiler-style story. Robert owned it end to end from the spec: a custom lexer, parser, and evaluator built on a BNF grammar, the shunting-yard algorithm, and Reverse Polish Notation, backed by extensive A/B tests. Keep it concrete.",
-          answer: "Yes. I owned an extensible facet-aggregation engine for Azure AI Search end to end, starting from the spec. It's a custom lexer, parser, and evaluator: a BNF grammar defines the expressions, and the shunting-yard algorithm converts them to Reverse Polish Notation so they can be parsed, simplified, and validated. Extensive A/B testing backed it."
+          thought: "Lead with the capability Robert generalized and partner adoption, then explain why compiler techniques fit. Do not claim a performance metric or validation method absent from the updated resume.",
+          answer: "Yes. I generalized facet aggregation from single objects to arbitrarily nested objects and arrays, owning the work from specification to partner-team adoption. Rather than piling on special cases, I treated facet expressions as a language: a BNF grammar, lexer, shunting-yard parser to Reverse Polish Notation, and evaluator. The accomplishment was extending what the engine could express with a coherent language design."
         },
         {
-          thought: "Explain why a compiler technique belongs in a search engine. Facet expressions need to be parsed, checked, and evaluated safely, which is a classic language problem. Robert built the lexer, parser, and evaluator from the spec. Describe the pipeline briefly.",
-          answer: "Yes: facet expressions in a search engine are really a small language, so I treated them like one. For an extensible facet-aggregation engine I owned end to end, I built a lexer, parser, and evaluator from a BNF grammar, using the shunting-yard algorithm and Reverse Polish Notation to parse, simplify, and validate expressions, with extensive A/B testing behind it."
+          thought: "Frame the parser as the decision that enabled arbitrary nesting, not the achievement by itself. Retain end-to-end ownership through partner adoption.",
+          answer: "I used compiler techniques to remove a limitation in search aggregation: facets only handled single objects, and we needed arbitrary nesting and arrays. I defined a BNF grammar and built the lexer, shunting-yard parser, and Reverse Polish Notation evaluator, carrying the design from spec through partner-team adoption. It was a language-design problem inside a search engine, not just another fixed aggregation case."
+        }
+      ]
+    },
+    {
+      id: 'engineering-standards',
+      category: 'leadership',
+      weight: 2,
+      docs: ['API contract gate', 'Shared E2E framework'],
+      sources: [['profile-work-entry-1', 'Senior Software Engineer']],
+      prompts: [
+        "What has Robert built that made other engineers more effective?",
+        "How has Robert raised engineering standards beyond his own work?"
+      ],
+      variants: [
+        {
+          thought: "Use adoption and prevented failures to demonstrate organizational leverage. Distinguish the API contract gate from the shared end-to-end test framework, without conflating their results.",
+          answer: "I noticed that our runtime data model and published SDK specs could disagree, so I initiated a compiler-style API contract gate to reconcile them. It caught all eight backtested defects, prevented five new ones, and the API team adopted it as their gold standard. I also filled an end-to-end testing gap: few retrievers had that coverage, and outbound contracts had none. The mocked E2E framework I authored became the team standard, was extended by at least five engineers, and was codified in AI-agent skills."
+        },
+        {
+          thought: "Lead with reusable engineering practices rather than personal throughput. Retain the distinct adoption evidence for the test framework and API team's contract gate.",
+          answer: "I try to turn a fix into a practice others can build on. I authored our now-standard mocked end-to-end framework when retriever coverage was sparse and outbound contracts weren't tested; at least five engineers extended it, and we codified it in AI-agent skills. Separately, I built a compiler-style gate comparing runtime models with SDK specifications. It caught all eight historical defects we backtested and prevented five new ones, earning adoption as the API team's gold standard."
+        }
+      ]
+    },
+    {
+      id: 'recall-guardrails',
+      category: 'technical',
+      weight: 2,
+      docs: ['Recall quality gates', 'Scalar quantization'],
+      sources: [['profile-work-entry-1', 'Senior Software Engineer'], ['work-quantization', 'Quantization']],
+      prompts: [
+        "When did Robert catch a problem that averages hid?",
+        "How did Robert change the quality bar for vector compression?"
+      ],
+      variants: [
+        {
+          thought: "Use the gap between average and worst-case recall to explain a lasting review standard. Pair it with preventing compounding quantization error and unsafe inline training at design review.",
+          answer: "Matryoshka truncation averaged 0.988 recall@50, but one query fell to 0.82. I made worst-case recall against exact search the quality bar every new quantizer must clear, rather than letting an average hide a bad failure. In another design review, I caught int8 re-quantization error compounding across segment merges and inline training risking thread-pool exhaustion. I steered that quantizer toward bounded background auto-training with timeouts and fallbacks, blocking a design that could permanently erode recall."
+        },
+        {
+          thought: "Show preventive judgment, not just debugging. Preserve the observed recall values, the exact-search reference, and the distinction between design-review intervention and a shipped performance gain.",
+          answer: "I challenged a reassuring compression average: 0.988 recall@50 concealed a query at 0.82. That led me to establish worst-case recall versus exact search as a required quantizer design-review bar. I also stopped a proposed exhaustive k-NN quantizer from repeatedly re-quantizing int8 data during segment merges, which would compound error. Because inline training also risked exhausting the thread pool, I redirected the design to a bounded background worker with timeouts and fallbacks."
         }
       ]
     },
@@ -471,12 +513,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Tell it as growing technical scope: Garage in 2018, search internships in 2019 and 2020, full-time from 2021, scaling vector search, then Senior Software Engineer from 2025. He is currently technical lead for the six-person vector-search diversity team, setting direction and owning delivery.",
-          answer: "I've moved from owning parts of an app to owning broader technical efforts. At Microsoft Garage in 2018, I helped build a chest X-ray classification app, followed by search internships in 2019 and 2020. I joined Azure AI Search full-time in 2021 and helped scale vector search for broad adoption. I've been a Senior Software Engineer since 2025; currently I'm the technical lead for a team of six engineers and scientists building vector-search diversity."
+          thought: "Trace increasing ownership from an app to a production engine to cross-org architecture. Use adoption and team scope to show growth rather than just reciting job titles.",
+          answer: "I started with a chest X-ray classification app at Microsoft Garage in 2018, followed by two search internships. After joining full-time in 2021, I grew from individual service changes to building vector search through general availability; the platform went on to support OpenAI's custom-GPT launch. Since March 2025 I've been a Senior Software Engineer, leading retrieval architecture for six engineers and scientists across four organizations and securing investment that doubled the team's headcount."
         },
         {
-          thought: "Use the progression to show breadth as well as ownership: mobile ML at Garage, production search features, vector search at scale, and technical leadership for the vector-search diversity team. Keep the emphasis on direction, end-to-end delivery, and hands-on engineering.",
-          answer: "The growth has been in both breadth and technical ownership: mobile ML in a chest X-ray app at Microsoft Garage, production features on the search team, then vector storage, quantization, and relevance at scale. I helped take vector search to broad production adoption. Now, as a Senior Software Engineer and the technical lead for a team of six engineers and scientists building vector-search diversity, I set the technical direction and own delivery through partner alignment and hands-on implementation."
+          thought: "Frame the career around expanding decisions and responsibility, retaining Garage as a separate internship and the actual Senior Software Engineer title.",
+          answer: "The biggest change has been the scope of the decisions I own. I went from parts of an offline chest X-ray app at Microsoft Garage to core search infrastructure after joining full-time in 2021. I helped build the vector engine used for OpenAI's custom-GPT launch. Now, as a Senior Software Engineer, I lead retrieval architecture for six engineers and scientists across four organizations, aligning research and product and winning investment to grow the work."
         }
       ]
     },
@@ -534,12 +576,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "The numbers tell this one. Robert founded a digital literacy program for seniors and ran it for six years, growing it to 180 volunteers and 650+ seniors across 30 workshops before handing it off. He also built a 14-workshop IEEE series for 350+ students and founded a conference with 200+ attendees.",
-          answer: "I founded a digital literacy program for seniors and ran it for six years. It grew to 180 volunteers and 650+ seniors across 30 workshops, and I handed it to successors who kept it going. Through our IEEE student branch I built a 14-workshop technical series that reached 350+ students, and I founded a tech and business strategy conference with 200+ attendees."
+          thought: "Make durable community impact the accomplishment: sponsorship and a volunteer pipeline let the seniors' program outlast its founder. Retain the scale of the IEEE workshops and conference.",
+          answer: "I founded a digital literacy program that reached 650+ seniors with 180 volunteers. The part I'm proudest of is making it last: I secured university sponsorship and a volunteer pipeline from three partner organizations, so successors could keep it running after I stepped away. I also ran 14 IEEE workshops for 350+ students and won university support to found a tech and business strategy conference with over 200 attendees."
         },
         {
-          thought: "The common thread is building programs that keep running after Robert steps away, and the seniors' program is the warmest example: past participants emailed years later to ask when the next session would run. Then the IEEE workshop series and the conference. Lead with that thread, then the scale.",
-          answer: "I like building programs that outlast me. The seniors' digital literacy program I founded reached 650+ seniors with 180 volunteers and kept running after I handed it off; years later, past participants still emailed to ask when the next session would be. I also built an IEEE workshop series that reached 350+ students, and founded a tech and business strategy conference that drew 200+ attendees."
+          thought: "Connect founding with institution-building, not just event counts. Explain what made succession possible, then preserve the other community accomplishments.",
+          answer: "I like building things that don't depend on me being there forever. For the seniors' digital literacy program I founded, I built university support and a volunteer pipeline through three partner organizations. It reached 650+ seniors with 180 volunteers, and successors sustained it. At university I also led a 14-workshop IEEE series for 350+ students and founded a tech and business strategy conference that brought together more than 200 attendees."
         }
       ]
     },
@@ -555,12 +597,12 @@ window.HeroChatContent = (function () {
       ],
       variants: [
         {
-          thought: "Keep the current mentoring work distinct from the 2024 chatbot challenge. At Microsoft Robert mentors engineers and leads design reviews; in SENG 321 he coaches requirements and design reasoning using an open-ended challenge drawn from production AI systems.",
-          answer: "At Microsoft I mentor and onboard engineers and lead design reviews. At the University of Victoria, I mentor a SENG 321 requirements-engineering team using a challenge drawn from production AI systems. I help students identify stakeholder needs, choose a workable scope, and justify their design as they move from an ambiguous brief to a clickable prototype."
+          thought: "Use an intern's project progression and outcome as a concrete mentoring example, then explain the judgment Robert develops in university teams. Attribute the project and return offer to the intern.",
+          answer: "At Microsoft, I mentored an intern from ideation through design review of a shared filesystem for MCP agent fleets. The project reached a VP demo, and the intern received a return offer. At the University of Victoria, I mentor SENG 321 teams with challenges around LLM reliability, hallucination, and safety. I focus on helping people reason through ambiguous requirements and defend a workable design, not just finish an implementation."
         },
         {
-          thought: "Focus on how Robert coaches: he looks at the quality of the reasoning, not just the output. In SENG 321 he holds biweekly reviews on scope and design rationale; in 2024 he was one of 18 mentors for a 120-student cohort. At work he mentors and onboards engineers. Make the coaching style the point.",
-          answer: "I focus on the reasoning behind a design: whose needs it serves, what assumptions it makes, and how the team justifies its scope. As a SENG 321 industry mentor at the University of Victoria, I review that reasoning biweekly; in 2024 I was one of 18 mentors for 120 students. At Microsoft I bring the same focus to mentoring engineers, onboarding, and design reviews."
+          thought: "Explain the mentoring style through decisions and ownership. Retain both the university challenges and the Microsoft intern's concrete outcome without implying sole credit for their success.",
+          answer: "I want people to own the reasoning behind their designs. In UVic's SENG 321, I designed challenges about LLM reliability, hallucination, and safety, then coached teams on scope, assumptions, and stakeholder needs. At Microsoft, I helped an intern take a shared filesystem for MCP agent fleets from an idea through design review; it went on to a VP demo and a return offer. The goal is stronger engineering judgment that lasts beyond one project."
         }
       ]
     },

@@ -1955,6 +1955,57 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
   });
 }
 
+for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
+  test(`career stories retrieve their evidence, retry, and navigate to role details at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await inspectIdleField(page, { stubChat: false });
+    await page.route('**/chat-content.js', async route => {
+      const response = await route.fetch();
+      await route.fulfill({
+        response,
+        body: await response.text() + `
+          var topic = window.HeroChatContent.TOPICS.find(topic =>
+            topic.id === new URL(location.href).searchParams.get('topic'));
+          topic.weight = 4;
+          topic.followupOnly = false;
+        `,
+      });
+    });
+    const ids = ['engineering-standards', 'recall-guardrails', 'filter-generation',
+      'benchmarking-billing', 'quantization', 'reliability'];
+    for (const [position, id] of ids.entries()) {
+      const sample = position % 2 ? .75 : .35;
+      await page.goto(`${origin}/?topic=${id}&sample=${sample}`);
+      const topic = await page.evaluate(id => window.HeroChatContent.TOPICS.find(topic => topic.id === id), id);
+      const firstVariant = Math.floor(sample * topic.variants.length);
+      await page.getByRole('button', { name: topic.prompts[firstVariant], exact: true }).click();
+      const turn = page.locator('.chat-turn');
+      for (const index of [firstVariant, 1 - firstVariant]) {
+        if (index !== firstVariant) {
+          await turn.locator('.retry-btn').click();
+          await turn.locator('.retry-item').first().click();
+        }
+        await expect(turn.locator('.chat-answer .txt')).toContainText(topic.variants[index].answer);
+        const docs = topic.variants[index].docs || topic.docs;
+        expect(await page.evaluate(() => window.HeroChatLastQuery)).toEqual({ topic: id, docs });
+        const retrieved = await page.evaluate(() => {
+          const field = window.heroFieldTest;
+          return field.query.results.map(result => field.searchGraph.nodes[result.i].label).sort();
+        });
+        expect(retrieved).toEqual([...docs].sort());
+        await expect(turn.locator('.source-chip')).toHaveText(topic.sources.map(([, label], index) => `${index + 1}${label}`));
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      }
+      await expect(turn.locator('.retry-btn')).toBeDisabled();
+      const [role] = topic.sources.find(([id]) => id.startsWith('profile-work-entry-'));
+      await turn.locator(`.source-chip[href="#${role}"]`).click();
+      await expect(page).toHaveURL(new RegExp(`#${role}$`));
+      await expect(page.locator(`#${role}`)).toHaveAttribute('open', '');
+    }
+  });
+}
+
 for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) {
   test(`mobile card grows and caps with accessible follow-ups at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
