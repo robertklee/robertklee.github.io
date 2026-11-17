@@ -56,8 +56,8 @@ window.HeroChat = (function () {
   // Model line-up for the "retry with a different model" control, grouped by
   // capability tier (frontier -> balanced -> efficient) and sorted within tier.
   var MODEL_GROUPS = [
-    ['Claude Fable 5.2', 'Claude Mythos 5.2', 'Claude Opus 5.5', 'GPT-6.1 Sol', 'GPT-6 Astra', 'Gemini 4 Carbon'], // frontier
-    ['Claude Sonnet 5.5', 'Gemini 4 Carbon'], // balanced
+    ['Claude Fable 5.2', 'Claude Mythos 5.2', 'Claude Opus 5.5', 'GPT-6.2 Sol', 'GPT-6.2 Astra', 'Gemini 4 Carbon'], // frontier
+    ['Claude Sonnet 5.5', 'Gemini 4 Argon'], // balanced
     ['GPT-6.1 Terra', 'Gemini 4 Hydrogen'] // efficient
   ];
   var MODEL_GROUP_LABELS = ['Frontier', 'Balanced', 'Efficient'];
